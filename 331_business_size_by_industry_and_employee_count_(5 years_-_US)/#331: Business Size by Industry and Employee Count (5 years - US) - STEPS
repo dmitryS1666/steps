@@ -1,0 +1,137 @@
+STAGE TABLE DEFINITION
+insert into stage_definition_configurations (tbl, definition) select 'business_size_by_industry_and_employee_count_5_year_stage_table', '{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","year":"varchar(255)","state":"varchar(255)","e_val":"varchar(255)","e_type":"varchar(255)","indstr_desc":"varchar(255)","val_top":"varchar(255)","indst_desc_top":"varchar(255)","table":"varchar(255)"}';
+
+
+#343
+
+STAGE TABLE CREATION
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=343 -t
+
+STAGE POPULATION CONFIGURATION
+insert into stage_population_configurations(project_name,tbl, definition) select 'Business Size by Industry and Employee Count (5 years - US)', 'business_size_by_industry_and_employee_count_5_year_stage_table', '{"known_entities":{"project_name":"Business Size by Industry and Employee Count (5 years - US)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"business_size_by_industry_and_emp_count_5_y_in_us_population","arguments":{}}}}';
+
+population_config_id: #471
+
+STAGE POPULATION:
+$ cd ~/Loki/procedures
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=471 -t
+
+
+STORY CREATOR CONFIGURATION:
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'business_size_by_industry_and_employee_count_5_year_stage_table', 'business_size_by_industry_and_emp_count_5_y_in_us_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+
+creation_config_id: #349
+
+STORY CREATION COMMAND:
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=349 -t
+
+
+STAGING: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=349 --population_config_id=471 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Business Size by Industry and Employee Count (5 years - US)' -t
+
+
+STAGING: EXPORT STORIES
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=
+
+
+
+irb -> load 'Loki.rb'
+irb -> Hle::Story::Feedback.stories_feedback(511648794, 511648791, 511648790, 511648792, 511648793)
+
+
+
+!!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
+________________________________________________________________________________________________________________________________________
+
+SCHEDULER:
+__________
+population_config_id: #471
+creation_config_id: #349
+
+tbl: business_size_by_industry_and_employee_count_5_year_stage_table
+desc: Business Size by Industry and Employee Count (5 years - US)
+
+config_id - population_config_id
+
+
+Up to 7 stories per day, per publication, for 110 days, starting November 3
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=471 --limit=7 --start_date='2019-11-3' --total_days_till_end_date=110
+
+__________________________________________________
+чтоб проверить шедулер, что он "окейно" отработал:
+
+select publication_name, min(publish_on), max(publish_on), count(*) from 'business_size_by_industry_and_employee_count_5_year_stage_table' group by publication_name;
+
+______________________________________
+PRODUCTION: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+______________________________________
+
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=349 --population_config_id=471 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Business Size by Industry and Employee Count (5 years - US)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=349 --population_config_id=471 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Business Size by Industry and Employee Count (5 years - US)' -t --prod --limit_config=1 --where="client_id = 120"
+
+______________________________________
+
+select * from story_export_configurations_v2 where tbl = 'business_size_by_industry_and_employee_count_5_year_stage_table' and export_name like '%production%' order by id DESC;
+
+______________________________________
+если все ок, то выполняем без --limit_config=1
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=349 --population_config_id=471 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Business Size by Industry and Employee Count (5 years - US)' -t --prod --where="client_name like 'MM - %'"
+
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=349 --population_config_id=471 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Business Size by Industry and Employee Count (5 years - US)' -t --prod --where="client_id = 120"
+
+_________
+повторяем 
+
+select * from story_export_configurations_v2 where tbl = 'business_size_by_industry_and_employee_count_5_year_stage_table' and export_name like '%production%' order by id DESC;
+
+
+______________________
+для построения таблицы 	
+______________________
+
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from business_size_by_industry_and_employee_count_5_year_stage_table group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='business_size_by_industry_and_employee_count_5_year_stage_table' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+
+
+__________________________
+PRODUCTION: EXPORT STORIES
+__________________________
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='business_size_by_industry_and_employee_count_5_year_stage_table' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=164332 --limit=1
+
+_____
+IF OK
+_____
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --threads_count=7 --config_ids='164334,164319,164324,164294,164306,164385,164343,164301,164289,164287,164425,164313,164304,164318,164293,164316,164338,164381,164371,164286,164299,164390,164457,164291,164302,164472,164386,164344,164305,164392,164296,164370,164337,164354,164444,164340,164400,164368,164420,164424,164309,164315,164310,164284,164372,164298,164358,164346,164290,164487,164382,164445,164423,164535,164450,164447,164376,164360,164454,164468,164404,164432,164384,164581,164622,164474,164496,164519,164465,164394,164455,164308,164303,164295,164481,164503,164330,164664,164364,164311,164510,164515,164328,164436,164314,164322,164563,164493,164446,164434,164529,164408,164555,164300,164560,164460,164598,164639,164575,164702,164543,164591,164320,164606,164379,164603,164485,164452,164647,164292,164361,164686,164741,164773,164388,164724,164362,164803,164428,164678,164461,164630,164329,164719,164522,164513,164505,164533,164352,164551,164559,164540,164512,164326,164617,164568,164427,164669,164602,164759,164755,164657,164790,164557,164820,164443,164566,164504,164398,164321,164583,164426,164453,164593,164830,164418,164342,164430,164600,164494,164479,164501,164848,164696,164734,164767,164797,164477,164786,164448,164826,164641,164619,164317,164484,164636,164509,164544,164406,164307,164312,164661,164816,164416,164531,164466,164875,164547,164594,164680,164856,164843,164901,164396,164467,164700,164870,164492,164415,164458,164514,164738,164923,164518,164561,164578,164853,164635,164943,164554,164770,164620,164675,164409,164709,164410,164435,164879,164608,164712,164963,164604,164896,164799,164579,164827,164380,164374,164881,164437,164366,164331'
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --threads_count=7 --config_ids='164660,164718,164855,164882,164980,164440,164623,164449,164749,164431,164588,164567,164498,164442,164997,164482,164486,164541,164597,164459,164906,164357,164325,164904,164403,164677,164323,164391,164643,164629,164644,164683,164637,164506,164451,164928,164612,164778,164383,164480,164721,164645,164297,164288,164715,164389,164925,164753,164417,164946,164497,164429,164552,164752,164966,164548,164782,164919,164483,164983,164528,164809,165013,164650,164422,164905,164556,164927,165000,164950,164784,164970,164439,164940,164962,164491,164601,164837,165028,164978,164377,164672,164652,164987,164665,165040,165004,165017,164697,164864,164745,164684,164609,164349,164490,164539,164814,164994,165016,165011,164341,164367,164412,164527,165026,164599,165030,164534,164495,164711,164542,164840,164411,165052,164574,164585,164587,164616,164722,164758,164789,164500,164387,164369,164499,164405,164674,164478,164536,164584,165031,164576,164890,164345,165042,164530,164624,164640,164476,164812,164912,164703,164948,164867,164679,164621,164894,164537,164691,164917,164777,164839,164642,164747,164628,164546,164550,164968,164473,164740,164716,164356,164586,164819,164462,164713,164807,164662,165053,164688,164582,165062,164938,165038,164866,164681,164757,164682,164780,164592,164595,164788,164751,164378,164475,164658,164507,165050,164523,164984,165063,165071,164526,164441,164524,164846,164414,164351,164456,164353,164347,164393,164355,164735,164397,164701,164698'
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --threads_count=7 --config_ids='164633,164668,165079,164671,164470,165043,165087,164580,164748,164811,164706,164959,164413,165056,165001,165066,165059,165072,164656,165094,165069,164737,164532,164335,165077,165074,164717,164739,164768,164836,165019,164863,164589,165101,164653,164893,165080,164754,165033,164725,164934,164838,164570,164783,164976,165082,164730,165045,164993,164956,164772,164469,164350,165088,164572,164502,165009,165024,165037,164625,164569,165049,165090,165054,164631,164798,165095,165108,165102,165109,164829,164708,164614,164817,165086,165113,164857,165064,164615,164525,164516,165073,164720,164464,164402,164883,165096,165103,164508,165111,164873,164974,164779,164763,164889,164800,164564,164626,165093,164913,165120,164785,164828,164756,164865,165116,164744,164673,164638,164844,164517,165099,164655,165123,164813,164710,164613,164651,164992,164471,164769,165130,165061,164854,164419,164663,164694,165070,164373,164692,164545,164801,165081,164365,165078,165089,164676,164899,165085,164375,165092,165127,165100,164880,164771,165107,165134,165118,164654,164729,164693,164714,165097,165115,165125,164871,164743,164690,165122,165137,165007,165106,164695,164627,164908,164348,164793,164922,165104,165143,165150,164605,164327,164926,164815,164776,164808,164667,164947,164831,164577,164858,165110,164933,165117,164842,165156,165141,165146,165163,165169,165174,165180,165186,164590,164562,165192,165199,164607,165128,164884,164954,164521,164666,164787,164802,164746,164750,164897,164632,164909,164732,164869,165152,164489,164967,164944,165132,164571,164731,164972,164891,164760,164704,165158,164791,164990,165022,165164,164916,164841,164920,164818,164914,165204,164775,164941,164670,165126,165036,165114,164765,164895,165170,164806,164764,164646,164762,164520,164792,165211,165217,164918,165048,164986,165139,165058,164834,164805,164868,164463,164573,165220,164939,165222,164907,164648,164861,165224,165133,165006,165227,165228,164936,164929,164886,165176,165135,165147,165140,165153,164733,165121,164433,164960,165129,164336'
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --threads_count=7 --config_ids='165136,165159,165182,164892,165003,165144,165021,165188,165035,165148,165047,164835,164957,164915,164821,164949,164961,165068,164823,164977,165142,165166,164833,164705,165154,165149,165076,164969,164438,165160,165231,165151,164795,164707,164766,165155,165161,164794,165167,165165,165233,165194,165234,165235,165236,164849,164876,164979,165157,165018,165173,164825,164610,164538,164845,165179,165172,164553,164511,164973,164699,164964,165032,165178,164596,165185,164832,164902,164924,164774,164996,164847,165012,165084,164862,165091,165027,164888,165171,165237,164930,164618,165098,164951,165177,164488,164611,164824,164822,164937,164874,164742,165200,165057,165206,164991,164935,164872,164860,164911,164781,165039,164659,164687,164851,165238,164995,164852,164685,165044,164981,164565,164971,165183,165189,164399,164421,165008,165105,165112,165162,164898,165195,164728,164945,165168,165119,165175,164877,165239,164878,164910,165181,165212,164985,165184,165124,165191,165010,164850,165216,164859,164885,164363,164649,165187,164965,165240,164333,165241,165023,164407,165219,165067,165193,164395,164998,164285,164982,164723,164689,165131,164955,165014,165198,164931,165075,165034,164975,164932,164810,165051,164726,165223,165029,164727,164999,164900,165083,165138,165196,165205,165242,165225,164989,165243,165002,165201,165210,165207,165226,164988,165046,165244,165190,165215,164804,165203,165055,165005,165245,164796,164958,165229,165246,165247,165248,164761,165218,165060,165230,164953,165249,164359,165213,165197,164887,165020,164549,164558,165145,165208,165041,164921,165065,165025,165250,165202,165232,164952,164401,164736,164942,164339,165209,165015,164903,164634,165214,165221,165251'
+___________________________
+
+
+ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
+___________________________
+
+select headline, c.name as publication, concat('https://pipeline.locallabs.com/stories/', s.id) as url,
+       published_at, ji.name as job_item, cc.name as client from stories s
+                  join communities c on s.community_id = c.id
+                  join client_companies cc on c.client_company_id = cc.id
+                  join data_entry_leads l on l.id = s.lead_id
+                  join job_items ji on l.job_item_id=ji.id
+where published_at >= '2019-10-29' and deleted = 0 and ji.name
+   like '%Business Size by Industry and Employee Count%'
+order by c.name;
+
+
+

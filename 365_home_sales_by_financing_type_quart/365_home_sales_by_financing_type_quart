@@ -1,0 +1,132 @@
+STAGE TABLE DEFINITION
+insert into stage_definition_configurations (tbl, definition) select 'home_sales_by_financing_type_quart_staging', '{"publication_id":"int","publication_name":"varchar(155)","organization_id":"varchar(255)","client_id":"bigint","client_name":"varchar(255)", "conv":"int", "fha":"int", "va":"int", "cash":"int", "period":"smallint", "table":"longtext", "report_date":"datetime"}'
+
+#378
+
+STAGE TABLE CREATION
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=378 -t
+
+STAGE POPULATION CONFIGURATION
+insert into stage_population_configurations(project_name,tbl, definition) select 'Home Sales by Financing Type (Quarterly)', 'home_sales_by_financing_type_quart_staging', '{"known_entities":{"project_name":"Home Sales by Financing Type (Quarterly)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"home_sales_by_financing_type_quarter_population","arguments":{}}}}';
+
+population_config_id: #502
+
+STAGE POPULATION:
+$ cd ~/Loki/procedures
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=502 -t --date='2019-04-01'
+
+
+STORY CREATOR CONFIGURATION:
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'home_sales_by_financing_type_quart_staging', 'home_sales_by_financing_type_quarter_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+
+creation_config_id: #380
+
+STORY CREATION COMMAND:
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=380 -t
+
+
+STAGING: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=380 --population_config_id=502 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Home Sales by Financing Type (Quarterly)' -t
+
+ --threads_count=5
+STAGING: EXPORT STORIES
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=
+
+
+FEEDBACK TOOL
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511652908, 511652907, 511652906, 511652905, 511652904, 511652903
+
+
+
+!!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
+________________________________________________________________________________________________________________________________________
+
+SCHEDULER:
+__________
+population_config_id: #502
+creation_config_id: #380
+cont: 754
+
+tbl: home_sales_by_financing_type_quart_staging
+desc: Home Sales by Financing Type (Quarterly)
+
+config_id - population_config_id
+
+up to 1 per day, per publication, starting November 5
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=502 --limit=1 --start_date='2019-11-05'
+
+__________________________________________________
+чтоб проверить шедулер, что он "окейно" отработал:
+
+select publication_name, min(publish_on), max(publish_on), count(*) from 'home_sales_by_financing_type_quart_staging' group by publication_name;
+
+______________________________________
+PRODUCTION: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+______________________________________
+
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=380 --population_config_id=502 --story_section_ids=16 --story_tag_ids=10 --photobuckets='Real Estate' --job_item_name_description='Home Sales by Financing Type (Quarterly)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=380 --population_config_id=502 --story_section_ids=2 --story_tag_ids=10 --photobuckets='Real Estate' --job_item_name_description='Home Sales by Financing Type (Quarterly)' -t --prod --limit_config=1 --where="client_id = 120"
+
+______________________________________
+
+select * from story_export_configurations_v2 where tbl = 'home_sales_by_financing_type_quart_staging' and export_name like '%production%' order by id DESC;
+
+______________________________________
+если все ок, то выполняем без --limit_config=1
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=380 --population_config_id=502 --story_section_ids=16 --story_tag_ids=10 --photobuckets='Real Estate' --job_item_name_description='Home Sales by Financing Type (Quarterly)' -t --prod --where="client_name like 'MM - %'"
+
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=380 --population_config_id=502 --story_section_ids=2 --story_tag_ids=10 --photobuckets='Real Estate' --job_item_name_description='Home Sales by Financing Type (Quarterly)' -t --prod --where="client_id = 120"
+
+_________
+повторяем 
+
+select * from story_export_configurations_v2 where tbl = 'home_sales_by_financing_type_quart_staging' and export_name like '%production%' order by id DESC;
+
+
+______________________
+для построения таблицы 	
+______________________
+
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from home_sales_by_financing_type_quart_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='home_sales_by_financing_type_quart_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+
+
+__________________________
+PRODUCTION: EXPORT STORIES
+__________________________
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='home_sales_by_financing_type_quart_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=158557 --limit=1
+
+_____
+IF OK
+_____
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --threads_count=5 --config_ids='158557,158556,158488,158554,158555,158499,158491,158489,158496,158553,158476,158486,158475,158469,158464,158552,158471,158481,158551,158473,158550,158502,158494,158480,158548,158547,158501,158546,
+158485,158497,158545,158544,158543,158495,158542,158483,158541,158500,158540,158520,158460,158487,158539,158465,158538,158536,158537,158479,158535,158474,158534,158533,158531,158532,158466,158530,158528,158529,
+158527,158525,158526,158492,158522,158524,158478,158521,158472,158519,158523,158518,158504,158470,158505,158517,158507,158490,158503,158477,158468,158506,158482,158467,158462,158516,158463,158484,158498,158461,
+158510,158493,158508,158515,158514,158511,158549,158509,158513,158512'
+
+___________________________
+
+
+ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
+___________________________
+
+select headline, c.name as publication, concat('https://pipeline.locallabs.com/stories/', s.id) as url,
+       published_at, ji.name as job_item, cc.name as client from stories s
+                    join communities c on s.community_id = c.id
+                    join client_companies cc on c.client_company_id = cc.id
+                    join data_entry_leads l on l.id = s.lead_id
+                    join job_items ji on l.job_item_id=ji.id
+where published_at >= '2019-10-29' and deleted = 0 and ji.name like '%Home Sales by Financing Type%'
+order by c.name;
+
+
+

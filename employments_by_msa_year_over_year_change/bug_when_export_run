@@ -1,0 +1,144 @@
+VVVVVVVVVV  BEGIN NEW STORY EXPORT  VVVVVVVVVVV
+
+"....."
+"export_id: 119532"
+"@flag: prod"
+"stories_id: 12659464"
+
+
+Here's continue_array:
+[true]
+"@options['source_link']: "
+"@options['source_name']: "
+
+
+(try: 1/1) - Next up: posting lead ... 
+
+"{\"job_item_id\":28145,\"name\":\"Ogden-Clearfield non-farm payroll employees increase by 3.8% since last year -- [59106.119532::2019-08-30.1567199304]\",\"sub_type_id\":594,\"community_ids\":[1666]}"
+opening connection to pipeline-api.locallabs.com:443...
+opened
+starting SSL for pipeline-api.locallabs.com:443...
+SSL established, protocol: TLSv1.2, cipher: ECDHE-RSA-AES128-GCM-SHA256
+<- "POST /api/v1/leads HTTP/1.1\r\nAuthorization: DyKmqE4YqKk6b9xZLGqd\r\nContent-Type: application/json\r\nX-Force-Update: true\r\nConnection: close\r\nHost: pipeline-api.locallabs.com\r\nContent-Length: 189\r\n\r\n"
+<- "{\"job_item_id\":28145,\"name\":\"Ogden-Clearfield non-farm payroll employees increase by 3.8% since last year -- [59106.119532::2019-08-30.1567199304]\",\"sub_type_id\":594,\"community_ids\":[1666]}"
+-> "HTTP/1.1 201 Created\r\n"
+-> "Server: nginx\r\n"
+-> "Date: Fri, 30 Aug 2019 21:08:25 GMT\r\n"
+-> "Content-Type: application/json; charset=utf-8\r\n"
+-> "Transfer-Encoding: chunked\r\n"
+-> "Connection: close\r\n"
+-> "X-Frame-Options: SAMEORIGIN\r\n"
+-> "X-XSS-Protection: 1; mode=block\r\n"
+-> "X-Content-Type-Options: nosniff\r\n"
+-> "Location: https://pipeline-api.locallabs.com/api/v1/leads/3317577\r\n"
+-> "ETag: W/\"6334fafc11dfafd9859ef7b8ee67876d\"\r\n"
+-> "Cache-Control: max-age=0, private, must-revalidate\r\n"
+-> "X-Request-Id: 41a45374-4cf4-481d-ad7b-30ce8681de16\r\n"
+-> "X-Runtime: 0.041832\r\n"
+-> "Strict-Transport-Security: max-age=31536000\r\n"
+-> "\r\n"
+-> "21c\r\n"
+reading 540 bytes...
+-> "{\"id\":3317577,\"user_id\":1293,\"writer_id\":null,\"sub_type_id\":594,\"form_type_id\":null,\"job_item_id\":28145,\"publication_id\":null,\"publication_page_id\":null,\"publication_module_id\":null,\"publication_edition_id\":null,\"name\":\"Ogden-Clearfield non-farm payroll employees increase by 3.8% since last year -- [59106.119532::2019-08-30.1567199304]\",\"body\":null,\"due_at\":null,\"source_name\":null,\"source_url\":null,\"archive\":false,\"organization_ids\":[],\"person_ids\":[],\"community_ids\":[1666],\"court_case_ids\":[],\"media\":[],\"quotes\":[],\"form_datum\":null}"
+read 540 bytes
+reading 2 bytes...
+-> "\r\n"
+read 2 bytes
+-> "0\r\n"
+-> "\r\n"
+Conn close
+
+
+(try: 1/1) - Lead posting completed.  lead_id: 3317577
+
+@export_configurations: {"id"=>59106, "export_name"=>"HLE Employment #s by MSA Year Over Year Change - Utah Business Daily - production", "tbl"=>"employments_by_msa_year_over_year_change_staging", "community_id"=>1666, "author"=>"Local Labs News Service", "job_item_id"=>28145, "sub_type_id"=>594, "story_section_ids"=>"2", "story_tag_ids"=>"9", "images"=>nil, "export_arguments"=>"select *, stories.id as stories_id from loki_storycreator.hyperlocal_stories_v2 stories join loki_storycreator.employments_by_msa_year_over_year_change_staging stage on stage.id = stories.stage_id and stories.exported_at_prod = '0000-00-00 00:00:00' and stories.export_id = 0 and stage_table='employments_by_msa_year_over_year_change_staging' and storycreator_configuration_id = 255 and publication_name='Utah Business Daily'", "attributize"=>"0", "source_link"=>nil, "source_name"=>nil, "organization_staging_ids"=>nil, "organization_prod_ids"=>nil, "no_org"=>1, "data_table_configuration_id"=>nil}
+"story_to_export['publish_on']: 2019-09-25"
+["https://jnswire.s3.amazonaws.com/tmp/E8F53C9B906787EEB3FC635B/ApplyNow01.jpg", "https://jnswire.s3.amazonaws.com/tmp/8D2583BA40514B6ADB27FB4B/NowHiring01.png", "https://jnswire.s3.amazonaws.com/tmp/DE07F5C129D4C3BBA7A53867/WereHiring01.jpg", "https://jnswire.s3.amazonaws.com/tmp/4163CA0EFDD86887D8279C11/ApplyNow02.jpg", "https://jnswire.s3.amazonaws.com/tmp/81770616E6109C7FC6352CDA/NowHiring02.jpg", "https://jnswire.s3.amazonaws.com/tmp/674CDA87878DB7B1D838D051/WereHiring02.png", "https://jnswire.s3.amazonaws.com/tmp/542BB347289993D43C845084/ApplyNow03.jpg", "https://jnswire.s3.amazonaws.com/tmp/7D24C576BF60D51A5C7118C7/NowHiring03.png", "https://jnswire.s3.amazonaws.com/tmp/952156C71C5949AD7FED89E0/WereHiring03.jpg", "https://jnswire.s3.amazonaws.com/tmp/2DCBC313ADA1AF9D3061D273/ApplyNow04.jpg", "https://jnswire.s3.amazonaws.com/tmp/55C2A7E677C342A3D887D910/NowHiring04.jpg", "https://jnswire.s3.amazonaws.com/tmp/964C5B7F6836F214E066E7D6/WereHiring04.jpg", "https://jnswire.s3.amazonaws.com/tmp/25730E89D94276666CF312E0/ApplyNow05.png", "https://jnswire.s3.amazonaws.com/tmp/2E519D43F06E2065452FC947/NowHiring05.png", "https://jnswire.s3.amazonaws.com/tmp/72BFDE50B435604CFB69EC76/WereHiring05.jpg", "https://jnswire.s3.amazonaws.com/tmp/D74E26F83F45D5ED06DA394B/NowHiring06.jpg", "https://jnswire.s3.amazonaws.com/tmp/D1FAD53C72A21874096D618C/WereHiring06.jpg", "https://jnswire.s3.amazonaws.com/tmp/53C6C9DE72EDCC6146958648/NowHiring07.png", "https://jnswire.s3.amazonaws.com/tmp/CEC9FB4B6AAF5DB7B23949CE/NowHiring08.jpg", "https://jnswire.s3.amazonaws.com/tmp/96CE51AFE8747DC2CA022EE2/NowHiring09.jpg"]
+
+PHOTO SELECTED: https://jnswire.s3.amazonaws.com/tmp/96CE51AFE8747DC2CA022EE2/NowHiring09.jpg
+
+{"url"=>"https://jnswire.s3.amazonaws.com/tmp/96CE51AFE8747DC2CA022EE2/NowHiring09.jpg"}
+"export_hash['geolocations']: "
+
+VVVVVV Story post should happen now, with feedback VVVVVV
+- - - Story post try: (1/1) - - -
+opening connection to pipeline-api.locallabs.com:443...
+opened
+starting SSL for pipeline-api.locallabs.com:443...
+SSL established, protocol: TLSv1.2, cipher: ECDHE-RSA-AES128-GCM-SHA256
+<- "POST /api/v1/stories HTTP/1.1\r\nAuthorization: DyKmqE4YqKk6b9xZLGqd\r\nContent-Type: application/json\r\nX-Force-Update: true\r\nConnection: close\r\nHost: pipeline-api.locallabs.com\r\nContent-Length: 2976\r\n\r\n"
+<- "{\"community_id\":1666,\"lead_id\":3317577,\"headline\":\"Ogden-Clearfield non-farm payroll employees increase by 3.8% since last year\",\"author\":\"Local Labs News Service\",\"teaser\":\"The number of employees on non-farm payrolls for the month of April in the Ogden-Clearfield metropolitan statistical area was 269,800, a 3.8 percent increase over the same period last year, according to the U.S. Bureau of Labor Statistics.\",\"body\":\"<html><head><title></title><style></style></head><body><p>The number of employees on non-farm payrolls for the month of April in the Ogden-Clearfield metropolitan statistical area was 269,800, a 3.8 percent increase over the same period last year, <a href='https://www.bls.gov/home.htm'>according to the U.S. Bureau of Labor Statistics.</a></p><p> Last April, Ogden-Clearfield reported 259,800 workers on non-farm payrolls.</p><p> Statistics were compiled from reports from the civilian labor force and unemployment data, both of which heavily relied on household surveys. The data is not seasonally adjusted.</p><p> Employment data is gleaned from an establishment survey that measures non-farm employment, hours and earnings by industry. The data is also based on payroll jobs and such factors as where the establishments are located.</p><p> Overall, Utah reported 1.555 million people employed on non-farm payrolls in April.<div style=\\\"font-size:18px\\\"><strong>Utah Employees on Non-Farm Payrolls 2019 vs. 2018</strong></div><div style=\\\"display:table; border-style: solid; border-width: 1px;\\\"><div style=\\\"display:table-row; border-style: solid; border-width: 1px;\\\"><div style=\\\"display:table-cell; border-style: solid; border-width: 1px;\\\"><b><div style=\\\"padding:10px;text-align: center;\\\"><strong>April 2019 (In thousands)</strong></div></b></div><div style=\\\"display:table-cell; border-style: solid; border-width: 1px;\\\"><b><div style=\\\"padding:10px;text-align: center;\\\"><strong>April 2018 (In thousands)</strong></div></b></div><div style=\\\"display:table-cell; border-style: solid; border-width: 1px;\\\"><b><div style=\\\"padding:10px;text-align: center;\\\"><strong>Percent Change </strong></div></b></div></div><div style=\\\"display:table-row; border-style: solid; border-width: 1px;\\\"><div style=\\\"display:table-cell; border-style: solid; border-width: 1px;\\\"><div style=\\\"padding:10px\\\">1554.5</div></div><div style=\\\"display:table-cell; border-style: solid; border-width: 1px;\\\"><div style=\\\"padding:10px\\\">1506.8</div></div><div style=\\\"display:table-cell; border-style: solid; border-width: 1px;\\\"><div style=\\\"padding:10px\\\">3.2</div></div></div></div><i>Source: Bureau of Labor Statistics</i></p></body></html>\",\"published_at\":\"2019-09-25T07:23:03-05:00\",\"organization_ids\":\"[]\",\"story_section_ids\":[2],\"story_tag_ids\":[9],\"published\":true,\"media\":[{\"url\":\"https://jnswire.s3.amazonaws.com/tmp/96CE51AFE8747DC2CA022EE2/NowHiring09.jpg\"}],\"images\":[{\"url\":\"https://jnswire.s3.amazonaws.com/tmp/96CE51AFE8747DC2CA022EE2/NowHiring09.jpg\"}]}"
+-> "HTTP/1.1 201 Created\r\n"
+-> "Server: nginx\r\n"
+-> "Date: Fri, 30 Aug 2019 21:08:25 GMT\r\n"
+-> "Content-Type: application/json; charset=utf-8\r\n"
+-> "Transfer-Encoding: chunked\r\n"
+-> "Connection: close\r\n"
+-> "X-Frame-Options: SAMEORIGIN\r\n"
+-> "X-XSS-Protection: 1; mode=block\r\n"
+-> "X-Content-Type-Options: nosniff\r\n"
+-> "Location: https://pipeline-api.locallabs.com/api/v1/stories/513410467\r\n"
+-> "ETag: W/\"7a29d349075edfeefe72fcd3937bdba6\"\r\n"
+-> "Cache-Control: max-age=0, private, must-revalidate\r\n"
+-> "X-Request-Id: cee9f1a1-efdf-4ab9-b7df-118558042090\r\n"
+-> "X-Runtime: 0.096668\r\n"
+-> "Strict-Transport-Security: max-age=31536000\r\n"
+-> "\r\n"
+-> "11b6\r\n"
+reading 4534 bytes...
+-> "{\"id\":513410467,\"community_id\":1666,\"published_at\":\"2019-09-25T12:23:03Z\",\"type_id\":0,\"headline\":\"Ogden-Clearfield non-farm payroll employees increase by 3.8% since last year\",\"author\":\"Local Labs News Service\",\"teaser\":\"The number of employees on non-farm payrolls for the month of April in the Ogden-Clearfield metropolitan statistical area was 269,800, a 3.8 percent increase over the same period last year, according to the U.S. Bureau of Labor Statistics.\",\"deleted\":false,\"published\":false,\"scheduled\":true,\"blacklisted\":false,\"paid\":false,\"cms_story_id\":null,\"partner_id\":null,\"images\":[\"https://jnswire.s3.amazonaws.com/tmp/96CE51AFE8747DC2CA022EE2/NowHiring09.jpg\"],\"form_datum_id\":null,\"updated_at\":\"2019-08-30T21:08:25.734Z\",\"attached_images\":[{\"url\":\"https://jnswire.s3.amazonaws.com/tmp/96CE51AFE8747DC2CA022EE2/NowHiring09.jpg\",\"caption\":null,\"credits\":null,\"width\":null,\"height\":null}],\"sub_type_id\":null,\"organization_ids\":[],\"body\":\"\\u003chtml\\u003e\\u003chead\\u003e\\u003ctitle\\u003e\\u003c/title\\u003e\\u003cstyle\\u003e\\u003c/style\\u003e\\u003c/head\\u003e\\u003cbody\\u003e\\u003cp\\u003eThe number of employees on non-farm payrolls for the month of April in the Ogden-Clearfield metropolitan statistical area was 269,800, a 3.8 percent increase over the same period last year, \\u003ca href='https://www.bls.gov/home.htm'\\u003eaccording to the U.S. Bureau of Labor Statistics.\\u003c/a\\u003e\\u003c/p\\u003e\\u003cp\\u003e Last April, Ogden-Clearfield reported 259,800 workers on non-farm payrolls.\\u003c/p\\u003e\\u003cp\\u003e Statistics were compiled from reports from the civilian labor force and unemployment data, both of which heavily relied on household surveys. The data is not seasonally adjusted.\\u003c/p\\u003e\\u003cp\\u003e Employment data is gleaned from an establishment survey that measures non-farm employment, hours and earnings by industry. The data is also based on payroll jobs and such factors as where the establishments are located.\\u003c/p\\u003e\\u003cp\\u003e Overall, Utah reported 1.555 million people employed on non-farm payrolls in April.\\u003cdiv style=\\\"font-size:18px\\\"\\u003e\\u003cstrong\\u003eUtah Employees on Non-Farm Payrolls 2019 vs. 2018\\u003c/strong\\u003e\\u003c/div\\u003e\\u003cdiv style=\\\"display:table; border-style: solid; border-width: 1px;\\\"\\u003e\\u003cdiv style=\\\"display:table-row; border-style: solid; border-width: 1px;\\\"\\u003e\\u003cdiv style=\\\"display:table-cell; border-style: solid; border-width: 1px;\\\"\\u003e\\u003cb\\u003e\\u003cdiv style=\\\"padding:10px;text-align: center;\\\"\\u003e\\u003cstrong\\u003eApril 2019 (In thousands)\\u003c/strong\\u003e\\u003c/div\\u003e\\u003c/b\\u003e\\u003c/div\\u003e\\u003cdiv style=\\\"display:table-cell; border-style: solid; border-width: 1px;\\\"\\u003e\\u003cb\\u003e\\u003cdiv style=\\\"padding:10px;text-align: center;\\\"\\u003e\\u003cstrong\\u003eApril 2018 (In thousands)\\u003c/strong\\u003e\\u003c/div\\u003e\\u003c/b\\u003e\\u003c/div\\u003e\\u003cdiv style=\\\"display:table-cell; border-style: solid; border-width: 1px;\\\"\\u003e\\u003cb\\u003e\\u003cdiv style=\\\"padding:10px;text-align: center;\\\"\\u003e\\u003cstrong\\u003ePercent Change \\u003c/strong\\u003e\\u003c/div\\u003e\\u003c/b\\u003e\\u003c/div\\u003e\\u003c/div\\u003e\\u003cdiv style=\\\"display:table-row; border-style: solid; border-width: 1px;\\\"\\u003e\\u003cdiv style=\\\"display:table-cell; border-style: solid; border-width: 1px;\\\"\\u003e\\u003cdiv style=\\\"padding:10px\\\"\\u003e1554.5\\u003c/div\\u003e\\u003c/div\\u003e\\u003cdiv style=\\\"display:table-cell; border-style: solid; border-width: 1px;\\\"\\u003e\\u003cdiv style=\\\"padding:10px\\\"\\u003e1506.8\\u003c/div\\u003e\\u003c/div\\u003e\\u003cdiv style=\\\"display:table-cell; border-style: solid; border-width: 1px;\\\"\\u003e\\u003cdiv style=\\\"padding:10px\\\"\\u003e3.2\\u003c/div\\u003e\\u003c/div\\u003e\\u003c/div\\u003e\\u003c/div\\u003e\\u003ci\\u003eSource: Bureau of Labor Statistics\\u003c/i\\u003e\\u003c/p\\u003e\\u003c/body\\u003e\\u003c/html\\u003e\",\"story_categories\":[],\"story_tags\":[{\"id\":9,\"name\":\"Business\"}],\"story_sections\":[{\"id\":2,\"name\":\"Latest\"}],\"lead\":{\"id\":3317577,\"user_id\":1293,\"writer_id\":null,\"sub_type_id\":594,\"form_type_id\":null,\"job_item_id\":28145,\"publication_id\":null,\"publication_page_id\":null,\"publication_module_id\":null,\"publication_edition_id\":null,\"name\":\"Ogden-Clearfield non-farm payroll employees increase by 3.8% since last year -- [59106.119532::2019-08-30.1567199304]\",\"body\":null,\"due_at\":null,\"source_name\":null,\"source_url\":null,\"archive\":false,\"organization_ids\":[],\"person_ids\":[],\"community_ids\":[1666],\"court_case_ids\":[],\"media\":[],\"quotes\":[],\"form_datum\":null}}"
+read 4534 bytes
+reading 2 bytes...
+-> "\r\n"
+read 2 bytes
+-> "0\r\n"
+-> "\r\n"
+Conn close
+"SENT ON POST: {:headers=>{\"Authorization\"=>\"DyKmqE4YqKk6b9xZLGqd\", \"Content-Type\"=>\"application/json\", \"X-Force-Update\"=>\"true\"}, :debug_output=>#<IO:<STDOUT>>, :body=>\"{\\\"community_id\\\":1666,\\\"lead_id\\\":3317577,\\\"headline\\\":\\\"Ogden-Clearfield non-farm payroll employees increase by 3.8% since last year\\\",\\\"author\\\":\\\"Local Labs News Service\\\",\\\"teaser\\\":\\\"The number of employees on non-farm payrolls for the month of April in the Ogden-Clearfield metropolitan statistical area was 269,800, a 3.8 percent increase over the same period last year, according to the U.S. Bureau of Labor Statistics.\\\",\\\"body\\\":\\\"<html><head><title></title><style></style></head><body><p>The number of employees on non-farm payrolls for the month of April in the Ogden-Clearfield metropolitan statistical area was 269,800, a 3.8 percent increase over the same period last year, <a href='https://www.bls.gov/home.htm'>according to the U.S. Bureau of Labor Statistics.</a></p><p> Last April, Ogden-Clearfield reported 259,800 workers on non-farm payrolls.</p><p> Statistics were compiled from reports from the civilian labor force and unemployment data, both of which heavily relied on household surveys. The data is not seasonally adjusted.</p><p> Employment data is gleaned from an establishment survey that measures non-farm employment, hours and earnings by industry. The data is also based on payroll jobs and such factors as where the establishments are located.</p><p> Overall, Utah reported 1.555 million people employed on non-farm payrolls in April.<div style=\\\\\\\"font-size:18px\\\\\\\"><strong>Utah Employees on Non-Farm Payrolls 2019 vs. 2018</strong></div><div style=\\\\\\\"display:table; border-style: solid; border-width: 1px;\\\\\\\"><div style=\\\\\\\"display:table-row; border-style: solid; border-width: 1px;\\\\\\\"><div style=\\\\\\\"display:table-cell; border-style: solid; border-width: 1px;\\\\\\\"><b><div style=\\\\\\\"padding:10px;text-align: center;\\\\\\\"><strong>April 2019 (In thousands)</strong></div></b></div><div style=\\\\\\\"display:table-cell; border-style: solid; border-width: 1px;\\\\\\\"><b><div style=\\\\\\\"padding:10px;text-align: center;\\\\\\\"><strong>April 2018 (In thousands)</strong></div></b></div><div style=\\\\\\\"display:table-cell; border-style: solid; border-width: 1px;\\\\\\\"><b><div style=\\\\\\\"padding:10px;text-align: center;\\\\\\\"><strong>Percent Change </strong></div></b></div></div><div style=\\\\\\\"display:table-row; border-style: solid; border-width: 1px;\\\\\\\"><div style=\\\\\\\"display:table-cell; border-style: solid; border-width: 1px;\\\\\\\"><div style=\\\\\\\"padding:10px\\\\\\\">1554.5</div></div><div style=\\\\\\\"display:table-cell; border-style: solid; border-width: 1px;\\\\\\\"><div style=\\\\\\\"padding:10px\\\\\\\">1506.8</div></div><div style=\\\\\\\"display:table-cell; border-style: solid; border-width: 1px;\\\\\\\"><div style=\\\\\\\"padding:10px\\\\\\\">3.2</div></div></div></div><i>Source: Bureau of Labor Statistics</i></p></body></html>\\\",\\\"published_at\\\":\\\"2019-09-25T07:23:03-05:00\\\",\\\"organization_ids\\\":\\\"[]\\\",\\\"story_section_ids\\\":[2],\\\"story_tag_ids\\\":[9],\\\"published\\\":true,\\\"media\\\":[{\\\"url\\\":\\\"https://jnswire.s3.amazonaws.com/tmp/96CE51AFE8747DC2CA022EE2/NowHiring09.jpg\\\"}],\\\"images\\\":[{\\\"url\\\":\\\"https://jnswire.s3.amazonaws.com/tmp/96CE51AFE8747DC2CA022EE2/NowHiring09.jpg\\\"}]}\"}"
+here's the hash analysis:hash keys: ["community_id", "lead_id", "headline", "author", "teaser", "body", "published_at", "organization_ids", "story_section_ids", "story_tag_ids", "published", "media", "images"]hash value sample: story_tag_ids
+ =>
+ [9]
+
+
+
+STORY POSTED HERE:
+ respone = {"id":513410467,"community_id":1666,"published_at":"2019-09-25T12:23:03Z","type_id":0,"headline":"Ogden-Clearfield non-farm payroll employees increase by 3.8% since last year","author":"Local Labs News Service","teaser":"The number of employees on non-farm payrolls for the month of April in the Ogden-Clearfield metropolitan statistical area was 269,800, a 3.8 percent increase over the same period last year, according to the U.S. Bureau of Labor Statistics.","deleted":false,"published":false,"scheduled":true,"blacklisted":false,"paid":false,"cms_story_id":null,"partner_id":null,"images":["https://jnswire.s3.amazonaws.com/tmp/96CE51AFE8747DC2CA022EE2/NowHiring09.jpg"],"form_datum_id":null,"updated_at":"2019-08-30T21:08:25.734Z","attached_images":[{"url":"https://jnswire.s3.amazonaws.com/tmp/96CE51AFE8747DC2CA022EE2/NowHiring09.jpg","caption":null,"credits":null,"width":null,"height":null}],"sub_type_id":null,"organization_ids":[],"body":"\u003chtml\u003e\u003chead\u003e\u003ctitle\u003e\u003c/title\u003e\u003cstyle\u003e\u003c/style\u003e\u003c/head\u003e\u003cbody\u003e\u003cp\u003eThe number of employees on non-farm payrolls for the month of April in the Ogden-Clearfield metropolitan statistical area was 269,800, a 3.8 percent increase over the same period last year, \u003ca href='https://www.bls.gov/home.htm'\u003eaccording to the U.S. Bureau of Labor Statistics.\u003c/a\u003e\u003c/p\u003e\u003cp\u003e Last April, Ogden-Clearfield reported 259,800 workers on non-farm payrolls.\u003c/p\u003e\u003cp\u003e Statistics were compiled from reports from the civilian labor force and unemployment data, both of which heavily relied on household surveys. The data is not seasonally adjusted.\u003c/p\u003e\u003cp\u003e Employment data is gleaned from an establishment survey that measures non-farm employment, hours and earnings by industry. The data is also based on payroll jobs and such factors as where the establishments are located.\u003c/p\u003e\u003cp\u003e Overall, Utah reported 1.555 million people employed on non-farm payrolls in April.\u003cdiv style=\"font-size:18px\"\u003e\u003cstrong\u003eUtah Employees on Non-Farm Payrolls 2019 vs. 2018\u003c/strong\u003e\u003c/div\u003e\u003cdiv style=\"display:table; border-style: solid; border-width: 1px;\"\u003e\u003cdiv style=\"display:table-row; border-style: solid; border-width: 1px;\"\u003e\u003cdiv style=\"display:table-cell; border-style: solid; border-width: 1px;\"\u003e\u003cb\u003e\u003cdiv style=\"padding:10px;text-align: center;\"\u003e\u003cstrong\u003eApril 2019 (In thousands)\u003c/strong\u003e\u003c/div\u003e\u003c/b\u003e\u003c/div\u003e\u003cdiv style=\"display:table-cell; border-style: solid; border-width: 1px;\"\u003e\u003cb\u003e\u003cdiv style=\"padding:10px;text-align: center;\"\u003e\u003cstrong\u003eApril 2018 (In thousands)\u003c/strong\u003e\u003c/div\u003e\u003c/b\u003e\u003c/div\u003e\u003cdiv style=\"display:table-cell; border-style: solid; border-width: 1px;\"\u003e\u003cb\u003e\u003cdiv style=\"padding:10px;text-align: center;\"\u003e\u003cstrong\u003ePercent Change \u003c/strong\u003e\u003c/div\u003e\u003c/b\u003e\u003c/div\u003e\u003c/div\u003e\u003cdiv style=\"display:table-row; border-style: solid; border-width: 1px;\"\u003e\u003cdiv style=\"display:table-cell; border-style: solid; border-width: 1px;\"\u003e\u003cdiv style=\"padding:10px\"\u003e1554.5\u003c/div\u003e\u003c/div\u003e\u003cdiv style=\"display:table-cell; border-style: solid; border-width: 1px;\"\u003e\u003cdiv style=\"padding:10px\"\u003e1506.8\u003c/div\u003e\u003c/div\u003e\u003cdiv style=\"display:table-cell; border-style: solid; border-width: 1px;\"\u003e\u003cdiv style=\"padding:10px\"\u003e3.2\u003c/div\u003e\u003c/div\u003e\u003c/div\u003e\u003c/div\u003e\u003ci\u003eSource: Bureau of Labor Statistics\u003c/i\u003e\u003c/p\u003e\u003c/body\u003e\u003c/html\u003e","story_categories":[],"story_tags":[{"id":9,"name":"Business"}],"story_sections":[{"id":2,"name":"Latest"}],"lead":{"id":3317577,"user_id":1293,"writer_id":null,"sub_type_id":594,"form_type_id":null,"job_item_id":28145,"publication_id":null,"publication_page_id":null,"publication_module_id":null,"publication_edition_id":null,"name":"Ogden-Clearfield non-farm payroll employees increase by 3.8% since last year -- [59106.119532::2019-08-30.1567199304]","body":null,"due_at":null,"source_name":null,"source_url":null,"archive":false,"organization_ids":[],"person_ids":[],"community_ids":[1666],"court_case_ids":[],"media":[],"quotes":[],"form_datum":null}}
+ pl_id = 513410467
+
+
+^^^^^^^ If story post happened, you should get some feedback ^^^^^^
+
+
+pipeline_story_id: 513410467
+
+"Skipping Org Hunter! (--hunter=0)"
+
+
+     vvvv  UPDATING STORY WITH 1 ASSOCIATED ORGS vvvv 
+
+opening connection to pipeline-api.locallabs.com:443...
+Traceback (most recent call last):
+        21: from Loki.rb:195:in `<main>'
+        20: from Loki.rb:195:in `call'
+        19: from /home/dsuschinsky/Loki/procedures/plans/hle/hle_router.rb:20:in `hle__hle_router'
+        18: from /home/dsuschinsky/Loki/procedures/plans/hle/hle_router.rb:20:in `each'
+        17: from /home/dsuschinsky/Loki/procedures/plans/hle/hle_router.rb:24:in `block in hle__hle_router'
+        16: from /home/dsuschinsky/Loki/procedures/plans/hle/hle_router.rb:24:in `new'
+        15: from /home/dsuschinsky/Loki/procedures/hle.rb:6193:in `initialize'
+        14: from /home/dsuschinsky/Loki/procedures/hle.rb:6297:in `export_each_story_from'
+        13: from /home/dsuschinsky/Loki/procedures/hle.rb:6297:in `each'
+        12: from /home/dsuschinsky/Loki/procedures/hle.rb:6394:in `block in export_each_story_from'
+        11: from /home/dsuschinsky/Loki/procedures/pl_import_export.rb:128:in `update_story'
+        10: from /home/dsuschinsky/Loki/vendor/bundle/ruby/2.6.0/gems/httparty-0.17.0/lib/httparty.rb:533:in `put'
+         9: from /home/dsuschinsky/Loki/vendor/bundle/ruby/2.6.0/gems/httparty-0.17.0/lib/httparty.rb:593:in `perform_request'
+         8: from /home/dsuschinsky/Loki/vendor/bundle/ruby/2.6.0/gems/httparty-0.17.0/lib/httparty/request.rb:145:in `perform'
+         7: from /usr/local/rvm/rubies/ruby-2.6.3/lib/ruby/2.6.0/net/http.rb:1470:in `request'
+         6: from /usr/local/rvm/rubies/ruby-2.6.3/lib/ruby/2.6.0/net/http.rb:919:in `start'
+         5: from /usr/local/rvm/rubies/ruby-2.6.3/lib/ruby/2.6.0/net/http.rb:930:in `do_start'
+         4: from /usr/local/rvm/rubies/ruby-2.6.3/lib/ruby/2.6.0/net/http.rb:945:in `connect'
+         3: from /usr/local/rvm/rubies/ruby-2.6.3/lib/ruby/2.6.0/timeout.rb:103:in `timeout'
+         2: from /usr/local/rvm/rubies/ruby-2.6.3/lib/ruby/2.6.0/net/http.rb:947:in `block in connect'
+         1: from /usr/local/rvm/rubies/ruby-2.6.3/lib/ruby/2.6.0/net/http.rb:947:in `open'
+/usr/local/rvm/rubies/ruby-2.6.3/lib/ruby/2.6.0/net/http.rb:947:in `initialize': execution expired (Net::OpenTimeout)
+[dsuschinsky@vm58 procedures]$ 
+

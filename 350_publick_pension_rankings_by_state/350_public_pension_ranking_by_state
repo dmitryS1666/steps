@@ -1,0 +1,133 @@
+STAGE TABLE DEFINITION
+insert into stage_definition_configurations (tbl, definition) select 'public_pension_ranking_by_state_staging', '{"client_id":"int", "client_name":"varchar(255)", "publication_id":"int", "publication_name":"varchar(255)", "organization_id":"bigint(20)", "state":"varchar(255)", "rating":"varchar(255)", "state_val":"varchar(255)", "local_val":"varchar(255)", "state_and_local_val":"varchar(255)", "table":"longtext", "year":"varchar(255)"}';
+
+#368
+
+STAGE TABLE CREATION
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=368 -t
+
+STAGE POPULATION CONFIGURATION
+insert into stage_population_configurations(project_name,tbl, definition) select 'Public Pension Ranking by State', 'public_pension_ranking_by_state_staging', '{"known_entities":{"project_name":"Public Pension Ranking by State"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"public_pension_ranking_by_state_population","arguments":{}}}}';
+
+population_config_id: #492
+
+STAGE POPULATION:
+$ cd ~/Loki/procedures
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=492 -t
+
+
+STORY CREATOR CONFIGURATION:
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'public_pension_ranking_by_state_staging', 'public_pension_ranking_by_state_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+
+creation_config_id: #370
+
+STORY CREATION COMMAND:
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=370 -t
+
+
+STAGING: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=370 --population_config_id=492 --story_section_ids=2 --story_tag_ids=198 --photobuckets='money' --job_item_name_description='Public Pension Ranking by State' -t
+
+STAGING: EXPORT STORIES
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=
+
+
+FEEDBACK
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511652457, 511652458, 511652459, 511652460, 511652461, 511652462
+
+
+
+!!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
+________________________________________________________________________________________________________________________________________
+
+SCHEDULER:
+__________
+population_config_id: #492
+creation_config_id: #370
+
+tbl: public_pension_ranking_by_state_staging
+desc: Public Pension Ranking by State
+
+config_id - population_config_id
+
+
+Publish all on December 2
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=492 --limit=967 --start_date='2019-12-02'
+
+
+__________________________________________________
+чтоб проверить шедулер, что он "окейно" отработал:
+
+select publication_name, min(publish_on), max(publish_on), count(*) from 'public_pension_ranking_by_state_staging' group by publication_name;
+
+______________________________________
+PRODUCTION: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+______________________________________
+
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=370 --population_config_id=492 --story_section_ids=16 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Public Pension Ranking by State' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=370 --population_config_id=492 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Public Pension Ranking by State' -t --prod --limit_config=1 --where="client_id = 120"
+
+______________________________________
+
+select * from story_export_configurations_v2 where tbl = 'public_pension_ranking_by_state_staging' and export_name like '%production%' order by id DESC;
+
+______________________________________
+если все ок, то выполняем без --limit_config=1
+
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=370 --population_config_id=492 --story_section_ids=16 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Public Pension Ranking by State' -t --prod --where="client_name like 'MM - %'"
+
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=370 --population_config_id=492 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Public Pension Ranking by State' -t --prod --where="client_id = 120"
+
+_________
+повторяем 
+
+select * from story_export_configurations_v2 where tbl = 'public_pension_ranking_by_state_staging' and export_name like '%production%' order by id DESC;
+
+
+______________________
+для построения таблицы 	
+______________________
+
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from public_pension_ranking_by_state_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='public_pension_ranking_by_state_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+
+
+__________________________
+PRODUCTION: EXPORT STORIES
+__________________________
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='public_pension_ranking_by_state_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=164079 --limit=1 
+
+_____
+IF OK
+_____
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --threads_count=3 --config_ids='163828,163552,163443,164037,163911,163318,164235,163520,164197,163986,164080,163585,163561,163682,163664,163719,163370,164236,164237,163655,163859,163521,163522,163807,163317,164081,163319,163665,163640,163683,163670,163987,163357,164038,163988,163548,163562,164198,163553,163444,163622,163749,163472,163458,163671,163837,163860,163808,164145,163989,163912,163861,164238,163990,163913,163672,163750,163838,163684,163554,163586,163371,163473,163991,163992,163445,163523,163555,163587,163641,163751,163774,163906,164150,163372,163914,163975,163993,164151,164052,163752,164082,164135,164152,164207,164230,164083,163862,164199,164039,163373,164208,163915,164057,163753,163474,163916,163917,163374,163994,163524,163525,163342,164084,164239,163754,164040,163563,164085,163799,164240,164086,163995,163996,163720,164087,163800,163997,164136,163918,163320,163526,164241,163919,163446,163588,163685,164041,163656,163686,163589,163863,163475,163790,163375,163447,163343,163527,163590,164088,163920,163376,164089,163476,164090,163839,163556,163564,163623,164176,163864,163358,163624,163687,163998,163829,163961,163976,163477,164200,163977,163625,164091,163377,163378,163379,163380,164137,163921,163721,163381,163478,163865,163605,164153,163688,163321,163565,163606,163737,163781,163866,163922,163962,164154,164209,164092,163626,163566,163479,163999,163923,164093,163907,163359,163867,163924,163840,164242,163642,164210,163868,164094,163360,164211,164155,163382,163567,164095,163322,163869,164156,163689,164243,163528,163775,163809,163383,163448,163690,164096,164212,163925,163870,164042,163871,163738,164058,164000,163666,163459,164244,164157,163480,163872,163873,164097,163801,164043,163739,163691,163549,163627,163361,163643,163460,164098,163667,163810,164201,163323,163607,163874,164245,164246,163384,164247,163568,163336,164248,163591,163628,163755,163756,163324,163608,164059,163875,163362,163692,164249,163550,163757,164213,164034,163468,163569,164250,163385,163481,164271,163386,164060,164177,164061,163570,163387,163644,163571,163926,163802,163388,163978,163693,164099,163449,163791,164001,163609,164002,163389,164003,163482,164004,163657,163927,163928,163461,163610,163694,164100,163929,164251,163629,163363,164005,164044,164101,164006,164007,164158,163695,163529,164214,163557,164252,163658,163659,163483,163930,163390,163931,164253,164254,163337,163551,163932,164062,163391,163811,163673,163630,163674,163484,164255,164102,163979,163660,163675'
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --threads_count=3 --config_ids='163980,164215,164216,164217,163722,164256,164257,163740,164258,163325,163344,163841,163812,164008,163842,163696,164259,163392,163668,163813,164063,164178,163572,163697,164045,163876,163485,164064,163843,163486,163462,163364,163487,163530,163573,163611,163631,163676,163723,163741,163877,163963,164046,164065,164146,164202,164218,163908,163326,163531,163814,163393,163450,163463,164103,163488,163933,163574,163592,163758,163612,163632,163645,163742,163759,164066,163782,163830,163844,163909,163934,163964,163878,163394,164104,163345,164147,164179,164219,164231,164260,163783,164261,164262,164263,164264,164159,164265,163815,163845,163646,163677,164105,163647,163338,164009,164106,163669,163327,163633,163678,163489,164266,164010,163879,164011,163935,163395,163981,164107,163936,163846,163803,164267,163937,164012,163593,163816,164160,163532,163880,163533,163724,164108,163558,163575,163396,163594,163881,163451,163698,163634,164180,164067,163490,164013,163365,163882,163491,163699,163817,163792,163469,163397,163965,163784,163492,163493,163494,164203,163346,163495,164014,163883,163725,164161,163398,164109,163399,163400,164162,163648,164181,163760,163938,164110,164163,163884,163966,164138,163793,163885,163613,163776,164053,164164,164015,164016,163777,164017,164220,163700,163328,163366,163534,163818,163794,163464,163939,163535,164111,163595,163819,163614,163635,163401,163649,163726,163743,163761,163831,163940,163967,163402,164068,163727,163347,164182,163701,164232,163847,163403,163496,163820,164268,164204,163968,163497,164269,164183,163785,163848,163886,164270,163498,163887,163744,164221,163499,164273,163500,164112,163501,163821,164047,163502,164113,164018,163348,164184,163349,163745,163888,163503,164019,163762,163679,163559,163504,163404,163702,163941,163982,163661,164165,164035,163367,164222,163889,163405,163406,163795,164272,164166,163596,163650,163329'
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --threads_count=3 --config_ids='163662,164167,163849,163804,163850,163890,163536,163891,164069,163407,164114,164115,163408,163409,163410,163411,163412,163786,163832,163413,163414,163833,163505,163851,163537,163339,163465,163615,164048,163728,163746,163763,163787,163852,163969,164070,164116,164148,164168,164223,164020,163340,163350,163538,163636,163452,163466,164117,163453,163539,163703,164118,163576,163597,163764,163616,163637,163415,163729,163765,163788,163892,163704,163942,163970,164071,164119,163730,163351,163796,164185,164233,164186,163416,163417,164072,163705,164169,164021,163706,163330,163651,163598,164054,164139,163418,164073,163419,163822,163834,163331,163420,163893,163540,163421,163422,163577,163823,163332,164120,163506,164022,163894,164023,163983,163943,164036,164074,163944,164274,163945,164024,164121,163599,164170,163946,163541,164122,163542,163895,163543,163731,163578,163600,163454,163824,163766,163707,164187,164075,163507,164025,163652,163663,163896,163508,163708,163825,163470,163897,163423,163947,163971,163789,163984,163509,163510,163352,163511,163898,163424,164123,163425,163426,163427,164188,164189,163767,163948,164171,163899,163972,164140,164149,163617,163900,164026,163778,164055,163579,164205,164224,164172,164027,163779,164028,164049,164190,164191,163680,163768,163455,163769,163709,163732,163710,163770,163733,163512,163428,163853,163805,163711,163854,163513,163471,163341,163353,163368,163638,163456,163467,164124,163544,164125,163580,163601,163618,163653,163734,163747,163771,163806,163835,163973,163429,164076,163354,163797,164173,164225,164234,163855,163514,163515,164275,164276,163581,163712,163713,163949,163619,163516,163560,164192,163950,163714,163951,163355,163430,163974,163333,163952,164126,163826,163901,163715,164029,164077,163369,164127,164050,164051,164277,164141,163953,164193,163431,164278,163432,163582,164279,164128,163545,163954,164280,164226,164194,163798,164142,163716,163602,164227,163955,163334,163546,163583,163603,163735,163748,163772,163836,164129,164228,164143,164195,163457,163547,163717,164030,163956,163433,164130,163604,163434,163827,163517,163957,163518,164131,163856,163584,163435,163902,163958,163681,164031,164174,163857,163436,163985,163639,164132,163437,163438,163439,164144,163959,163773,164133,163736,163440,164281,163519,163903,163654,163858,163910,164056,163718,164032,164229,163620,164175,164078,163441,163904,164134,163335,164282,164206,163621,164283,163905,164196,163356,163780,164033,163960,163442'
+
+___________________________
+
+
+ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
+___________________________
+
+select headline, c.name as publication, concat('https://pipeline.locallabs.com/stories/', s.id) as url, published_at, ji.name as job_item, cc.name as client from stories s
+  join communities c on s.community_id = c.id
+  join client_companies cc on c.client_company_id = cc.id
+  join data_entry_leads l on l.id = s.lead_id
+  join job_items ji on l.job_item_id=ji.id
+where published_at >= '2019-09-28' and deleted = 0 and ji.name like 'Public Pension Ranking by State'
+order by c.name;
+
+
+

@@ -1,0 +1,67 @@
+--hunter=0 --publish_on --published=1 --config_id=89912 --limit=1
+terminal? 1
+hle@hle_router
+method: hle__hle_router
+"..."
+[{}]
+@options = 
+{"switch"=>"story_export", "prod"=>"enabled", "stage_tbl_org"=>"pension_investment_earnings_by_state_staging", "creator"=>"Dmitry Suschinsky", "hunter"=>"0", "publish_on"=>"enabled", "published"=>"1", "config_id"=>"89912", "limit"=>"1"}
+
+---------
+Fetching photo bucket photo URLs
+----------
+PHOTOS GRABBED
+["https://jnswire.s3.amazonaws.com/tmp/2F881C72D8A544189C832FF5/money_01.jpg", "https://jnswire.s3.amazonaws.com/tmp/B5C084234971067C1FCDD05F/money_08.jpg", "https://jnswire.s3.amazonaws.com/tmp/109059BE8BB0506EB85B9ACF/money_02.jpg", "https://jnswire.s3.amazonaws.com/tmp/923A159A67D62C3FBDF7E8DA/money_03.jpg", "https://jnswire.s3.amazonaws.com/tmp/690784FE844467FD6EBB7134/money_05.jpg", "https://jnswire.s3.amazonaws.com/tmp/0858464D97865B167DB5C983/money_07.jpg", "https://jnswire.s3.amazonaws.com/tmp/AE7F30B2F02FD256F6F44A28/money_04.jpg", "https://jnswire.s3.amazonaws.com/tmp/20AF48FE8CFB5BBCDEC69D4E/money_06.jpg", "https://jnswire.s3.amazonaws.com/tmp/7BEF7933217CF6C0FC854D26/shutterstock_267646277.jpg", "https://jnswire.s3.amazonaws.com/tmp/E6D84AB42FD7C405D27C6F79/shutterstock_381111379.jpg", "https://jnswire.s3.amazonaws.com/tmp/5648C77D7DF32D0DCEA171A4/shutterstock_121161052.jpg", "https://jnswire.s3.amazonaws.com/tmp/0CA9E6BD31EEB58459C6F253/shutterstock_65427295.jpg", "https://jnswire.s3.amazonaws.com/tmp/040EECC36338BFC4501F788F/shutterstock_450769633.jpg", "https://jnswire.s3.amazonaws.com/tmp/7A510309532EA911769AED85/shutterstock_197358977.jpg", "https://jnswire.s3.amazonaws.com/tmp/B95C09BEBEE1D68538F09C4D/shutterstock_434242897.jpg", "https://jnswire.s3.amazonaws.com/tmp/C94FEE929E2CAE7B5C4357F2/shutterstock_225154648.jpg", "https://jnswire.s3.amazonaws.com/tmp/F1C5787C26D86384DFB0F39E/shutterstock_443523112.jpg", "https://jnswire.s3.amazonaws.com/tmp/90E6FE2243B7EB353948394B/shutterstock_469426916.jpg", "https://jnswire.s3.amazonaws.com/tmp/4537277010CA81501D0905BD/shutterstock_385535740.jpg", "https://jnswire.s3.amazonaws.com/tmp/EE61C75461DE5A99323FA5EE/shutterstock_443523118.jpg", "https://jnswire.s3.amazonaws.com/tmp/97851A8D5B8D0762241E76E5/shutterstock_262120544.jpg", "https://jnswire.s3.amazonaws.com/tmp/4B7F8DA8418A9ED6F3C8AF9C/shutterstock_233512279.jpg", "https://jnswire.s3.amazonaws.com/tmp/17F06624982F128767CF76D7/shutterstock_113962678.jpg", "https://jnswire.s3.amazonaws.com/tmp/D41F7767A57E82C8558C3EEE/shutterstock_373239541.jpg", "https://jnswire.s3.amazonaws.com/tmp/A087FF3C24C945015B2F37C0/shutterstock_369740408.jpg", "https://jnswire.s3.amazonaws.com/tmp/1D961B077CADE85621A689E4/shutterstock_249974521.jpg", "https://jnswire.s3.amazonaws.com/tmp/2354F3CE78F2D0E8BA0A7298/Money759.jpg", "https://jnswire.s3.amazonaws.com/tmp/20C2A855B57C0D8AFE6347AC/Money836.png", "https://jnswire.s3.amazonaws.com/tmp/1CCDD1CBBACE042934A93F68/Money272.png", "https://jnswire.s3.amazonaws.com/tmp/49B031421C388BD33A848B6C/Money041.png"]
+
+config: {"id"=>89912, "export_name"=>"HLE Pension Investment Earnings by State - Alabama Business Daily - production", "tbl"=>"pension_investment_earnings_by_state_staging", "community_id"=>1633, "author"=>"Local Labs News Service", "job_item_id"=>37730, "sub_type_id"=>594, "story_section_ids"=>"2", "story_tag_ids"=>"198", "images"=>nil, "export_arguments"=>"select *, stories.id as stories_id from loki_storycreator.hyperlocal_stories_v2 stories join loki_storycreator.pension_investment_earnings_by_state_staging stage on stage.id = stories.stage_id and stories.exported_at_prod = '0000-00-00 00:00:00' and stories.export_id = 0 and stage_table='pension_investment_earnings_by_state_staging' and storycreator_configuration_id = 278 and publication_name='Alabama Business Daily'", "attributize"=>"0", "source_link"=>nil, "source_name"=>nil, "organization_staging_ids"=>nil, "organization_prod_ids"=>nil, "no_org"=>1, "data_table_configuration_id"=>nil}
+
+
+creating query to get stories
+
+
+
+$ MATCH!
+
+Here's (export arguments) query:
+select *, stories.id as stories_id from loki_storycreator.hyperlocal_stories_v2 stories join loki_storycreator.pension_investment_earnings_by_state_staging stage on stage.id = stories.stage_id and stories.exported_at_prod = '0000-00-00 00:00:00' and stories.export_id = 0 and stage_table='pension_investment_earnings_by_state_staging' and storycreator_configuration_id = 278 and publication_name='Alabama Business Daily' LIMIT 1
+Here's the total results from the query: 0
+opening connection to pipeline-api.locallabs.com:443...
+opened
+starting SSL for pipeline-api.locallabs.com:443...
+SSL established, protocol: TLSv1.2, cipher: ECDHE-RSA-AES128-GCM-SHA256
+<- "GET /api/v1/user/current HTTP/1.1\r\nAuthorization: DyKmqE4YqKk6b9xZLGqd\r\nContent-Type: application/json\r\nX-Force-Update: true\r\nConnection: close\r\nHost: pipeline-api.locallabs.com\r\nContent-Length: 0\r\n\r\n"
+<- ""
+-> "HTTP/1.1 200 OK\r\n"
+-> "Server: nginx\r\n"
+-> "Date: Fri, 27 Sep 2019 18:22:28 GMT\r\n"
+-> "Content-Type: application/json; charset=utf-8\r\n"
+-> "Transfer-Encoding: chunked\r\n"
+-> "Connection: close\r\n"
+-> "X-Frame-Options: SAMEORIGIN\r\n"
+-> "X-XSS-Protection: 1; mode=block\r\n"
+-> "X-Content-Type-Options: nosniff\r\n"
+-> "ETag: W/\"61a4bc58dd2cef43d908fbdda2a30d32\"\r\n"
+-> "Cache-Control: max-age=0, private, must-revalidate\r\n"
+-> "X-Request-Id: b3daa72e-da8d-4fe2-a035-3bb0f4daa450\r\n"
+-> "X-Runtime: 0.009564\r\n"
+-> "Strict-Transport-Security: max-age=31536000\r\n"
+-> "\r\n"
+-> "73\r\n"
+reading 115 bytes...
+-> "{\"id\":1293,\"email\":\"dsuschinsky@gmail.com\",\"display_name\":\"Dmitiry Suschinsky\",\"access_key\":\"DyKmqE4YqKk6b9xZLGqd\"}"
+read 115 bytes
+reading 2 bytes...
+-> "\r\n"
+read 2 bytes
+-> "0\r\n"
+-> "\r\n"
+Conn close
+job_item_id = 37730; record = #<Mysql2::Result:0x0000000003665078>
+record.first['retail_price'] = 
+Export logged: 
+Export Name: HLE Pension Investment Earnings by State - Alabama Business Daily - production
+Job Item Name: Alabama Business Daily - Pension Investment Earnings by State HLE
+Total stories exported: 0
+Approximate total retail value (if applicable): 0.0
+[dsuschinsky@vm58 procedures]$ 
+

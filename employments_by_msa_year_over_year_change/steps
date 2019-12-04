@@ -1,0 +1,113 @@
+STAGE TABLE DEFINITION
+insert into stage_definition_configurations (tbl, definition) select 'employments_by_msa_year_over_year_change_staging', '{""client_id":"int", "client_name":"varchar(255)", "publication_id":"int", "publication_name":"varchar(255)", "organization_id":"bigint(20)", "state":"varchar(255)", "area":"varchar(255)", "curr_year":"int", "prev_year":"int", "month":"varchar(255)","curr_value":"varchar(255)","prev_value":"varchar(255)","curr_state_month_value":"varchar(255)","prev_state_month_value":"varchar(255)","report_date":"varchar(255)","table_json":"longtext"}';
+
+#248
+
+STAGE TABLE CREATION
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=248 -t
+
+STAGE POPULATION CONFIGURATION
+insert into stage_population_configurations(project_name,tbl, definition) select 'Employment #s by MSA Year Over Year Change', 'employments_by_msa_year_over_year_change_staging', '{"known_entities":{"project_name":"Employment #s by MSA Year Over Year Change"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"employments_by_msa_year_over_year_change_population","arguments":{}}}}';
+
+#375
+
+STAGE POPULATION:
+$ cd ~/Loki/procedures
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=375 -t
+
+
+STORY CREATOR CONFIGURATION:
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'employments_by_msa_year_over_year_change_staging', 'employments_by_msa_year_over_year_change_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+
+#255
+
+STORY CREATION COMMAND:
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=255 -t
+
+
+STAGING: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=255 --population_config_id=375 --story_section_ids=2 --story_tag_ids=9 --photobuckets='hiring' --job_item_name_description='Employment #s by MSA Year Over Year Change' -t
+
+STAGING: EXPORT STORIES
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=
+
+
+
+
+
+
+
+!!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
+________________________________________________________________________________________________________________________________________
+
+SCHEDULER:
+__________
+
+up to 4 stories per day, per pub, for up to 35 days, starting September 19
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=375 --limit=4 --start_date='2019-09-19' --total_days_till_end_date=35
+__________________________________________________
+чтоб проверить шедулер, что он "окейно" отработал:
+
+select publication_name, min(publish_on), max(publish_on), count(*) from 'employments_by_msa_year_over_year_change_staging' group by publication_name;
+
+______________________________________
+PRODUCTION: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+______________________________________
+
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=255 --population_config_id=375 --story_section_ids=2 --story_tag_ids=9 --photobuckets='Hiring - 1000x667' --job_item_name_description='Employment #s by MSA Year Over Year Change' -t --prod --limit_config=1
+
+______________________________________
+
+select * from story_export_configurations_v2 where tbl = 'employments_by_msa_year_over_year_change_staging' and export_name like '%production%' order by id DESC;
+
+______________________________________
+если все ок, то выполняем без --limit_config=1
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=255 --population_config_id=375 --story_section_ids=2 --story_tag_ids=9 --photobuckets='Hiring - 1000x667' --job_item_name_description='Employment #s by MSA Year Over Year Change' -t --prod
+
+_________
+повторяем 
+
+select * from story_export_configurations_v2 where tbl = 'employments_by_msa_year_over_year_change_staging' and export_name like '%production%' order by id DESC;
+
+______________________
+для построения таблицы 	
+______________________
+
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from employments_by_msa_year_over_year_change_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='employments_by_msa_year_over_year_change_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+
+__________________________
+PRODUCTION: EXPORT STORIES
+__________________________
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='employments_by_msa_year_over_year_change_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id= --limit=1
+
+_____
+IF OK
+_____
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='51195,51196,51197,51198,51199,51200,51201,51202,51203,51204,51205,51206,51207,51208,51209,51210,51211,51212,51213,51214,51215,51216,51217,51218,51219,51220,51221,51222,51223,51224,51225,51226,51227,51228,51229,51230,51231,51232,51233,51234,51235,51236,51237,51238,51239,51240,51241,51242,51243,51244,51245'
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='59062,59063,59064,59065,59066,59067,59068,59069,59071,59072,59073,59074,59075,59076,59077,59078,59079,59100,59080,59081,59082,59083,59084,59085,59086,59087,59088,59089,59090,59091,59092,59093,59094,59095,59096,59097,59098,59099,59102,59101,59103,59104,59105,59106,59107,59108,59109,59070,59110,59111,59112'
+
+___________________________
+ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
+___________________________
+
+select headline, c.name as publication, concat('https://pipeline.locallabs.com/stories/', s.id) as url, published_at, ji.name as job_item, cc.name as client from stories s
+  join communities c on s.community_id = c.id
+  join client_companies cc on c.client_company_id = cc.id
+  join data_entry_leads l on l.id = s.lead_id
+  join job_items ji on l.job_item_id=ji.id
+where published_at >= '2019-08-30' and deleted = 0 and ji.type in ('JobItem::Hle') and ji.name rlike 'Employment #s by MSA Year Over Year Change'
+order by c.name;
+
+
+
+
+
+

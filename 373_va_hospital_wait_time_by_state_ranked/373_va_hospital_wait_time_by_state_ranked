@@ -1,0 +1,130 @@
+STAGE TABLE DEFINITION
+insert into stage_definition_configurations (tbl, definition) select 'va_hospital_wait_time_by_state_rank_staging', '{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","year":"int(4)","month":"varchar(255)","state":"varchar(255)","header_name":"varchar(255)","body_name":"varchar(255)","locations":"int(11)","total_scheduler":"int(11)","rank_state":"int(4)","rank_region":"int(4)","table":"longtext"}';
+
+
+#390
+
+STAGE TABLE CREATION
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=390 -t
+
+STAGE POPULATION CONFIGURATION
+insert into stage_population_configurations(project_name, tbl, definition) select 'VA Hospital Wait Time by State Ranked', 'va_hospital_wait_time_by_state_rank_staging', '{"known_entities":{"project_name":"VA Hospital Wait Time by State Ranked"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"va_hospital_wait_time_by_state_rank_population","arguments":{}}}}';
+
+population_config_id: #515
+
+STAGE POPULATION:
+$ cd ~/Loki/procedures
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=515 -t --date='2019-09-01'
+
+
+STORY CREATOR CONFIGURATION:
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'va_hospital_wait_time_by_state_rank_staging', 'va_hospital_wait_time_by_state_rank_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+
+creation_config_id: #395
+
+STORY CREATION COMMAND:
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=395 -t
+
+
+STAGING: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=395 --population_config_id=515 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='VA Hospital Wait Time by State Ranked' -t
+
+
+STAGING: EXPORT STORIES
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='171726,171840,176194,173436,175815,176155,176108,171808,171914'
+
+
+
+irb -> load 'Loki.rb'
+irb -> Hle::Story::Feedback.stories_feedback(511654291, 511654289, 511654290, 511654289, 511654287)
+
+
+
+!!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
+________________________________________________________________________________________________________________________________________
+
+SCHEDULER:
+__________
+population_config_id: #515
+creation_config_id: #395
+
+tbl: va_hospital_wait_time_by_state_rank_staging
+desc: VA Hospital Wait Time by State Ranked
+
+config_id - population_config_id
+
+Up to 1 st per day, per pub, for up to 13 days, starting November 25
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=515 --limit=1 --start_date='2019-11-25' --total_days_till_end_date=13
+
+__________________________________________________
+чтоб проверить шедулер, что он "окейно" отработал:
+
+select publication_name, min(publish_on), max(publish_on), count(*) from 'va_hospital_wait_time_by_state_rank_staging' group by publication_name;
+
+______________________________________
+PRODUCTION: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+______________________________________
+
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=395 --population_config_id=515 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Military' --job_item_name_description='VA Hospital Wait Time by State Ranked' -t --prod --limit_config=1 --where="client_id = 120"
+
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=395 --population_config_id=515 --story_section_ids=16 --story_tag_ids=198 --photobuckets='Military' --job_item_name_description='VA Hospital Wait Time by State Ranked' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+
+______________________________________
+
+select * from story_export_configurations_v2 where tbl = 'va_hospital_wait_time_by_state_rank_staging' and export_name like '%production%' order by id DESC;
+
+______________________________________
+если все ок, то выполняем без --limit_config=1
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=395 --population_config_id=515 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Military' --job_item_name_description='VA Hospital Wait Time by State Ranked' -t --prod --where="client_id = 120"
+
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=395 --population_config_id=515 --story_section_ids=16 --story_tag_ids=198 --photobuckets='Military' --job_item_name_description='VA Hospital Wait Time by State Ranked' -t --prod --where="client_name like 'MM - %'"
+
+_________
+повторяем 
+
+select * from story_export_configurations_v2 where tbl = 'va_hospital_wait_time_by_state_rank_staging' and export_name like '%production%' order by id DESC;
+
+
+______________________
+для построения таблицы 	
+______________________
+
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from va_hospital_wait_time_by_state_rank_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='va_hospital_wait_time_by_state_rank_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+
+
+__________________________
+PRODUCTION: EXPORT STORIES
+__________________________
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='va_hospital_wait_time_by_state_rank_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=185882 --limit=1
+
+_____
+IF OK
+_____
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --threads_count=5 --published=1 --config_ids='185882,185562,185603,185362,185422,185905,185670,185707,185805,185786,185582,185667,185477,185400,185436,185697,185552,185758,185616,185666,185489,185715,185516,185469,185448,185577,185796,185593,185875,185848,185373,185657,185614,185620,185502,185819,185876,185684,185532,185411,185806,185864,185724,185717,185869,185763,185484,185668,185852,185857,185749,185600,185778,185838,185687,185524,185611,185897,185634,185415,185862,185889,185354,185714,185449,185434,185474,185604,185371,185640,185358,185579,185333,185339,185873,185479,185597,185393,185883,185539,185722,185843,185576,185348,185683,185754,185480,185854,185590,185698,185762,185417,185326,185803,185402,185856,185355,185351,185846,185633,185596,185713,185442,185560,185771,185564,185851,185336,185705,185528,185821,185720,185426,185686,185638,185644,185409,185468,185506,185555,185664,185455,185842,185833,185881,185836,185655,185404,185572,185324,185491,185801,185554,185347,185444,185504,185414,185809,185661,185350,185425,185583,185327,185342,185779,185740,185899,185349,185507,185394,185418,185648,185374,185807,185541,185793,185368,185389,185813,185447,185642,185794,185377,185440,185490,185544,185345,185510,185712,185423,185775,185626,185337,185536,185556,185907,185680,185759,185709,185598,185428,185641,185548,185637,185797,185635,185853,185756,185557,185372,185456,185486,185466,185496,185587,185495,185660,185751,185595,185361,185831,185718,185723,185888,185421,185470,185735,185878,185580,185650,185701,185538,185685,185734,185690,185487,185558,185441,185787,185649,185652,185610,185669,185798,185849,185695,185702,185699,185386,185360,185537,185665,185515,185908,185795,185546,185810,185508,185518,185519,185485,185581,185529,185791,185525,185503,185471,185450,185451,185465,185453,185872,185726,185512,185860,185776,185743,185673,185511,185497,185663,185716,185446,185553,185387,185745,185331,185542,185438,185325,185341,185732,185792,185840,185643,185463,185396,185766,185901,185839,185429,185338,185804,185890,185765,185639,185730,185822,185689,185547,185599,185381,185678,185563,185725,185837,185844,185658,185820,185898,185674,185887,185420,185812,185501,185561,185570,185623,185488,185462,185884,185382,185653,185526,185390,185573,185835,185870,185855,185605,185443,185770,185632,185334,185654,185706,185492,185530,185782,185829,185651,185781,185845,185476,185427,185656,185827,185514,185774,185710,185549,185731,185565,185551,185588,185903,185752,185432,185329,185357,185767,185460,185459,185675,185574,185405,185520,185419,185335,185392,185454,185788,185366,185513,185395,185452,185880,185500,185401,185586,185534,185646,185467,185736,185517,185627,185367,185365,185521,185703,185613,185437,185505,185431,185748,185802,185612,185413,185760,185493,185615,185696,185608,185621,185814,185847,185343,185383,185370,185430,185391,185388,185535,185746,185741,185738,185737,185682,185569,185739,185568,185385,185728,185445,185906,185540,185398,185478,185863,185676,185575,185464,185379,185817,185416,185909,185403,185340,185824,185481,185545,185606,185733,185823,185475,185865,185677,185406,185832,185694,185380,185346,185893,185886,185585,185877,185424,185688,185826,185625,185457,185498,185433,185619,185662,185830,185375,185825,185859,185328,185594,185764,185757,185636,185378,185494,185700,185584,185408,185607,185679,185902,185589,185531,185410,185692,185631,185818,185777,185828,185874,185799,185609,185783,185399,185867,185789,185482,185784,185719,185742,185753,185815,185744,185332,185755,185533,185439,185483,185543,185708,185681,185773,185750,185472,185647,185659,185566,185461,185550,185499,185800,185904,185571,185330,185369,185344,185691,185591,185729,185458,185850,185894,185769,185363,185811,185693,185891,185364,185353,185509,185407,185900,185376,185866,185397,185624,185630,185523,185816,185711,185412,185671,185834,185522,185672,185629,185761,185892,185617,185592,185858,185785,185645,185601,185567,185356,185861,185628,185868,185879,185352,185727,185790,185622,185527,185559,185721,185704,185808,185841,185896,185772,185747,185384,185618,185473,185768,185885,185895,185871,185780,185578,185359,185435'
+___________________________
+
+
+ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
+___________________________
+
+select headline, c.name as publication, concat('https://pipeline.locallabs.com/stories/', s.id) as url,
+       published_at, ji.name as job_item, cc.name as client from stories s
+                  join communities c on s.community_id = c.id
+                  join client_companies cc on c.client_company_id = cc.id
+                  join data_entry_leads l on l.id = s.lead_id
+                  join job_items ji on l.job_item_id=ji.id
+where published_at >= '2019-11-07' and deleted = 0 and ji.name
+   like '%VA Hospital Wait Time by State Ranked%'
+order by c.name;
+
+
+

@@ -1,0 +1,183 @@
+# quarterly_rental_vacancy_rate_by_state
+# tbl: quarterly_rental_vacancy_rate_by_state_staging
+# db12.usa_raw.usa_administrative_division_states у нас есть штаты с орг_ид
+
+QUARTERS_PERIOD = %w(first second third fourth)
+
+def inc_dec(curr, nex, value)
+  if curr.to_f == nex.to_f
+    "nearly the same as"
+  elsif curr.to_f > nex.to_f
+    "a decrease of#{value} percent from"
+  else
+    "an increase of#{value} percent over"
+  end
+end
+
+def growth_type(curr, nex)
+  if curr.to_f == nex.to_f
+    'did not change much'
+  elsif curr.to_f > nex.to_f
+    'down'
+  else
+    'up'
+  end
+end
+
+def quarterly_rental_vacancy_rate_by_state_stage_population(line, arguments)
+  require 'bigdecimal'
+  require 'bigdecimal/util'
+  require 'date'
+
+  quarterly = @options['quarterly'].to_i
+  p "quarterly: #{quarterly}"
+
+  data_root = Route_noprefix.new(host: 'db13', stage_db: 'usa_raw')
+  data_root.client.query("use #{data_root.stage_db}")
+
+  data_state = Route_noprefix.new(host: 'db12', stage_db: 'usa_raw')
+  data_state.client.query("use #{data_state.stage_db}")
+
+  delivery = Route_noprefix.new(host: 'db05', stage_db: 'loki_storycreator')
+  delivery.client.query("use #{delivery.stage_db}")
+
+  main_list_states = "SELECT DISTINCT id, name, pl_production_org_id, pl_production_org_name FROM usa_administrative_division_states;"
+  states = data_state.client.query(main_list_states)
+
+  reasons = {
+      publications: [],
+      org_id: []
+  }
+
+  # "name"=>"Kansas", "pl_production_org_id"=>645065201, "pl_production_org_name"=>"State of Kansas"
+  states.each do |state|
+    p state
+  end
+
+  states.each do |state|
+
+    query = %(SELECT data_root.id id, data_root.year year, data_root.state state, data_root.quarter quarter,
+                  data_root.vacancy_rate vacancy_rate, data_root.margin_of_error margin_of_error,
+                  data_root.created_at created_at
+                FROM quarterly_rental_vacancy_rates_by_state AS data_root
+                WHERE data_root.year BETWEEN '2018' and '2019' and data_root.state = '#{state['name']}'
+                ORDER BY data_root.year ASC;)
+
+    results = data_root.client.query(query)
+
+    records = []
+    results.each { |r| records.push(r) }
+
+    unless state['pl_production_org_id']
+      reasons[:publications] << state['id']
+      next
+    end
+
+    publications = get_journal_from_org_id(state['pl_production_org_id'], 'production', 120)
+
+    if publications.count.zero?
+      reasons[:publications] << state['id']
+      next
+    end
+
+    publications.each do |publication|
+      records.each_with_index do |record, index|
+        if index != records.size - 1
+          hash = {}
+
+          hash['publication_name'] = "#{publication['publication_name']}"
+          if hash['publication_name'] == ''
+            reasons[:publications] << record['id']
+            next
+          end
+
+          hash['client_id'] = 120
+          hash['client_name'] = 'Metro Business Network'
+          hash['publication_id'] = publication['id'].to_i
+          hash['source_table_id'] = 19842
+          hash['source_id'] = hash['source_table_id'].to_i * 1_000_000_000 + publication['id'].to_i * 10_000_000 + record['id'].to_i
+          hash['organization_id'] = state['pl_production_org_id']
+
+          hash['first_quarter'] = "Q#{record['quarter']}"
+          hash['second_quarter'] = "Q#{records[index+1]['quarter']}"
+
+          if records[index+1]['year'] && records[index+1]['year'].to_i > record['year'].to_i
+            hash['year'] = record['year'] + '/' + records[index+1]['year']
+          else
+            hash['year'] = record['year']
+          end
+
+          hash['state'] = record['state']
+          hash['vacancy_rate_curr'] = "%.2f" % record['vacancy_rate']
+          hash['vacancy_rate_next'] = "%.2f" % records[index+1]['vacancy_rate']
+
+          hash['created_at'] = record['created_at'].to_s
+
+          puts " HASH", hash
+
+          rules = insert_rules(hash.escaped)
+          query = "insert into #{@config['target_table']}#{rules}"
+          delivery.client.query(query)
+        end
+      end
+    end
+  end
+
+  rescue => e
+    print "#{e.to_s} ~> #{e.backtrace.join("\n")}\n"
+  ensure
+    data_state.client.close if data_state
+    data_root.client.close if data_root
+    delivery.client.close if delivery
+  return 'INVALID'
+end
+
+def quarterly_rental_vacancy_rate_by_state_stage_creation(options)
+  count = @stage_selection.count
+  @stage_selection.each_with_index do |stage, index|
+    print "\n PROCESSING #{index+1}/#{count}\n"
+    export = {}
+
+    p state = stage['state']
+    p first_quarter = stage['first_quarter']
+    p second_quarter = stage['second_quarter']
+    p year = stage['year']
+    p next_quarter_year = stage['year'].gsub(/\d+\//, '')
+    p curr_quarter_year = stage['year'].gsub(/\/\d+/, '')
+
+    if /\d+\//.match(year) == nil
+      p second_quarter = second_quarter + ' ' + year
+    else
+      p first_quarter = first_quarter + ' ' + curr_quarter_year
+      p second_quarter = second_quarter + ' ' + next_quarter_year
+    end
+
+    rate_curr = stage['vacancy_rate_curr'].to_f
+    rate_next = stage['vacancy_rate_next'].to_f
+    p vacancy_rate_curr = rate_curr % 1 == 0 ? stage['vacancy_rate_curr'].to_i : "%.1f" % rate_curr
+    p vacancy_rate_next = rate_next % 1 == 0 ? stage['vacancy_rate_next'].to_i : "%.1f" % rate_next
+    p created_at_str = stage['created_at'].strftime("%B")
+    rate_difference = (rate_curr - rate_next).abs
+
+    if rate_difference > 0
+      p vacancy_rate_difference = rate_difference % 1 == 0 ? ' ' + rate_difference.to_i.to_s : ' ' + ("%.1f" % rate_difference).to_s
+      p vacancy_rate_prc = '% '
+    else
+      p vacancy_rate_difference = ' '
+      p vacancy_rate_prc = ''
+    end
+
+    quarter_to_word = stage['second_quarter'] ? QUARTERS_PERIOD[stage['second_quarter'].gsub('Q', '').to_i - 1] : nil
+
+    export['headline'] = "Rental vacancies in #{state} #{growth_type(vacancy_rate_curr, vacancy_rate_next)}#{vacancy_rate_difference}#{vacancy_rate_prc}from #{first_quarter} to #{second_quarter}"
+    export['teaser'] = "Rental vacancies in #{state} were #{vacancy_rate_next} percent in the #{quarter_to_word} quarter of #{next_quarter_year}, #{inc_dec(vacancy_rate_curr, vacancy_rate_next, vacancy_rate_difference)} the previous quarter, according to a U.S. Census Bureau report which was released in #{created_at_str}."
+
+    output = "#{export['teaser']}\n\n"
+
+    output += "Vacancy rates are part of the index of leading economic indicators, and are used by economic forecasters and the federal government to gauge the current economic climate.\n\n"
+    output += "The rental vacancy rate is the proportion of the homeowner inventory that is vacant for rent at the time of the survey.\n\n"
+    output += "The bureau compiles data from a sampling of approximately 72,000 occupied and vacant housing units across the country and District of Columbia. The bureau also collects information on homeownership vacancies, as well as certain characteristics about housing unit, such as age of household members, family status, race/ethnicity and median family income.\n\n"
+    export = prepare_output(stage, output, export, options)
+  end
+
+end
