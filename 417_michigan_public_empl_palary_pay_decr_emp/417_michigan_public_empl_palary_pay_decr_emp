@@ -14,26 +14,26 @@ population_config_id: #550
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=550 -t --year=2019
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=550 -t --year=2018
 
 
-STORY CREATOR CONFIGURATION:
+!STORY CREATOR CONFIGURATION:
 insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'michigan_public_empl_palary_pay_decr_emp_staging', 'michigan_public_empl_palary_pay_decr_emp_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
-creation_config_id: #416
+creation_config_id: #433
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=416 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=433 -t
 
 
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=416 --population_config_id=550 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Public Employee Salary - Pay Decrease per Employer' -t
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=433 --population_config_id=550 --story_section_ids=2 --story_tag_ids=9 --photobuckets='Money' --job_item_name_description='Michigan - Public Employee Salary - Pay Decrease per Employer' -t
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='188361,188363,188364'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='202765,202774,202778'
 
 
 
@@ -51,7 +51,7 @@ ________________________________________________________________________________
 SCHEDULER:
 __________
 population_config_id: #550
-creation_config_id: #416
+creation_config_id: #433
 
 tbl: michigan_public_empl_palary_pay_decr_emp_staging
 desc: Michigan - Public Employee Salary - Pay Decrease per Employer
@@ -76,7 +76,7 @@ ______________________________________
 
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=416 --population_config_id=550 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Public Employee Salary - Pay Decrease per Employer' -t --prod --limit_config=1
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=433 --population_config_id=550 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Public Employee Salary - Pay Decrease per Employer' -t --prod --limit_config=1
 
 ______________________________________
 
@@ -85,7 +85,7 @@ select * from story_export_configurations_v2 where tbl = 'michigan_public_empl_p
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=416 --population_config_id=550 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Public Employee Salary - Pay Decrease per Employer' -t --prod
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=433 --population_config_id=550 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Public Employee Salary - Pay Decrease per Employer' -t --prod
 
 _________
 повторяем 
