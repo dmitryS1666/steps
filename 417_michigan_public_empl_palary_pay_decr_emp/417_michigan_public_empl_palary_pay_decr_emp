@@ -1,5 +1,5 @@
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'michigan_public_empl_palary_pay_decr_emp_staging','{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","employer":"varchar(255)","full_name":"varchar(512)","year":"int(4)","value":"int(11)","value_prev_year":"int(11)","table":"longtext"}';
+insert into stage_definition_configurations (tbl, definition) select 'michigan_public_empl_palary_pay_decr_emp_staging','{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","employer":"varchar(255)","full_name":"varchar(512)","year":"int(4)","value":"int(11)","value_prev_year":"int(11)","max_full_name":"varchar(255)","max_value":"int(11)","table":"longtext"}';
 
 
 #429
