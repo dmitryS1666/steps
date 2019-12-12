@@ -1,5 +1,5 @@
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'michigan_professional_lic_iss_city_comp_per_ly_q_staging', '{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","year":"int(4)","city":"varchar(255)","rank":"int(4)","prev_q":"varchar(255)","prev_q_val":"int(11)","prev_q_last_year_val":"int(11)","table":"longtext"}';
+insert into stage_definition_configurations (tbl, definition) select 'michigan_prof_lic_issued_comp_prev_per_county_q_staging', '{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","year":"int(4)","county":"varchar(255)","rank":"int(4)","prev_q":"varchar(255)","prev_q_val":"int(11)","prev_q_last_year_val":"int(11)","table":"longtext"}';
 
 
 #402
@@ -8,7 +8,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=402 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)', 'michigan_professional_lic_iss_city_comp_per_ly_q_staging', '{"known_entities":{"project_name":"Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"michigan_prof_licenses_issued_city_comp_per_ly_q_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)', 'michigan_prof_lic_issued_comp_prev_per_county_q_staging', '{"known_entities":{"project_name":"Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"michigan_prof_lic_issued_comp_prev_per_county_q_population","arguments":{}}}}';
 
 population_config_id: #525
 
@@ -18,7 +18,7 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id
 
 
 STORY CREATOR CONFIGURATION:
-insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'michigan_professional_lic_iss_city_comp_per_ly_q_staging', 'michigan_professional_lic_iss_city_comp_per_ly_quarter_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'michigan_prof_lic_issued_comp_prev_per_county_q_staging', 'michigan_prof_lic_issued_comp_prev_per_county_q_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
 creation_config_id: #404
 
@@ -29,7 +29,7 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=4
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=404 --population_config_id=525 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)' -t
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=404 --population_config_id=525 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)' -t
 
 
 STAGING: EXPORT STORIES
@@ -53,8 +53,8 @@ __________
 population_config_id: #525
 creation_config_id: #404
 
-tbl: michigan_professional_lic_iss_city_comp_per_ly_q_staging
-desc: Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)
+tbl: michigan_prof_lic_issued_comp_prev_per_county_q_staging
+desc: Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)
 
 config_id - population_config_id
 
@@ -67,7 +67,7 @@ bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=484 --limit=4 --start
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
-select publication_name, min(publish_on), max(publish_on), count(*) from 'michigan_professional_lic_iss_city_comp_per_ly_q_staging' group by publication_name;
+select publication_name, min(publish_on), max(publish_on), count(*) from 'michigan_prof_lic_issued_comp_prev_per_county_q_staging' group by publication_name;
 
 ______________________________________
 PRODUCTION: STORY EXPORT CONFIGURATION
@@ -75,35 +75,35 @@ PRODUCTION: STORY EXPORT CONFIGURATION
 ______________________________________
 
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=404 --population_config_id=525 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)' -t --prod --limit_config=1
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=404 --population_config_id=525 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)' -t --prod --limit_config=1
 
 ______________________________________
 
-select * from story_export_configurations_v2 where tbl = 'michigan_professional_lic_iss_city_comp_per_ly_q_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_county_q_staging' and export_name like '%production%' order by id DESC;
 
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=404 --population_config_id=525 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)' -t --prod
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=404 --population_config_id=525 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)' -t --prod
 
 _________
 повторяем 
 
-select * from story_export_configurations_v2 where tbl = 'michigan_professional_lic_iss_city_comp_per_ly_q_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_county_q_staging' and export_name like '%production%' order by id DESC;
 
 
 ______________________
 для построения таблицы 	
 ______________________
 
-select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from michigan_professional_lic_iss_city_comp_per_ly_q_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='michigan_professional_lic_iss_city_comp_per_ly_q_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from michigan_prof_lic_issued_comp_prev_per_county_q_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='michigan_prof_lic_issued_comp_prev_per_county_q_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
 
 
 __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='michigan_professional_lic_iss_city_comp_per_ly_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=89165 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='michigan_prof_lic_issued_comp_prev_per_county_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=89165 --limit=1
 
 _____
 IF OK
@@ -125,7 +125,7 @@ select headline, c.name as publication, concat('https://pipeline.locallabs.com/s
                   join data_entry_leads l on l.id = s.lead_id
                   join job_items ji on l.job_item_id=ji.id
 where published_at >= '2019-11-07' and deleted = 0 and ji.name
-   like '%Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)%'
+   like '%Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)%'
 order by c.name;
 
 
