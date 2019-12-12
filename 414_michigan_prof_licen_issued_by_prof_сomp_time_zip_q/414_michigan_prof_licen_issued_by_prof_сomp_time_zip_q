@@ -59,11 +59,10 @@ desc: Michigan - Professional Licenses Issued By Profession Compared to same tim
 config_id - population_config_id
 
 
-Up to 7 stories per day, per publication, for 110 days, starting November 3
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=535 --limit=4 --start_date='2019-11-3' --total_days_till_end_date=110
+Up to 7 stories per day, per publication, for 80 days, starting December 19.
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=535 --limit=7 --start_date='2019-12-19' --total_days_till_end_date=80
 
-up to 4 stories per day, per publication, for 175 days, starting October 24. (for 700 and max 754)
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=484 --limit=4 --start_date='2019-10-24' --total_days_till_end_date=175
+All "extra" stories that we do not schedule should be backdated to December 9, 2019.
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
@@ -76,8 +75,9 @@ ______________________________________
 
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=416 --population_config_id=535 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Professional Licenses Issued By Profession Compared to same time LY (Zip - QUARTER)' -t --prod --limit_config=1
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=416 --population_config_id=535 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Issued By Profession Compared to same time LY (Zip - QUARTER)' -t --prod --limit_config=1 --where="client_id = 120"
 
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=416 --population_config_id=535 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Issued By Profession Compared to same time LY (Zip - QUARTER)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
 ______________________________________
 
 select * from story_export_configurations_v2 where tbl = 'michigan_prof_licen_issued_by_prof_comp_time_zip_q_staging' and export_name like '%production%' order by id DESC;
@@ -85,8 +85,9 @@ select * from story_export_configurations_v2 where tbl = 'michigan_prof_licen_is
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=416 --population_config_id=535 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Professional Licenses Issued By Profession Compared to same time LY (Zip - QUARTER)' -t --prod
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=416 --population_config_id=535 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Issued By Profession Compared to same time LY (Zip - QUARTER)' -t --prod --where="client_id = 120"
 
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=416 --population_config_id=535 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Issued By Profession Compared to same time LY (Zip - QUARTER)' -t --prod --where="client_name like 'MM - %'"
 _________
 повторяем 
 
@@ -104,15 +105,13 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='michigan_prof_licen_issued_by_prof_comp_time_zip_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=89165 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='michigan_prof_licen_issued_by_prof_comp_time_zip_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=205845 --limit=1
 
 _____
 IF OK
 _____
 
---threads_count=7
-
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='...'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='205845,205807,205838,205847,205869,205818,205857,205834,205820,205843,205852,205860,205851,205826,205854,205825,205862,205835,205814,205811,205829,205861,205846,205828,205822,205858,205859,205832,205842,205823,205819,205812,205830,205815,205866,205840,205871,205831,205839,205837,205806,205850,205821,205824,205849,205856,205810,205833,205841,205809,205870,205868,205848,205865,205863,205872,205827,205816,205853,205855,205864,205817,205808,205836,205867,205844,205813' --threads_count=7
 ___________________________
 
 
@@ -129,5 +128,23 @@ where published_at >= '2019-11-07' and deleted = 0 and ji.name
    like '%Michigan - Professional Licenses Issued By Profession Compared to same time LY (Zip - QUARTER)%'
 order by c.name;
 
+
+REMINDER TOOL
+___________________________
+
+INSERT INTO loki_storycreator.hle_reminders
+            (
+                story_type_name, story_type_stage_table, dev_name, slack_handle, dev_email, story_frequency,
+                reminders_on, manual_export_required, reminder_frequency, reminder_message, last_manual_export,
+                manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
+                data_source_checker_on, data_source_host, data_source_db, data_source_update_query
+            )
+            VALUES
+            (
+                'Top 10 Cheapest Gas Stations', 'top_ten_gas_stations_staging', 'John Putz', '@john.putz', 'john.putz@locallabs.com',
+                'weekly', 1, 1, 'weekly', 'The Dataset located on db12.usa.gasbuddy_gas_%',
+                '2019-09-06', 0, 0, 1, 20000, 'weekly', 0, 1,
+                'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.gasbuddy_gas_prices;'
+            );
 
 
