@@ -33,7 +33,7 @@ bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=433 --popul
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='202768,202774,202778'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='202768,202776,202778,202783,202779,202777,202795'
 
 
 
@@ -131,3 +131,23 @@ order by c.name;
 
 
 
+REMINDER TOOL
+___________________________
+
+INSERT INTO loki_storycreator.hle_reminders
+    (
+        story_type_name, story_type_stage_table,
+        dev_name, slack_handle, dev_email,
+        story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
+        last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
+        data_source_checker_on, data_source_host, data_source_db, data_source_update_query
+    )
+    VALUES
+    (
+        'Michigan - Professional Licenses Issued By Profession Compared to same time LY (Zip - QUARTER)',
+        'michigan_prof_licen_issued_by_prof_comp_time_zip_q_staging',
+        'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
+        'quarterly', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing_%',
+        '2019-12-12', 0, 0, 0, 20000, 'quarterly', 0,
+         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing__l_info;'
+    );

@@ -58,12 +58,8 @@ desc: Michigan - Professional Licenses Issued Compared to same time LY (City - Q
 
 config_id - population_config_id
 
-
-Up to 7 stories per day, per publication, for 110 days, starting November 3
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=525 --limit=4 --start_date='2019-11-3' --total_days_till_end_date=110
-
-up to 4 stories per day, per publication, for 175 days, starting October 24. (for 700 and max 754)
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=484 --limit=4 --start_date='2019-10-24' --total_days_till_end_date=175
+Up to 2 stories per day, per publication, for up to 30 days, starting December 26
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=525 --limit=2 --start_date='2019-12-26' --total_days_till_end_date=30
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
@@ -75,8 +71,9 @@ PRODUCTION: STORY EXPORT CONFIGURATION
 ______________________________________
 
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=404 --population_config_id=525 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)' -t --prod --limit_config=1
-
+РАЗБИВКА ПО КЛИНЕТАМ!!!
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=404 --population_config_id=525 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=404 --population_config_id=525 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
 ______________________________________
 
 select * from story_export_configurations_v2 where tbl = 'michigan_professional_lic_iss_city_comp_per_ly_q_staging' and export_name like '%production%' order by id DESC;
@@ -84,10 +81,10 @@ select * from story_export_configurations_v2 where tbl = 'michigan_professional_
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=404 --population_config_id=525 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)' -t --prod
-
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=404 --population_config_id=525 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=404 --population_config_id=525 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)' -t --prod --where="client_name like 'MM - %'"
 _________
-повторяем 
+повторяем
 
 select * from story_export_configurations_v2 where tbl = 'michigan_professional_lic_iss_city_comp_per_ly_q_staging' and export_name like '%production%' order by id DESC;
 
@@ -103,7 +100,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='michigan_professional_lic_iss_city_comp_per_ly_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=89165 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='michigan_professional_lic_iss_city_comp_per_ly_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=207363 --limit=1
 
 _____
 IF OK
@@ -111,7 +108,7 @@ _____
 
 --threads_count=7
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='...'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='207396,207381,207412,207380,207406,207375,207384,207395,207399,207409,207365,207401,207383,207402,207388,207373,207376,207379,207398,207371,207392,207368,207407,207362,207387,207391,207361,207374,207389,207404,207378,207403,207370,207385,207394,207364,207377,207411,207369,207372,207386,207382,207400,207397,207367,207405,207408,207390,207366,207410,207393,207363'
 ___________________________
 
 
@@ -142,13 +139,10 @@ INSERT INTO loki_storycreator.hle_reminders
     )
     VALUES
     (
-        'VA Hospital Wait Time by State Ranked',
-        'va_hospital_wait_time_by_state_rank_staging',
+        'Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)',
+        'michigan_professional_lic_iss_city_comp_per_ly_q_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-        'monthly', 1, 1, 'monthly', 'The Dataset located on db12.usa_raw.va_monthly_pending_appointments_hcs_data%',
-        '2019-11-20', 0, 0, 0, 20000, 'monthly', 0,
-         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.va_monthly_pending_appointments_hcs_data;'
+        'quarterly', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing_%',
+        '2019-12-26', 0, 0, 0, 20000, 'quarterly', 0,
+         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing__l_info;'
     );
-
-
-

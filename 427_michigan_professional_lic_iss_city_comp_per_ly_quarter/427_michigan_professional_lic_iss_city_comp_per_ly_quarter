@@ -2,38 +2,38 @@ STAGE TABLE DEFINITION
 insert into stage_definition_configurations (tbl, definition) select 'michigan_prof_lic_issued_comp_prev_per_county_q_staging', '{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","year":"int(4)","county":"varchar(255)","rank":"int(4)","prev_q":"varchar(255)","prev_q_val":"int(11)","prev_q_last_year_val":"int(11)","table":"longtext"}';
 
 
-#402
+#439
 
 STAGE TABLE CREATION
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=402 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=439 -t
 
 STAGE POPULATION CONFIGURATION
 insert into stage_population_configurations(project_name, tbl, definition) select 'Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)', 'michigan_prof_lic_issued_comp_prev_per_county_q_staging', '{"known_entities":{"project_name":"Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"michigan_prof_lic_issued_comp_prev_per_county_q_population","arguments":{}}}}';
 
-population_config_id: #525
+population_config_id: #560
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=525 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=560 -t
 
 
 STORY CREATOR CONFIGURATION:
 insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'michigan_prof_lic_issued_comp_prev_per_county_q_staging', 'michigan_prof_lic_issued_comp_prev_per_county_q_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
-creation_config_id: #404
+creation_config_id: #440
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=404 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=440 -t
 
 
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=404 --population_config_id=525 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)' -t
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=440 --population_config_id=560 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)' -t
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='188307,188309,184061,188328,188333,184085'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='207437,207438,207439,207446,207442,207449'
 
 
 
@@ -50,8 +50,8 @@ ________________________________________________________________________________
 
 SCHEDULER:
 __________
-population_config_id: #525
-creation_config_id: #404
+population_config_id: #560
+creation_config_id: #440
 
 tbl: michigan_prof_lic_issued_comp_prev_per_county_q_staging
 desc: Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)
@@ -60,7 +60,7 @@ config_id - population_config_id
 
 
 Up to 7 stories per day, per publication, for 110 days, starting November 3
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=525 --limit=4 --start_date='2019-11-3' --total_days_till_end_date=110
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=560 --limit=4 --start_date='2019-11-3' --total_days_till_end_date=110
 
 up to 4 stories per day, per publication, for 175 days, starting October 24. (for 700 and max 754)
 bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=484 --limit=4 --start_date='2019-10-24' --total_days_till_end_date=175
@@ -75,7 +75,7 @@ PRODUCTION: STORY EXPORT CONFIGURATION
 ______________________________________
 
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=404 --population_config_id=525 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)' -t --prod --limit_config=1
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=440 --population_config_id=560 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)' -t --prod --limit_config=1
 
 ______________________________________
 
@@ -84,7 +84,7 @@ select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issu
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=404 --population_config_id=525 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)' -t --prod
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=440 --population_config_id=560 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)' -t --prod
 
 _________
 повторяем 
@@ -152,3 +152,4 @@ INSERT INTO loki_storycreator.hle_reminders
     );
 
 
+'https://www.lara.michigan.gov/', 'https://www.michigan.gov/lara'
