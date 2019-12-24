@@ -58,6 +58,7 @@ desc: Michigan - Public Employee Salary - Pay Decrease per Employer
 
 config_id - population_config_id
 
+Up to 50 stories per day, per publication, for up to 200 days starting January 4. All stories that are not scheduled should be backdated to December 21, 2019.
 
 Up to 7 stories per day, per publication, for 110 days, starting November 3
 bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=550 --limit=4 --start_date='2019-11-3' --total_days_till_end_date=110
