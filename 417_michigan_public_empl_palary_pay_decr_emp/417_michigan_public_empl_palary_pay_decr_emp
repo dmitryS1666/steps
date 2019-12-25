@@ -58,12 +58,9 @@ desc: Michigan - Public Employee Salary - Pay Decrease per Employer
 
 config_id - population_config_id
 
+Up to 50 stories per day, per publication, for 200 days, starting January 4. All stories that are not scheduled should be backdated to December 21, 2019.
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=550 --limit=50 --start_date='2020-01-4' --total_days_till_end_date=200
 
-Up to 7 stories per day, per publication, for 110 days, starting November 3
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=550 --limit=4 --start_date='2019-11-3' --total_days_till_end_date=110
-
-up to 4 stories per day, per publication, for 175 days, starting October 24. (for 700 and max 754)
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=484 --limit=4 --start_date='2019-10-24' --total_days_till_end_date=175
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
@@ -76,7 +73,10 @@ ______________________________________
 
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=433 --population_config_id=550 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Public Employee Salary - Pay Decrease per Employer' -t --prod --limit_config=1
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=433 --population_config_id=550 --story_section_ids=2 --story_tag_ids=193 --photobuckets='Money' --job_item_name_description='Michigan - Public Employee Salary - Pay Decrease per Employer' -t --prod --limit_config=1 --where="client_id = 120"
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=433 --population_config_id=550 --story_section_ids=16 --story_tag_ids=193 --photobuckets='Money' --job_item_name_description='Michigan - Public Employee Salary - Pay Decrease per Employer' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+
 
 ______________________________________
 
@@ -85,7 +85,9 @@ select * from story_export_configurations_v2 where tbl = 'michigan_public_empl_p
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=433 --population_config_id=550 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Public Employee Salary - Pay Decrease per Employer' -t --prod
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=433 --population_config_id=550 --story_section_ids=2 --story_tag_ids=193 --photobuckets='Money' --job_item_name_description='Michigan - Public Employee Salary - Pay Decrease per Employer' -t --prod --where="client_id = 120"
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=433 --population_config_id=550 --story_section_ids=16 --story_tag_ids=193 --photobuckets='Money' --job_item_name_description='Michigan - Public Employee Salary - Pay Decrease per Employer' -t --prod --where="client_name like 'MM - %'"
 
 _________
 повторяем 
@@ -104,7 +106,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='michigan_public_empl_palary_pay_decr_emp_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=89165 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='michigan_public_empl_palary_pay_decr_emp_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=208459 --limit=1
 
 _____
 IF OK
@@ -112,7 +114,7 @@ _____
 
 --threads_count=7
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='...'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='208459,208480,208472,208488,208479,208471,208460,208476,208489,208462,208454,208473,208481,208486,208452,208475,208467,208483,208461,208457,208477,208468,208484,208455,208458,208487,208456,208469,208463,208478,208485,208464,208482,208474,208470,208453,208465,208466' --threads_count=7
 ___________________________
 
 
@@ -144,10 +146,10 @@ INSERT INTO loki_storycreator.hle_reminders
     )
     VALUES
     (
-        'Michigan - Professional Licenses Issued By Profession Compared to same time LY (Zip - QUARTER)',
-        'michigan_prof_licen_issued_by_prof_comp_time_zip_q_staging',
+        'Michigan - Public Employee Salary - Pay Decrease per Employer',
+        'michigan_public_empl_palary_pay_decr_emp_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-        'quarterly', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing_%',
-        '2019-12-12', 0, 0, 0, 20000, 'quarterly', 0,
-         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing__l_info;'
+        'quarterly', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_public_employee_salary%',
+        '2019-12-25', 0, 0, 0, 20000, 'quarterly', 0,
+         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_public_employee_salary;'
     );
