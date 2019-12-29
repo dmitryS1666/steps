@@ -19,20 +19,20 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id
 STORY CREATOR CONFIGURATION:
 insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'texas_prof_licenses_set_expire_by_prof_city_q_staging', 'texas_prof_licenses_set_expire_by_prof_city_q_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
-creation_config_id: #440
+creation_config_id: #462
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=440 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=462 -t
 
 
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=440 --population_config_id=582 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Texas - Professional Licenses Set to Expire by Profession (City - Quarter)' -t
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=462 --population_config_id=582 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Texas - Professional Licenses Set to Expire by Profession (City - Quarter)' -t
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='207437,207462,207466,207489,207451'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='211104,211105,211106,211109,211111'
 
 
 
@@ -50,7 +50,7 @@ ________________________________________________________________________________
 SCHEDULER:
 __________
 population_config_id: #582
-creation_config_id: #440
+creation_config_id: #462
 
 tbl: texas_prof_licenses_set_expire_by_prof_city_q_staging
 desc: Texas - Professional Licenses Set to Expire by Profession (City - Quarter)
@@ -74,7 +74,7 @@ PRODUCTION: STORY EXPORT CONFIGURATION
 ______________________________________
 
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=440 --population_config_id=582 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Texas - Professional Licenses Set to Expire by Profession (City - Quarter)' -t --prod --limit_config=1
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=462 --population_config_id=582 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Texas - Professional Licenses Set to Expire by Profession (City - Quarter)' -t --prod --limit_config=1
 
 ______________________________________
 
@@ -83,7 +83,7 @@ select * from story_export_configurations_v2 where tbl = 'texas_prof_licenses_se
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=440 --population_config_id=582 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Texas - Professional Licenses Set to Expire by Profession (City - Quarter)' -t --prod
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=462 --population_config_id=582 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Texas - Professional Licenses Set to Expire by Profession (City - Quarter)' -t --prod
 
 _________
 повторяем
