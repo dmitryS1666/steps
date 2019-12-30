@@ -1,0 +1,152 @@
+STAGE TABLE DEFINITION
+insert into stage_definition_configurations (tbl, definition) select 'texas_prof_licenses_set_expire_city_week_staging','{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","city":"varchar(255)","license_type":"varchar(512)","quarter":"varchar(255)","quarter_val":"int(11)","table":"longtext"}';
+
+#463
+
+STAGE TABLE CREATION
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=463 -t
+
+STAGE POPULATION CONFIGURATION
+insert into stage_population_configurations(project_name, tbl, definition) select 'Texas - Professional Licenses Set to Expire (City - Week)', 'texas_prof_licenses_set_expire_city_week_staging', '{"known_entities":{"project_name":"Texas - Professional Licenses Set to Expire (City - Week)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"texas_prof_licenses_set_expire_by_prof_city_q_population","arguments":{}}}}';
+
+population_config_id: #582
+
+STAGE POPULATION:
+$ cd ~/Loki/procedures
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=582 -t --number_quarter=2
+
+
+STORY CREATOR CONFIGURATION:
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'texas_prof_licenses_set_expire_city_week_staging', 'texas_prof_licenses_set_expire_by_prof_city_q_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+
+creation_config_id: #462
+
+STORY CREATION COMMAND:
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=462 -t
+
+
+STAGING: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=462 --population_config_id=582 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Texas - Professional Licenses Set to Expire (City - Week)' -t
+
+
+STAGING: EXPORT STORIES
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='211104,211105,211106,211109,211111'
+
+
+
+FIRST FEEDBACK
+________________________________________
+irb ->
+load 'Loki.rb'
+Hle::Story::Feedback.stories_feedback('511663707,511663705,511663704,511663699')
+
+
+
+!!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
+________________________________________________________________________________________________________________________________________
+
+SCHEDULER:
+__________
+population_config_id: #582
+creation_config_id: #462
+
+tbl: texas_prof_licenses_set_expire_city_week_staging
+desc: Texas - Professional Licenses Set to Expire (City - Week)
+
+config_id - population_config_id
+
+
+Up to 7 stories per day, per publication, for 110 days, starting November 3
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=582 --limit=4 --start_date='2019-11-3' --total_days_till_end_date=110
+
+up to 4 stories per day, per publication, for 175 days, starting October 24. (for 700 and max 754)
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=484 --limit=4 --start_date='2019-10-24' --total_days_till_end_date=175
+__________________________________________________
+чтоб проверить шедулер, что он "окейно" отработал:
+
+select publication_name, min(publish_on), max(publish_on), count(*) from 'texas_prof_licenses_set_expire_city_week_staging' group by publication_name;
+
+______________________________________
+PRODUCTION: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+______________________________________
+
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=462 --population_config_id=582 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Texas - Professional Licenses Set to Expire (City - Week)' -t --prod --limit_config=1
+
+______________________________________
+
+select * from story_export_configurations_v2 where tbl = 'texas_prof_licenses_set_expire_city_week_staging' and export_name like '%production%' order by id DESC;
+
+______________________________________
+если все ок, то выполняем без --limit_config=1
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=462 --population_config_id=582 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Texas - Professional Licenses Set to Expire (City - Week)' -t --prod
+
+_________
+повторяем
+
+select * from story_export_configurations_v2 where tbl = 'texas_prof_licenses_set_expire_city_week_staging' and export_name like '%production%' order by id DESC;
+
+
+______________________
+для построения таблицы
+______________________
+
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from texas_prof_licenses_set_expire_city_week_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='texas_prof_licenses_set_expire_city_week_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+
+
+__________________________
+PRODUCTION: EXPORT STORIES
+__________________________
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='texas_prof_licenses_set_expire_city_week_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=89165 --limit=1
+
+_____
+IF OK
+_____
+
+--threads_count=7
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='...'
+___________________________
+
+
+ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
+___________________________
+
+select headline, c.name as publication, concat('https://pipeline.locallabs.com/stories/', s.id) as url,
+       published_at, ji.name as job_item, cc.name as client from stories s
+                  join communities c on s.community_id = c.id
+                  join client_companies cc on c.client_company_id = cc.id
+                  join data_entry_leads l on l.id = s.lead_id
+                  join job_items ji on l.job_item_id=ji.id
+where published_at >= '2019-11-07' and deleted = 0 and ji.name
+   like '%Texas - Professional Licenses Set to Expire (City - Week)%'
+order by c.name;
+
+
+
+
+REMINDER TOOL
+___________________________
+
+INSERT INTO loki_storycreator.hle_reminders
+    (
+        story_type_name, story_type_stage_table,
+        dev_name, slack_handle, dev_email,
+        story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
+        last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
+        data_source_checker_on, data_source_host, data_source_db, data_source_update_query
+    )
+VALUES
+    (
+        'Texas - Professional Licenses Set to Expire (City - Week)'',
+        'texas_prof_licenses_set_expire_city_week_staging',
+        'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
+        'quarterly', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing_%',
+        '2019-12-12', 0, 0, 0, 20000, 'quarterly', 0,
+         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing__l_info;'
+    );

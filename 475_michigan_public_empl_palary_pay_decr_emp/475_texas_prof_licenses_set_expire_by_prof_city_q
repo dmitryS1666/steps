@@ -143,7 +143,7 @@ INSERT INTO loki_storycreator.hle_reminders
 VALUES
     (
         'Texas - Professional Licenses Set to Expire by Profession (City - Quarter)'',
-        'michigan_prof_licen_issued_by_prof_comp_time_zip_q_staging',
+        'texas_prof_licenses_set_expire_by_prof_city_q_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
         'quarterly', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing_%',
         '2019-12-12', 0, 0, 0, 20000, 'quarterly', 0,
