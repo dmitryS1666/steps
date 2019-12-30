@@ -1,14 +1,3 @@
-  delivery = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
-  delivery.client.query("use #{delivery.stage_db}")
-
-  data_state = Route_noprefix.new(host: DB12, stage_db: 'usa_raw')
-  data_state.client.query("use #{data_state.stage_db}")
-
-  data_route = Route_noprefix.new(host: DB13, stage_db: 'usa_raw')
-  data_route.client.query("use #{data_route.stage_db}")
-
-
-
 STAGE TABLE DEFINITION
 insert into stage_definition_configurations (tbl, definition) select 'michigan_prof_lic_issued_comp_prev_per_county_q_staging', '{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","county":"varchar(255)","profession":"varchar(512)","quarter":"varchar(255)","quarter_val":"int(11)","quarter_val_last_year":"int(11)","table":"longtext"}';
 
@@ -44,15 +33,14 @@ bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=440 --popul
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='207437,207462,207466,207489,207451'
-
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='207437,207441,207456,207454,207480'
 
 
 FIRST FEEDBACK
 ________________________________________
 irb -> 
 load 'Loki.rb'
-Hle::Story::Feedback.stories_feedback('511663707,511663705,511663704,511663699')
+Hle::Story::Feedback.stories_feedback('511665026,511665053,511665052,511665043')
 
 
 
