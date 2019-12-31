@@ -1,10 +1,10 @@
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'texas_prof_licenses_set_expire_city_week_staging','{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","city":"varchar(255)","license_type":"varchar(512)","quarter":"varchar(255)","quarter_val":"int(11)","table":"longtext"}';
+insert into stage_definition_configurations (tbl, definition) select 'texas_prof_licenses_set_expire_city_week_staging','{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","city":"varchar(255)","week":"varchar(255)","month":"varchar(255)","week_val":"int(11)","table":"longtext"}';
 
-#463
+#467
 
 STAGE TABLE CREATION
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=463 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=467 -t
 
 STAGE POPULATION CONFIGURATION
 insert into stage_population_configurations(project_name, tbl, definition) select 'Texas - Professional Licenses Set to Expire (City - Week)', 'texas_prof_licenses_set_expire_city_week_staging', '{"known_entities":{"project_name":"Texas - Professional Licenses Set to Expire (City - Week)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"texas_prof_licenses_set_expire_by_prof_city_q_population","arguments":{}}}}';
@@ -13,7 +13,7 @@ population_config_id: #582
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=582 -t --number_quarter=2
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=582 -t --date='2019-12-30'
 
 
 STORY CREATOR CONFIGURATION:
