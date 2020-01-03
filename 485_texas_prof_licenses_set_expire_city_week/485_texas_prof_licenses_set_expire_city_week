@@ -1,5 +1,5 @@
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'texas_prof_licenses_set_expire_city_week_staging','{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","city":"varchar(255)","week":"varchar(255)","month":"varchar(255)","week_val":"int(11)","table":"longtext"}';
+insert into stage_definition_configurations (tbl, definition) select 'texas_prof_licenses_set_expire_city_week_staging','{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","city":"varchar(255)","week":"varchar(255)","month":"varchar(255)","week_val":"int(11)","type_data":"varchar(512)","table":"longtext"}';
 
 #467
 
@@ -32,7 +32,7 @@ bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=470 --popul
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='211104,211105,211106,211109,211111'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='212767,212770,212777,212762,212772'
 
 
 
