@@ -40,7 +40,7 @@ FIRST FEEDBACK
 ________________________________________
 irb ->
 load 'Loki.rb'
-Hle::Story::Feedback.stories_feedback('511663707,511663705,511663704,511663699')
+Hle::Story::Feedback.stories_feedback('511668183,511668188,511668189,511668193')
 
 
 
