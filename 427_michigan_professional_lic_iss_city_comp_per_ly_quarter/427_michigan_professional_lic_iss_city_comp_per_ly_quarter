@@ -57,12 +57,9 @@ desc: Michigan - Professional Licenses Issued Compared to prev per (County - Qua
 
 config_id - population_config_id
 
+Up to 3 stories per day, per publication, for 30 days, starting January 16.
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=560 --limit=3 --start_date='2020-01-16' --total_days_till_end_date=30
 
-Up to 7 stories per day, per publication, for 110 days, starting November 3
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=560 --limit=4 --start_date='2019-11-3' --total_days_till_end_date=110
-
-up to 4 stories per day, per publication, for 175 days, starting October 24. (for 700 and max 754)
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=484 --limit=4 --start_date='2019-10-24' --total_days_till_end_date=175
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
@@ -74,7 +71,9 @@ PRODUCTION: STORY EXPORT CONFIGURATION
 ______________________________________
 
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=440 --population_config_id=560 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)' -t --prod --limit_config=1
+РАЗБИВКА ПО КЛИНЕТАМ!!!
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=440 --population_config_id=560 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=440 --population_config_id=560 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
 
 ______________________________________
 
@@ -83,10 +82,10 @@ select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issu
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=440 --population_config_id=560 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)' -t --prod
-
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=440 --population_config_id=560 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=440 --population_config_id=560 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)' -t --prod --where="client_name like 'MM - %'"
 _________
-повторяем 
+повторяем
 
 select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_county_q_staging' and export_name like '%production%' order by id DESC;
 
@@ -102,7 +101,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='michigan_prof_lic_issued_comp_prev_per_county_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=89165 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='michigan_prof_lic_issued_comp_prev_per_county_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=215338 --limit=1
 
 _____
 IF OK
@@ -110,23 +109,37 @@ _____
 
 --threads_count=7
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='...'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='215338,215369,215357,215339,215382,215345,215371,215346,215363,215330,215288,215381,215366,215335,215367,215337,215368,215362,215321,215319,215343,215373,215331,215340,215311,215372,215370,215356,215350,215360,215281,215336,215342,215325,215378,215344,215384,215347,215348,215355,215358,215365,215315,215323,215349,215374,215313,215332,215341,215361,215329,215385,215383,215359,215380,215379,215387,215327,215333,215376,215375,215377,215353,215354,215351,215352,215386,215317,215334,215364'
 ___________________________
 
 
 ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
 ___________________________
 
-select headline, c.name as publication, concat('https://pipeline.locallabs.com/stories/', s.id) as url,
-       published_at, ji.name as job_item, cc.name as client from stories s
-                  join communities c on s.community_id = c.id
-                  join client_companies cc on c.client_company_id = cc.id
-                  join data_entry_leads l on l.id = s.lead_id
-                  join job_items ji on l.job_item_id=ji.id
-where published_at >= '2019-11-07' and deleted = 0 and ji.name
-   like '%Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)%'
-order by c.name;
+# DB05.loki_storycreator query:
 
+SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
+FROM story_export_configurations_v2
+WHERE tbl = "michigan_prof_lic_issued_comp_prev_per_county_q_staging" AND
+      export_name LIKE '%production%';
+
+# pipeline-core-replica2.jnswire_prod query:
+
+SELECT headline, c.name AS publication, concat('https://pipeline.locallabs.com/stories/', s.id) AS url,
+       published_at, ji.name AS job_item, cc.name AS client
+FROM stories AS s
+JOIN communities AS c
+  ON s.community_id = c.id
+JOIN client_companies AS cc
+  ON c.client_company_id = cc.id
+JOIN data_entry_leads AS l
+  ON l.id = s.lead_id
+JOIN job_items AS ji
+  ON l.job_item_id=ji.id
+WHERE published_at >= '2020-01-07' AND
+      deleted = 0 AND
+      l.job_item_id IN (<result_of_DB05.storycreator_query>)
+ORDER BY c.name;
 
 
 REMINDER TOOL
@@ -142,8 +155,8 @@ INSERT INTO loki_storycreator.hle_reminders
     )
     VALUES
     (
-        'Michigan - Professional Licenses Issued By Profession Compared to same time LY (Zip - QUARTER)',
-        'michigan_prof_licen_issued_by_prof_comp_time_zip_q_staging',
+        'Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)',
+        'michigan_prof_lic_issued_comp_prev_per_county_q_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
         'quarterly', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing_%',
         '2019-12-12', 0, 0, 0, 20000, 'quarterly', 0,
@@ -151,4 +164,4 @@ INSERT INTO loki_storycreator.hle_reminders
     );
 
 
-'https://www.lara.michigan.gov/', 'https://www.michigan.gov/lara'
+'https://www.lara.michigan.gov/' -> 'https://www.michigan.gov/lara'
