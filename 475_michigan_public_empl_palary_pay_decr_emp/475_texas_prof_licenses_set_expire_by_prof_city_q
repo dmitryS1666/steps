@@ -74,22 +74,23 @@ PRODUCTION: STORY EXPORT CONFIGURATION
 ______________________________________
 
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=462 --population_config_id=582 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Texas - Professional Licenses Set to Expire by Profession (City - Quarter)' -t --prod --limit_config=1
+РАЗБИВКА ПО КЛИНЕТАМ!!!
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=462 --population_config_id=582 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Texas - Professional Licenses Set to Expire by Profession (City - Quarter)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=462 --population_config_id=582 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Texas - Professional Licenses Set to Expire by Profession (City - Quarter)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
 
 ______________________________________
 
-select * from story_export_configurations_v2 where tbl = 'texas_prof_licenses_set_expire_by_prof_city_q_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_county_q_staging' and export_name like '%production%' order by id DESC;
 
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=462 --population_config_id=582 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Money' --job_item_name_description='Texas - Professional Licenses Set to Expire by Profession (City - Quarter)' -t --prod
-
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=462 --population_config_id=582 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Texas - Professional Licenses Set to Expire by Profession (City - Quarter)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=462 --population_config_id=582 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Texas - Professional Licenses Set to Expire by Profession (City - Quarter)' -t --prod --where="client_name like 'MM - %'"
 _________
 повторяем
 
-select * from story_export_configurations_v2 where tbl = 'texas_prof_licenses_set_expire_by_prof_city_q_staging' and export_name like '%production%' order by id DESC;
-
+select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_county_q_staging' and export_name like '%production%' order by id DESC;
 
 ______________________
 для построения таблицы
@@ -117,15 +118,28 @@ ___________________________
 ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
 ___________________________
 
-select headline, c.name as publication, concat('https://pipeline.locallabs.com/stories/', s.id) as url,
-       published_at, ji.name as job_item, cc.name as client from stories s
-                  join communities c on s.community_id = c.id
-                  join client_companies cc on c.client_company_id = cc.id
-                  join data_entry_leads l on l.id = s.lead_id
-                  join job_items ji on l.job_item_id=ji.id
-where published_at >= '2019-11-07' and deleted = 0 and ji.name
-   like '%Texas - Professional Licenses Set to Expire by Profession (City - Quarter)%'
-order by c.name;
+SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
+FROM story_export_configurations_v2
+WHERE tbl = "texas_prof_licenses_set_expire_city_week_staging" AND
+      export_name LIKE '%production%';
+
+
+SELECT headline, c.name AS publication, concat('https://pipeline.locallabs.com/stories/', s.id) AS url,
+       published_at, ji.name AS job_item, cc.name AS client
+FROM stories AS s
+JOIN communities AS c
+  ON s.community_id = c.id
+JOIN client_companies AS cc
+  ON c.client_company_id = cc.id
+JOIN data_entry_leads AS l
+  ON l.id = s.lead_id
+JOIN job_items AS ji
+  ON l.job_item_id=ji.id
+WHERE published_at >= '2020-01-07' AND
+      deleted = 0 AND
+      l.job_item_id IN (LIST)
+ORDER BY c.name;
+
 
 
 
@@ -142,10 +156,9 @@ INSERT INTO loki_storycreator.hle_reminders
     )
 VALUES
     (
-        'Texas - Professional Licenses Set to Expire by Profession (City - Quarter)'',
-        'texas_prof_licenses_set_expire_by_prof_city_q_staging',
+        'Texas - Professional Licenses Set to Expire (City - Week)', 'texas_prof_licenses_set_expire_city_week_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-        'quarterly', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing_%',
-        '2019-12-12', 0, 0, 0, 20000, 'quarterly', 0,
+        'week', 1, 1, 'week', 'The Dataset located on db12.usa_raw.michigan_professional_licensing_%',
+        '2020-01-10', 0, 0, 0, 20000, 'week', 0,
          1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing__l_info;'
     );
