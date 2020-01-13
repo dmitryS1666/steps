@@ -1,13 +1,5 @@
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'michigan_prof_licenses_exp_prof_comp_prev_period_county_q_staging','{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)",
-"organization_id":"bigint(20)",
-"city":"varchar(255)",
-"week":"varchar(255)",
-"month":"varchar(255)",
-"week_val":"int(11)",
-"type_data":"varchar(512)",
-"table":"longtext"
-}';
+insert into stage_definition_configurations (tbl, definition) select 'michigan_prof_licenses_exp_prof_comp_prev_period_county_q_staging','{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","county":"varchar(255)","profession":"varchar(255)","quarter":"varchar(255)","quarter_val":"int(11)","quarter_val_prev":"int(11)","table":"longtext"}';
 
 #467
 
