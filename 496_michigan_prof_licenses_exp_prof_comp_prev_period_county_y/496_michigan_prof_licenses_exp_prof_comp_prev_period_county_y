@@ -1,38 +1,38 @@
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'mi_prof_licenses_exp_prof_comp_prev_period_county_q_staging','{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","county":"varchar(255)","profession":"varchar(255)","quarter":"varchar(255)","quarter_val":"int(11)","quarter_val_prev":"int(11)","table":"longtext"}';
+insert into stage_definition_configurations (tbl, definition) select 'mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging','{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","county":"varchar(255)","profession":"varchar(255)","year":"int(4)","year_val":"int(11)","year_val_prev":"int(11)","table":"longtext"}';
 
-#487
+#493
 
 STAGE TABLE CREATION
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=487 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=493 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Quarter)', 'mi_prof_licenses_exp_prof_comp_prev_period_county_q_staging', '{"known_entities":{"project_name":"Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Quarter)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"michigan_prof_licenses_exp_prof_comp_prev_period_county_q_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Year)', 'mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging', '{"known_entities":{"project_name":"Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Year)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"michigan_prof_licenses_exp_prof_comp_prev_period_county_y_population","arguments":{}}}}';
 
-population_config_id: #607
+population_config_id: #614
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=607 -t --date='2019-12-15'
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=614 -t --year='2019'
 
 
 STORY CREATOR CONFIGURATION:
-insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'mi_prof_licenses_exp_prof_comp_prev_period_county_q_staging', 'michigan_prof_licenses_exp_prof_comp_prev_period_county_q_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging', 'michigan_prof_licenses_exp_prof_comp_prev_period_county_y_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
-creation_config_id: #485
+creation_config_id: #493
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=485 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=493 -t
 
 
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=485 --population_config_id=607 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Quarter)' -t
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=493 --population_config_id=614 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Year)' -t
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='217248,217249,217255'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='219562,219573,219546,219541,219553'
 
 
 
@@ -40,7 +40,7 @@ FIRST FEEDBACK
 ________________________________________
 irb ->
 load 'Loki.rb'
-Hle::Story::Feedback.stories_feedback('511668183,511668188,511668189,511668193')
+Hle::Story::Feedback.stories_feedback('511671408,511671407,511671406,511671405')
 
 
 
@@ -49,21 +49,21 @@ ________________________________________________________________________________
 
 SCHEDULER:
 __________
-population_config_id: #607
-creation_config_id: #485
+population_config_id: #614
+creation_config_id: #493
 
-tbl: mi_prof_licenses_exp_prof_comp_prev_period_county_q_staging
-desc: Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Quarter)
+tbl: mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging
+desc: Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Year)
 
 config_id - population_config_id
 
 Up to 5 stories per day, per publication, for up to 50 days, starting January 20
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=607 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=614 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
-select publication_name, min(publish_on), max(publish_on), count(*) from 'mi_prof_licenses_exp_prof_comp_prev_period_county_q_staging' group by publication_name;
+select publication_name, min(publish_on), max(publish_on), count(*) from 'mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging' group by publication_name;
 
 ______________________________________
 PRODUCTION: STORY EXPORT CONFIGURATION
@@ -72,8 +72,8 @@ ______________________________________
 
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=485 --population_config_id=607 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Quarter)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=485 --population_config_id=607 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Quarter)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=493 --population_config_id=614 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Year)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=493 --population_config_id=614 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Year)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
 
 ______________________________________
 
@@ -82,8 +82,8 @@ select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issu
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=485 --population_config_id=607 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Quarter)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=485 --population_config_id=607 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Quarter)' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=493 --population_config_id=614 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Year)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=493 --population_config_id=614 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Year)' -t --prod --where="client_name like 'MM - %'"
 _________
 повторяем
 
@@ -94,14 +94,14 @@ ______________________
 для построения таблицы
 ______________________
 
-select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from mi_prof_licenses_exp_prof_comp_prev_period_county_q_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='mi_prof_licenses_exp_prof_comp_prev_period_county_q_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
 
 
 __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='mi_prof_licenses_exp_prof_comp_prev_period_county_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=216480 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=216480 --limit=1
 
 _____
 IF OK
@@ -118,7 +118,7 @@ ___________________________
 
 SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
 FROM story_export_configurations_v2
-WHERE tbl = "mi_prof_licenses_exp_prof_comp_prev_period_county_q_staging" AND
+WHERE tbl = "mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging" AND
       export_name LIKE '%production%';
 
 # pipeline-core-replica2.jnswire_prod query:
@@ -155,7 +155,7 @@ INSERT INTO loki_storycreator.hle_reminders
     )
 VALUES
     (
-        'Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Quarter)', 'mi_prof_licenses_exp_prof_comp_prev_period_county_q_staging',
+        'Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Year)', 'mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
         'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
         '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
