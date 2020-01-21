@@ -57,12 +57,8 @@ desc: Texas - Professional Licenses Set to Expire by Profession (City - Quarter)
 
 config_id - population_config_id
 
-
-Up to 7 stories per day, per publication, for 110 days, starting November 3
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=582 --limit=4 --start_date='2019-11-3' --total_days_till_end_date=110
-
-up to 4 stories per day, per publication, for 175 days, starting October 24. (for 700 and max 754)
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=484 --limit=4 --start_date='2019-10-24' --total_days_till_end_date=175
+Up to 9 stories per day, per publication, for up to 72 days, starting January 17.
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=582 --limit=9 --start_date='2020-01-18' --total_days_till_end_date=72
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
@@ -103,7 +99,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='texas_prof_licenses_set_expire_by_prof_city_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=89165 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='texas_prof_licenses_set_expire_by_prof_city_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=219594 --limit=1
 
 _____
 IF OK
@@ -111,7 +107,7 @@ _____
 
 --threads_count=7
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='...'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='219627,219594,219575,219616,219591,219595,219618,219612,219624,219635,219611,219641,219629,219620,219581,219632,219613,219583,219623,219634,219576,219593,219585,219592,219586,219587,219588,219626,219633,219603,219614,219606,219596,219577,219578,219579,219608,219600,219621,219609,219615,219607,219599,219604,219584,219598,219642,219619,219617,219610,219637,219631,219589,219601,219580,219628,219638,219582,219597,219622,219590,219630,219636,219625,219640,219602,219639,219605' --threads_count=7
 ___________________________
 
 
@@ -137,7 +133,7 @@ JOIN job_items AS ji
   ON l.job_item_id=ji.id
 WHERE published_at >= '2020-01-07' AND
       deleted = 0 AND
-      l.job_item_id IN (LIST)
+      l.job_item_id IN (116594,116581,116577,116576,116582,116603,116585,116595,116590,116571,116591,116579,116589,116588,116583,116584,116599,116602,116573,116575,116604,116596,116592,116605,116600,116580,116578,116593,116586,116601,116587,116574,116597,116598,116623,116635,116612,116636,116614,116621,116630,116607,116626,116609,116618,116572,116634,116606,116608,116624,116638,116620,116628,116633,116627,116631,116625,116615,116632,116637,116617,116616,116610,116629,116622,116613,116619,116611)
 ORDER BY c.name;
 
 
@@ -156,9 +152,9 @@ INSERT INTO loki_storycreator.hle_reminders
     )
 VALUES
     (
-        'Texas - Professional Licenses Set to Expire (City - Week)', 'texas_prof_licenses_set_expire_city_week_staging',
+        'Texas - Professional Licenses Set to Expire by Profession (City - Quarter)', 'texas_prof_licenses_set_expire_city_week_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-        'week', 1, 1, 'week', 'The Dataset located on db12.usa_raw.michigan_professional_licensing_%',
-        '2020-01-10', 0, 0, 0, 20000, 'week', 0,
-         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing__l_info;'
+        'quarterly', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.texas_professional_licenseing%',
+        '2020-01-17', 0, 0, 0, 20000, 'quarterly', 0,
+         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.texas_professional_licenseing;'
     );
