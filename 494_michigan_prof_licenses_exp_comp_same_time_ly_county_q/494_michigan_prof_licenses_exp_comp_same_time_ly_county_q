@@ -33,14 +33,14 @@ bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=499 --popul
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='223308,223309,223324,223326,223316,223312'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='223397,223424,223401,223390'
 
 
 FIRST FEEDBACK
 ________________________________________
 irb -> 
 load 'Loki.rb'
-Hle::Story::Feedback.stories_feedback('511665026,511665053,511665052,511665043')
+Hle::Story::Feedback.stories_feedback('511672286,511672294,511672304,511672311,511672321,511672322')
 
 
 
