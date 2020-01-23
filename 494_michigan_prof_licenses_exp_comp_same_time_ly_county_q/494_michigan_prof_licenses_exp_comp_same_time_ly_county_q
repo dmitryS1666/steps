@@ -2,7 +2,7 @@ STAGE TABLE DEFINITION
 insert into stage_definition_configurations (tbl, definition) select 'mi_prof_licenses_exp_comp_same_time_ly_county_q_staging', '{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","county":"varchar(255)","license_type":"varchar(512)","quarter":"varchar(255)","quarter_val":"int(11)","quarter_val_ly":"int(11)","table":"longtext"}';
 
 
-#439
+#500
 
 STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=500 -t
