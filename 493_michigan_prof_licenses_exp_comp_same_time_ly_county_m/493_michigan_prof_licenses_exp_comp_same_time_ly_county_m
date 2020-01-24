@@ -3,45 +3,45 @@ insert into stage_definition_configurations (tbl, definition) select 'mi_prof_li
 
 
 
-#439
+#502
 
 STAGE TABLE CREATION
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=439 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=502 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)', 'mi_prof_licenses_exp_comp_same_time_ly_county_m_staging', '{"known_entities":{"project_name":"Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"michigan_prof_lic_issued_comp_prev_per_county_q_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)', 'mi_prof_licenses_exp_comp_same_time_ly_county_m_staging', '{"known_entities":{"project_name":"Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"michigan_prof_licenses_exp_comp_same_time_ly_county_m_population","arguments":{}}}}';
 
-population_config_id: #560
+population_config_id: #623
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=560 -t --date='2019-12-30'
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=623 -t --date='2019-12-30'
 
 
 STORY CREATOR CONFIGURATION:
-insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'mi_prof_licenses_exp_comp_same_time_ly_county_m_staging', 'michigan_prof_lic_issued_comp_prev_per_county_q_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'mi_prof_licenses_exp_comp_same_time_ly_county_m_staging', 'michigan_prof_licenses_exp_comp_same_time_ly_county_m_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
-creation_config_id: #440
+creation_config_id: #501
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=440 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=501 -t
 
 
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=440 --population_config_id=560 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='207437,207441,207456,207454,207480,207489'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='224252,224271,224251,224257,224258,224256,224284,224282'
 
 
 FIRST FEEDBACK
 ________________________________________
 irb -> 
 load 'Loki.rb'
-Hle::Story::Feedback.stories_feedback('511665026,511665053,511665052,511665043')
+Hle::Story::Feedback.stories_feedback('511673003,511673002,511673001,511672994')
 
 
 
@@ -50,8 +50,8 @@ ________________________________________________________________________________
 
 SCHEDULER:
 __________
-population_config_id: #560
-creation_config_id: #440
+population_config_id: #623
+creation_config_id: #501
 
 tbl: mi_prof_licenses_exp_comp_same_time_ly_county_m_staging
 desc: Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)
@@ -59,7 +59,7 @@ desc: Michigan - Professional Licenses Expiring Compared to same time LY (County
 config_id - population_config_id
 
 Up to 3 stories per day, per publication, for 30 days, starting January 16.
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=560 --limit=3 --start_date='2020-01-16' --total_days_till_end_date=30
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=623 --limit=3 --start_date='2020-01-16' --total_days_till_end_date=30
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -73,8 +73,8 @@ ______________________________________
 
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=440 --population_config_id=560 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=440 --population_config_id=560 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
 
 ______________________________________
 
@@ -83,8 +83,8 @@ select * from story_export_configurations_v2 where tbl = 'mi_prof_licenses_exp_c
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=440 --population_config_id=560 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=440 --population_config_id=560 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --where="client_name like 'MM - %'"
 _________
 повторяем
 
