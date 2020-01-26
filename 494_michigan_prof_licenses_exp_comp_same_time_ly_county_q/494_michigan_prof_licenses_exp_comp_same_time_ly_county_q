@@ -14,7 +14,7 @@ population_config_id: #621
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=621 -t --date='2019-12-30'
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=621 -t --date='2019-12-30' --threads_count=10
 
 
 STORY CREATOR CONFIGURATION:
