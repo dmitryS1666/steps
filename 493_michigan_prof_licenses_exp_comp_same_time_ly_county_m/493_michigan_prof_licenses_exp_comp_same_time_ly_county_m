@@ -1,5 +1,5 @@
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'mi_prof_licenses_exp_comp_same_time_ly_county_m_staging', '{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","county":"varchar(255)","license_type":"varchar(512)","month":"varchar(255)","month_val":"int(11)","month_val_ly":"int(11)","table":"longtext"}';
+insert into stage_definition_configurations (tbl, definition) select 'mi_prof_licenses_exp_comp_same_time_ly_county_m_staging', '{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","county":"varchar(255)","license_type":"varchar(512)","month":"varchar(255)","year":"int(4)","month_val":"int(11)","month_val_ly":"int(11)","table":"longtext"}';
 
 
 
@@ -9,7 +9,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=502 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)', 'mi_prof_licenses_exp_comp_same_time_ly_county_m_staging', '{"known_entities":{"project_name":"Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"michigan_prof_licenses_exp_comp_same_time_ly_county_m_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)', 'mi_prof_licenses_exp_comp_same_time_ly_county_m_staging', '{"known_entities":{"project_name":"Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"michigan_prof_lic_issued_comp_prev_per_county_m_population","arguments":{}}}}';
 
 population_config_id: #623
 
@@ -19,7 +19,7 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id
 
 
 STORY CREATOR CONFIGURATION:
-insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'mi_prof_licenses_exp_comp_same_time_ly_county_m_staging', 'michigan_prof_licenses_exp_comp_same_time_ly_county_m_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'mi_prof_licenses_exp_comp_same_time_ly_county_m_staging', 'michigan_prof_lic_issued_comp_prev_per_county_m_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
 creation_config_id: #501
 
@@ -34,14 +34,14 @@ bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --popul
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='224252,224271,224251,224257,224258,224256,224284,224282'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='224251,224252,224268,224273,224281'
 
 
 FIRST FEEDBACK
 ________________________________________
 irb -> 
 load 'Loki.rb'
-Hle::Story::Feedback.stories_feedback('511673003,511673002,511673001,511672994')
+Hle::Story::Feedback.stories_feedback('511665026,511665053,511665052,511665043')
 
 
 
