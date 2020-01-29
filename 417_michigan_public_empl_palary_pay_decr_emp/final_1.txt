@@ -1,0 +1,38 @@
+MM - Michigan	Ann Arbor Times	1889	208459	2020-07-22	2280
+MM - Michigan	Battle Creek Times	1890	208480	2020-07-22	1183
+MM - Michigan	Capitol News	1904	208472	2020-07-22	3962
+MM - Michigan	Detroit City Wire	1891	208488	2020-07-22	472
+MM - Michigan	Downriver Today	1892	208479	2020-07-22	2269
+MM - Michigan	East Michigan News	1896	208471	2020-07-22	728
+MM - Michigan	Eastern Wayne Today	1895	208460	2020-07-22	624
+MM - Michigan	Genesee News	1897	208476	2020-07-22	2610
+MM - Michigan	Grand Rapids Reporter	1901	208489	2020-06-25	174
+MM - Michigan	Holland Reporter	1898	208462	2020-07-22	2343
+MM - Michigan	Kalamazoo Times	1899	208454	2020-07-22	2102
+MM - Michigan	Lansing Sun	1926	208473	2020-07-22	3962
+MM - Michigan	Livingston Today	1905	208481	2020-07-22	1083
+MM - Michigan	Macomb Today	1919	208486	2020-07-22	617
+Metro Business Network	Michigan Business Daily	1657	208452	2020-07-22	67949
+MM - Michigan	Monroe Review	1906	208475	2020-07-22	1075
+MM - Michigan	Muskegon Sun	1907	208467	2020-07-22	1277
+MM - Michigan	North Kent News	1900	208483	2020-07-22	1263
+MM - Michigan	North Michigan News	1909	208461	2020-07-22	3690
+MM - Michigan	Novi Times	1910	208457	2020-07-22	1759
+MM - Michigan	NW Wayne News	1894	208477	2020-07-22	2618
+MM - Michigan	Pontiac Times	1911	208468	2020-07-22	775
+MM - Michigan	SE Grand Rapids News	1903	208484	2020-07-22	864
+MM - Michigan	SE Oakland News	1913	208455	2020-07-22	3067
+MM - Michigan	Shelby Review	1917	208458	2020-07-22	2752
+MM - Michigan	Shiawassee Times	1914	208487	2020-07-22	497
+MM - Michigan	South Kent News	1902	208456	2020-07-22	1999
+MM - Michigan	South Michigan News	1915	208469	2020-07-22	2442
+MM - Michigan	St. Clair Today	1918	208463	2020-07-22	543
+MM - Michigan	St. Joe-Benton Harbor News	1908	208478	2020-07-22	2605
+MM - Michigan	Sturgis-Coldwater News	1920	208485	2020-07-22	975
+MM - Michigan	The Warren Sun	1916	208464	2020-07-22	1980
+MM - Michigan	Thumb Reporter	1921	208482	2020-07-22	2648
+MM - Michigan	Tri-City Sun	1922	208474	2020-07-22	3283
+MM - Michigan	UP Gazette	1923	208470	2020-07-22	1867
+MM - Michigan	Waterford Today	1912	208453	2020-07-22	954
+MM - Michigan	West Central Michigan News	1924	208465	2020-07-22	1391
+MM - Michigan	Western Wayne Today	1893	208466	2020-07-22	1369
