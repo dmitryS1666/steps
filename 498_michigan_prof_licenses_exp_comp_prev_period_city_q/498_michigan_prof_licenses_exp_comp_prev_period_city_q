@@ -1,5 +1,5 @@
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'mi_prof_licenses_exp_comp_prev_period_city_q_staging','{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","county":"varchar(255)","profession":"varchar(255)","year":"int(4)","year_val":"int(11)","year_val_prev":"int(11)","table":"longtext"}';
+insert into stage_definition_configurations (tbl, definition) select 'mi_prof_licenses_exp_comp_prev_period_city_q_staging','{"county":"varchar(255)","quarter":"varchar(255)","quarter_val":"int(11)","quarter_val_prev":"int(11)","table":"longtext"}';
 
 #493
 
@@ -161,32 +161,6 @@ VALUES
         '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
          1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
     );
-
-
-
-
-
-
-
-
-
-
-
-
-
-401
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
