@@ -1,10 +1,10 @@
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'mi_prof_licenses_exp_comp_prev_period_city_q_staging','{"county":"varchar(255)","quarter":"varchar(255)","quarter_val":"int(11)","quarter_val_prev":"int(11)","table":"longtext"}';
+insert into stage_definition_configurations (tbl, definition) select 'mi_prof_licenses_exp_comp_prev_period_city_q_staging','{"city":"varchar(255)","quarter":"varchar(255)","quarter_val":"int(11)","quarter_val_prev":"int(11)","table":"longtext"}';
 
-#493
+#521
 
-STAGE TABLE CREATION
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=493 -t
+STAGE TABLE CREATION --STOP
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=521 -t
 
 STAGE POPULATION CONFIGURATION
 insert into stage_population_configurations(project_name, tbl, definition) select 'Michigan - Professional Licenses Expiring Compared to prev period (City - Quarter)', 'mi_prof_licenses_exp_comp_prev_period_city_q_staging', '{"known_entities":{"project_name":"Michigan - Professional Licenses Expiring Compared to prev period (City - Quarter)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"michigan_prof_licenses_exp_comp_prev_period_city_q_population","arguments":{}}}}';
