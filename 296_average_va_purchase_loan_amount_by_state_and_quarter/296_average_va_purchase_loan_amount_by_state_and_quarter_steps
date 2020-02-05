@@ -1,0 +1,140 @@
+STAGE TABLE DEFINITION
+insert into stage_definition_configurations (tbl, definition) select 'average_va_purchase_loan_amount_by_state_and_quarter_staging', '{"client_id":"int", "client_name":"varchar(255)", "publication_id":"int", "publication_name":"varchar(255)", "organization_id":"bigint(20)", "state":"varchar(255)", "quarter":"varchar(255)", "value":"varchar(255)", "year":"varchar(255)"}';
+
+#301
+
+STAGE TABLE CREATION
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=301 -t
+
+
+
+STAGE POPULATION CONFIGURATION
+insert into stage_population_configurations(project_name,tbl, definition) select 'Average VA Purchase Loan Amount by State & Quarter', 'average_va_purchase_loan_amount_by_state_and_quarter_staging', '{"known_entities":{"project_name":"Average VA Purchase Loan Amount by State & Quarter"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"average_va_purchase_loan_amount_by_state_and_quarter_population","arguments":{}}}}';
+
+population_config_id: #428
+
+STAGE POPULATION:
+$ cd ~/Loki/procedures
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=428 -t --date='1.01.2019'
+
+
+
+STORY CREATOR CONFIGURATION:
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'average_va_purchase_loan_amount_by_state_and_quarter_staging', 'average_va_purchase_loan_amount_by_state_and_quarter_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+
+creation_config_id: #310
+
+STORY CREATION COMMAND:
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=310 -t
+
+
+
+STAGING: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=310 --population_config_id=428 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Real Estate' --job_item_name_description='Average VA Purchase Loan Amount by State & Quarter' -t
+
+STAGING: EXPORT STORIES
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=
+
+
+
+
+
+
+
+!!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
+
+
+
+________________________________________________________________________________________________________________________________________
+
+SCHEDULER:
+__________
+population_config_id: #428
+creation_config_id: #310
+
+config_id - population_config_id
+
+export them all on October 16
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=428 --limit=51 --start_date='2019-10-16'
+
+__________________________________________________
+чтоб проверить шедулер, что он "окейно" отработал:
+
+select publication_name, min(publish_on), max(publish_on), count(*) from average_va_purchase_loan_amount_by_state_and_quarter_staging group by publication_name;
+
+______________________________________
+PRODUCTION: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+______________________________________
+
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=310 --population_config_id=428 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Real Estate' --job_item_name_description='Average VA Purchase Loan Amount by State & Quarter' -t --prod --limit_config=1
+
+______________________________________
+
+select * from story_export_configurations_v2 where tbl = 'average_va_purchase_loan_amount_by_state_and_quarter_staging' and export_name like '%production%' order by id DESC;
+
+______________________________________
+если все ок, то выполняем без --limit_config=1
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=310 --population_config_id=428 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Real Estate' --job_item_name_description='Average VA Purchase Loan Amount by State & Quarter' -t --prod
+
+_________
+повторяем 
+
+select * from story_export_configurations_v2 where tbl = 'average_va_purchase_loan_amount_by_state_and_quarter_staging' and export_name like '%production%' order by id DESC;
+
+
+______________________
+для построения таблицы 	
+______________________
+
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from average_va_purchase_loan_amount_by_state_and_quarter_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='average_va_purchase_loan_amount_by_state_and_quarter_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+
+
+__________________________
+PRODUCTION: EXPORT STORIES
+__________________________
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='average_va_purchase_loan_amount_by_state_and_quarter_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=81879 --limit=1
+
+_____
+IF OK
+_____
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='81880,81881,81882,81883,81884,81885,81886,81888,81889,81890,81891,81892,81893,81894,81895,81896,81917,81897,81898,81899,81900,81901,81902,81903,81904,81905,81906,81907,81908,81909,81910,81911,81912,81913,81914,81915,81916,81919,81918,81920,81921,81922,81923,81924,81925,81926,81887,81927,81928,81929'
+
+___________________________
+ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
+___________________________
+
+select headline, c.name as publication, concat('https://pipeline.locallabs.com/stories/', s.id) as url, published_at, ji.name as job_item, cc.name as client from stories s
+  join communities c on s.community_id = c.id
+  join client_companies cc on c.client_company_id = cc.id
+  join data_entry_leads l on l.id = s.lead_id
+  join job_items ji on l.job_item_id=ji.id
+where published_at >= '2019-09-18' and deleted = 0 and ji.type in ('JobItem::Hle') and ji.name rlike 'Average VA Purchase Loan Amount by State & Quarter'
+order by c.name;
+
+
+
+
+
+INSERT INTO loki_storycreator.hle_reminders
+    (
+        story_type_name, story_type_stage_table, hle_assignments_number,
+        dev_name, slack_handle, dev_email,
+        story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
+        last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
+        data_source_checker_on, data_source_host, data_source_db, data_source_update_query
+    )
+VALUES
+    (
+        'Average VA Purchase Loan Amount by State & Quarter', 'average_va_purchase_loan_amount_by_state_and_quarter_staging', '296',
+        'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
+        'quarterly', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.va_home_loan_by_state%',
+        '2019-09-18', 0, 0, 0, 20000, 'quarterly', 0,
+         1, 'db13','usa_raw', 'select date(max(postedTime)) date from usa_raw.va_home_loan_by_state;'
+    );

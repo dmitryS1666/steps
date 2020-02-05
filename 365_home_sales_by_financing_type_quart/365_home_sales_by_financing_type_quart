@@ -143,8 +143,7 @@ INSERT INTO loki_storycreator.hle_reminders
     )
     VALUES
     (
-        'Home Sales by Financing Type (Quarterly)',
-        'home_sales_by_financing_type_quart_staging',
+        'Home Sales by Financing Type (Quarterly)', 'home_sales_by_financing_type_quart_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
         'monthly', 1, 1, 'monthly', 'The Dataset located on db13.usa_raw.houses_sold_by_type_of_financing%',
         '2019-10-29', 0, 0, 0, 20000, 'monthly', 0,
@@ -152,3 +151,22 @@ INSERT INTO loki_storycreator.hle_reminders
     );
 
 
+
+
+
+INSERT INTO loki_storycreator.hle_reminders
+    (
+        story_type_name, story_type_stage_table, hle_assignments_number,
+        dev_name, slack_handle, dev_email,
+        story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
+        last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
+        data_source_checker_on, data_source_host, data_source_db, data_source_update_query
+    )
+VALUES
+    (
+        'Public Pension Ranking by State', 'home_sales_by_financing_type_quart_staging', '365',
+        'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
+        'quarterly', 1, 1, 'quarterly', 'The Dataset located on db13.usa_raw.houses_sold_by_type_of_financing%',
+        '2019-10-29', 0, 0, 0, 20000, 'quarterly', 0,
+         1, 'db13','usa_raw', 'select date(max(postedTime)) date from usa_raw.houses_sold_by_type_of_financing;'
+    );

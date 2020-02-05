@@ -131,3 +131,21 @@ order by c.name;
 
 
 
+
+
+INSERT INTO loki_storycreator.hle_reminders
+    (
+        story_type_name, story_type_stage_table, hle_assignments_number,
+        dev_name, slack_handle, dev_email,
+        story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
+        last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
+        data_source_checker_on, data_source_host, data_source_db, data_source_update_query
+    )
+VALUES
+    (
+        'Public Pension Ranking by State', 'public_pension_ranking_by_state_staging', '350',
+        'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
+        'yearly', 1, 1, 'yearly', 'The Dataset located on db12.usa_raw.public_pensions_survey%',
+        '2019-11-01', 0, 0, 0, 20000, 'yearly', 0,
+         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.public_pensions_survey;'
+    );
