@@ -1,38 +1,38 @@
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging','{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","county":"varchar(255)","profession":"varchar(255)","year":"int(4)","year_val":"int(11)","year_val_prev":"int(11)","table":"longtext"}';
+insert into stage_definition_configurations (tbl, definition) select 'mi_prof_licenses_exp_by_prof_comp_same_time_ly_city_month_staging','{"city":"VARCHAR(255)","month":"VARCHAR(255)","quarter_val":"int(11)","quarter_val_last_year":"int(11)","table":"LONGTEXT"}';
 
-#493
+#521
 
 STAGE TABLE CREATION
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=493 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=526 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Year)', 'mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging', '{"known_entities":{"project_name":"Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Year)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"michigan_prof_licenses_exp_prof_comp_prev_period_county_y_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'Michigan - Professional Licenses Expiring by Profession Compared to same time LY (City - Month)', 'mi_prof_licenses_exp_by_prof_comp_same_time_ly_city_month_staging', '{"known_entities":{"project_name":"Michigan - Professional Licenses Expiring by Profession Compared to same time LY (City - Month)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"mi_prof_licenses_exp_by_prof_comp_same_time_ly_city_month_population","arguments":{}}}}';
 
-population_config_id: #614
+population_config_id: #645
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=614 -t --year='2019'
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=645 -t --date='2019-12-15' --threads_count=5
 
 
 STORY CREATOR CONFIGURATION:
-insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging', 'michigan_prof_licenses_exp_prof_comp_prev_period_county_y_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'mi_prof_licenses_exp_by_prof_comp_same_time_ly_city_month_staging', 'mi_prof_licenses_exp_by_prof_comp_same_time_ly_city_month_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
-creation_config_id: #493
+creation_config_id: #529
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=493 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=529 -t
 
 
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=493 --population_config_id=614 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Year)' -t
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=529 --population_config_id=645 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to same time LY (City - Month)' -t
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='219562,219573,219546,219541,219553'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='242475,242493,242510'
 
 
 
@@ -40,7 +40,7 @@ FIRST FEEDBACK
 ________________________________________
 irb ->
 load 'Loki.rb'
-Hle::Story::Feedback.stories_feedback('511671408,511671407,511671406,511671405')
+Hle::Story::Feedback.stories_feedback('511675138,511675149,511675148,511675142')
 
 
 
@@ -49,21 +49,21 @@ ________________________________________________________________________________
 
 SCHEDULER:
 __________
-population_config_id: #614
-creation_config_id: #493
+population_config_id: #645
+creation_config_id: #529
 
-tbl: mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging
-desc: Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Year)
+tbl: mi_prof_licenses_exp_by_prof_comp_same_time_ly_city_month_staging
+desc: Michigan - Professional Licenses Expiring by Profession Compared to same time LY (City - Month)
 
 config_id - population_config_id
 
 Up to 5 stories per day, per publication, for up to 50 days, starting January 20
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=614 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=645 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
-select publication_name, min(publish_on), max(publish_on), count(*) from 'mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging' group by publication_name;
+select publication_name, min(publish_on), max(publish_on), count(*) from 'mi_prof_licenses_exp_by_prof_comp_same_time_ly_city_month_staging' group by publication_name;
 
 ______________________________________
 PRODUCTION: STORY EXPORT CONFIGURATION
@@ -72,8 +72,8 @@ ______________________________________
 
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=493 --population_config_id=614 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Year)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=493 --population_config_id=614 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Year)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=529 --population_config_id=645 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to same time LY (City - Month)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=529 --population_config_id=645 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to same time LY (City - Month)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
 
 ______________________________________
 
@@ -82,8 +82,8 @@ select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issu
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=493 --population_config_id=614 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Year)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=493 --population_config_id=614 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Year)' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=529 --population_config_id=645 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to same time LY (City - Month)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=529 --population_config_id=645 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to same time LY (City - Month)' -t --prod --where="client_name like 'MM - %'"
 _________
 повторяем
 
@@ -94,14 +94,14 @@ ______________________
 для построения таблицы
 ______________________
 
-select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from mi_prof_licenses_exp_by_prof_comp_same_time_ly_city_month_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='mi_prof_licenses_exp_by_prof_comp_same_time_ly_city_month_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
 
 
 __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=216480 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='mi_prof_licenses_exp_by_prof_comp_same_time_ly_city_month_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=216480 --limit=1
 
 _____
 IF OK
@@ -118,7 +118,7 @@ ___________________________
 
 SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
 FROM story_export_configurations_v2
-WHERE tbl = "mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging" AND
+WHERE tbl = "mi_prof_licenses_exp_by_prof_comp_same_time_ly_city_month_staging" AND
       export_name LIKE '%production%';
 
 # pipeline-core-replica2.jnswire_prod query:
@@ -155,721 +155,10 @@ INSERT INTO loki_storycreator.hle_reminders
     )
 VALUES
     (
-        'Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Year)', 'mi_prof_licenses_exp_prof_comp_prev_period_county_y_staging',
+        'Michigan - Professional Licenses Expiring by Profession Compared to same time LY (City - Month)', 'mi_prof_licenses_exp_by_prof_comp_same_time_ly_city_month_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
         'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
         '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
          1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
     );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Creator: Dmitry Suschinsky
-# Story type: Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)
-# Template: https://docs.google.com/document/d/1KXMUJ236LfkuWV1j6HqP00lHe2VO32KmyD0o2kPoMM4/edit#heading=h.gjdgxs
-# Created: November 2019
-
-# tbl: michigan_professional_lic_iss_city_comp_per_ly_q_staging
-# db12.usa_raw.michigan_professional_licensing__l_info
-# db12.usa_raw.michigan_professional_licensing__name
-# branch: michigan_prof_licenses_issued_city_comp_per_ly_quart_d_sushi
-# michigan_professional_lic_iss_city_comp_per_ly_quarter.rb
-
-def quarter(month)
-  case month
-  when 1,2,3 then 1
-  when 4,5,6 then 2
-  when 7,8,9 then 3
-  when 10,11,12 then 4
-  end
-end
-
-def ranking(records)
-  records.each_with_index do |value, j|
-    value['rank'] = j + 1 if j == 0
-    value['rank'] = j + 1 if records[j]['count_license_prev'] < records[j - 1]['count_license_prev'] && j != 0
-    value['rank'] = records[j-1]['rank'] if records[j]['count_license_prev'] == records[j - 1]['count_license_prev']
-  end
-end
-
-def get_records(data_route, start_quarter, finish_quarter, start_quarter_last, finish_quarter_last)
-  root_query = "SELECT separ_addr.city AS city, COUNT(prev_q.id) AS count_license_prev,
-                       COUNT(NULLIF(prev_q_last.id, 0)) AS count_license_last,
-                       IFNULL(prev_q.license_type, 'N/A') AS license_type,
-                       separ_addr.pl_production_org_id AS pl_production_org_id
-
-                FROM michigan_professional_licensing_separ_addr AS separ_addr
-
-                    LEFT JOIN
-                       (SELECT id, address, issue_date, license_type
-                          FROM michigan_professional_licensing__l_info
-                          WHERE id IS NOT NULL AND issue_date BETWEEN '#{start_quarter}' AND '#{finish_quarter}' AND license_type LIKE '%Professional%'
-                       ) AS prev_q
-                       ON prev_q.address = separ_addr.address
-
-                    LEFT JOIN
-                     (SELECT id, address, issue_date, license_type
-                        FROM michigan_professional_licensing__l_info
-                        WHERE issue_date BETWEEN '#{start_quarter_last}' AND '#{finish_quarter_last}' AND license_type LIKE '%Professional%') AS prev_q_last
-                     ON prev_q_last.address = separ_addr.address
-
-                WHERE separ_addr.pl_production_org_id != '' AND separ_addr.kind = 'city' AND prev_q.id IS NOT NULL
-                GROUP BY separ_addr.pl_production_org_id, separ_addr.city ORDER BY city ASC;"
-  data_route.client.query(root_query).to_a
-end
-
-def get_quarter_to_word(quarter)
-  return 'first quarter' if quarter.to_i == 1
-  return 'second quarter' if quarter.to_i == 2
-  return 'third quarter' if quarter.to_i == 3
-  return 'fourth quarter' if quarter.to_i == 4
-end
-
-def short_quarter(quarter_st)
-  return quarter_st.gsub('first quarter', 'Q1') if quarter_st.include? 'first quarter'
-  return quarter_st.gsub('second quarter', 'Q2') if quarter_st.include? 'second quarter'
-  return quarter_st.gsub('third quarter', 'Q3') if quarter_st.include? 'third quarter'
-  return quarter_st.gsub('fourth quarter', 'Q4') if quarter_st.include? 'fourth quarter'
-end
-
-def get_percentage_diff(data1, data2)
-  if data2 != 0
-    ((data1 - data2) / data2 * 100).abs.round(1).to_i
-  else
-    100.to_i
-  end
-end
-
-def growth_type(curr, prev)
-  if curr.to_f == prev.to_f
-    'unchanged from'
-  elsif prev == 0
-    "an increase of #{Numbers.num_to_words(curr.to_i)} over"
-  elsif curr.to_f > prev.to_f
-    'a ' + get_percentage_diff(curr.to_f, prev.to_f).to_s + '-percent increase over'
-  else
-    'a ' + get_percentage_diff(curr.to_f, prev.to_f).to_s + '-percent decrease from'
-  end
-end
-
-def prepare_count(val)
-  if val.to_i < 10
-    Numbers.num_to_words(val)
-  else
-    val
-  end
-end
-
-def was_were(val)
-  if val.to_i > 0 && val.to_i == 1
-    'license'
-  elsif val.to_i > 0 && val.to_i > 1
-    'licenses'
-  end
-end
-
-def growth_type_table(curr, prev)
-  if curr.to_f == prev.to_f
-    '0'
-  elsif curr.to_f > prev.to_f
-    get_percentage_diff(curr.to_f, prev.to_f).to_s
-  else
-    '-' + get_percentage_diff(curr.to_f, prev.to_f).to_s
-  end
-end
-
-def table_from_data(table_rows, prev_quarter_str, prev_quarter_str_last)
-  table = []
-
-  table_rows.each do |tr|
-    table << { "Rank" => tr['rank'],
-               "City" => titleize(tr['city']),
-               "Licenses Issued in #{prev_quarter_str}" => tr['count_license_prev'],
-               "Licenses Issued in #{prev_quarter_str_last}" => tr['count_license_last'],
-               "% Change" => growth_type_table(tr['count_license_prev'], tr['count_license_last'])
-    }
-  end
-  table
-end
-
-def titleize(str)
-  str.split.each(&:capitalize!).join(' ')
-end
-
-def michigan_prof_licenses_issued_city_comp_per_ly_q_stage_population(line, argument)
-  require 'bigdecimal'
-  require 'bigdecimal/util'
-  require 'date'
-
-  matching_hash = {1 => [1,2,3], 2 => [4,5,6], 3 => [7,8,9], 4 => [10, 11, 12] }
-
-  now = DateTime.now.to_date
-  prev_quarter = quarter(now.month) - 1
-  prev_quarter_str = get_quarter_to_word(prev_quarter) + ' of ' + now.year.to_s
-  prev_quarter_str_last = get_quarter_to_word(prev_quarter) + ' of ' + now.prev_year.year.to_s
-  prev_quarter_period = []
-  prev_quarter_last_year_period = []
-
-  prev_quarter_period_from = matching_hash[prev_quarter].first
-  prev_quarter_period_to = matching_hash[prev_quarter].last
-
-  prev_quarter_period << Date.new(now.year, prev_quarter_period_from).to_s
-  prev_quarter_period << Date.civil(now.year, prev_quarter_period_to, -1).to_s
-
-  prev_quarter_last_year_period << Date.new(now.prev_year.year, prev_quarter_period_from).to_s
-  prev_quarter_last_year_period << Date.civil(now.prev_year.year, prev_quarter_period_to, -1).to_s
-
-  data_route = Route_noprefix.new(host: 'db13', stage_db: 'usa_raw')
-  data_route.client.query("use #{data_route.stage_db}")
-
-  delivery = Route_noprefix.new(host: 'db05', stage_db: 'loki_storycreator')
-  delivery.client.query("use #{delivery.stage_db}")
-
-  data_state = Route_noprefix.new(host: 'db12', stage_db: 'usa_raw')
-  data_state.client.query("use #{data_state.stage_db}")
-
-  records = get_records(data_state, prev_quarter_period[0], prev_quarter_period[1], prev_quarter_last_year_period[0], prev_quarter_last_year_period[1])
-
-  records = records.sort_by {|rate| rate['count_license_prev']}.reverse
-  records = ranking(records)
-
-  table = table_from_data(records, prev_quarter_str, prev_quarter_str_last)
-
-  reasons = {
-      publications: [],
-      publication_name: []
-  }
-  records.each do |rec|
-
-    unless rec['pl_production_org_id']
-      reasons[:publications] << rec['city']
-      next
-    end
-
-    # Metro Business Network
-    # MM-Michigan
-    publications = []
-    publications << Hle::Publications.mm_pubs_excluding_states(rec['pl_production_org_id'], 'production', 'Michigan')
-    publications << get_journal_from_org_id(rec['pl_production_org_id'], 'production', 120) rescue nil
-
-    p 'publications.to_a'
-    p publications.to_a
-
-    publications.flatten!.uniq!
-
-    if publications.count.zero?
-      reasons[:publications] << rec['city']
-      next
-    end
-
-    publications.each do |publication|
-      hash = {}
-
-      hash['publication_name'] = publication['publication_name']
-      if hash['publication_name'].empty?
-        reasons[:publication_name] << publication['id']
-        next
-      end
-
-      hash['client_name'] = publication['client_name']
-      hash['client_id'] = publication['client_id']
-      hash['publication_id'] = publication['id'].to_i
-      hash['source_table_id'] = 19874
-      hash['source_id'] = 19833 * 1000000000 + publication['id'].to_i * 10000000 + Date.today.to_time.to_i
-      hash['organization_id'] = rec['pl_production_org_id']
-
-      hash['city'] = titleize(rec['city'])
-      hash['rank'] = rec['rank']
-      hash['prev_q'] = prev_quarter_str
-      hash['prev_q_val'] = rec['count_license_prev']
-      hash['prev_q_last_year_val'] = rec['count_license_last']
-
-      hash['table'] = table.to_json
-
-      rules = insert_rules(hash.escaped)
-      query = "insert into #{@config['target_table']}#{rules}"
-      delivery.client.query(query)
-      puts hash
-    end
-    p reasons
-  end
-
-  rescue => e
-    print "#{e.to_s} ~> #{e.backtrace.join("\n")}\n"
-  ensure
-    data_state.client.close if data_state
-    data_route.client.close if data_route
-    delivery.client.close if delivery
-  return 'INVALID'
-end
-
-def michigan_prof_licenses_issued_city_comp_per_ly_q_stage_creation(options, mail_sender = false)
-  i = 0
-  count = @stage_selection.count
-  @stage_selection.each do |stage|
-    i += 1
-    p "#{i}/#{count}: "
-    export = {}
-
-    city = stage['city']
-    rank = stage['rank']
-    quarter_header = stage['prev_q']
-    quarter_body = stage['prev_q']
-    prev_quarter_val = stage['prev_q_val']
-    growth_type = growth_type(stage['prev_q_val'], stage['prev_q_last_year_val'])
-
-    table = JSON.parse(stage['table'])
-    table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
-
-    export['headline'] = "#{city} ranks #{Numbers.nthification(rank)} in professional licenses issued in #{short_quarter(quarter_header)}"
-    export['teaser'] = "The Michigan Department of Licensing and Regulatory Affairs (LARA) has issued #{prepare_count(prev_quarter_val)} professional #{was_were(prev_quarter_val)} to occupational and health professionals in #{city} in the #{quarter_body}, #{growth_type} the same quarter of the previous year, according to LARA.\n"
-
-    output = ''
-    output << "The Michigan Department of Licensing and Regulatory Affairs (LARA) has issued #{prepare_count(prev_quarter_val)} professional #{was_were(prev_quarter_val)} to occupational and health professionals in #{city} in the #{quarter_body}, #{growth_type} the same quarter of the previous year, <a href='https://www.michigan.gov/lara'>according to LARA</a>.\n\n"
-    output << "LARA is composed of several agencies, bureaus and commissions that influence business growth and job creation through regulation.\n\n"
-
-    output << "<div style=\"font-size:18px\"><strong>Michigan-issued professional licenses ranked by city</strong></div>"
-    output << table
-
-    export = prepare_output(stage, output, export, options)
-  end
-end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Creator: Dmitry Suschinsky
-# Story type: Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Quarter)
-# Template: https://docs.google.com/document/d/1oZ0lsZ2hYCnEdJ-1SceURO5kQUJXeYxXU7Fbq846jZk/edit#heading=h.gjdgxs
-# Created: January 2020
-
-# tbl: mi_prof_licenses_exp_prof_comp_prev_period_county_q_staging
-# db12.usa_raw.michigan_professional_licensing
-# branch: michigan_prof_licenses_exp_prof_comp_prev_period_county_q_d_sushi
-# michigan_prof_licenses_exp_prof_comp_prev_period_county_q.rb
-
-def quarter(month)
-  case month
-  when 1,2,3 then 1
-  when 4,5,6 then 2
-  when 7,8,9 then 3
-  when 10,11,12 then 4
-  end
-end
-
-def ranking(records)
-  records.each_with_index do |value, j|
-    value['rank'] = j + 1 if j == 0
-    value['rank'] = j + 1 if records[j]['count_license'] < records[j - 1]['count_license'] && j != 0
-    value['rank'] = records[j-1]['rank'] if records[j]['count_license'] == records[j - 1]['count_license']
-  end
-end
-
-def get_current_quarter_records(data_route, start_quarter, finish_quarter)
-  root_query = "SELECT county, COUNT(main.id) AS count_license, profession_tb.profession AS profession, profession_tb.profession_singular AS profession_clear
-                FROM usa_raw.michigan_professional_licensing__l_info main
-                  INNER JOIN (SELECT license_number, MAX(created_at) AS max_created_at
-                     FROM  usa_raw.michigan_professional_licensing__l_info
-                     WHERE license_number != ''
-                     GROUP BY license_number) t ON t.license_number = main.license_number AND t.max_created_at = main.created_at
-                LEFT JOIN usa_raw.michigan_professional_licensing__profession profession_tb
-                ON profession_tb.profession = main.profession
-                WHERE county != '' AND
-                      status RLIKE 'Lapsed' AND
-                      expiration_date BETWEEN '#{start_quarter}' AND '#{finish_quarter}'
-                GROUP BY county, profession_clear;"
-  data_route.client.query(root_query).to_a
-end
-
-def get_prev_quarter_records(data_route, start_quarter_last, finish_quarter_last, county, profession)
-  root_query = "SELECT COUNT(main.id) AS count_license_prev
-                FROM usa_raw.michigan_professional_licensing__l_info main
-                  INNER JOIN (SELECT license_number, MAX(created_at) AS max_created_at
-                     FROM  usa_raw.michigan_professional_licensing__l_info
-                     WHERE license_number != ''
-                     GROUP BY license_number) t ON t.license_number = main.license_number AND t.max_created_at = main.created_at
-                  LEFT JOIN usa_raw.michigan_professional_licensing__profession profession_tb
-                    ON profession_tb.profession = main.profession
-                WHERE expiration_date BETWEEN '#{start_quarter_last}' AND '#{finish_quarter_last}' AND
-                      status RLIKE 'Lapsed' AND
-                      county = '#{county}' AND
-                      main.profession = '#{profession}';"
-  data_route.client.query(root_query).to_a
-end
-
-def get_table_records(data_route, start_quarter, finish_quarter, county, profession)
-  root_query = "SELECT name.name_clear AS license_holder,
-                       main.expiration_date AS lapse_date,
-                       main.issue_date AS issued_date
-                FROM usa_raw.michigan_professional_licensing__l_info AS main
-                  INNER JOIN (SELECT license_number, MAX(created_at) AS max_created_at
-                     FROM  usa_raw.michigan_professional_licensing__l_info
-                     WHERE license_number != ''
-                     GROUP BY license_number) t ON t.license_number = main.license_number AND t.max_created_at = main.created_at
-                LEFT JOIN usa_raw.michigan_professional_licensing__name_clear AS name
-                ON name.id = main.id_name
-                WHERE status RLIKE 'Lapsed' AND
-                      expiration_date BETWEEN '#{start_quarter}' AND '#{finish_quarter}' AND
-                      county = '#{county}' AND
-                      profession = '#{profession}';"
-  data_route.client.query(root_query).to_a
-end
-
-def get_org_ids(data_route, county)
-  root_query = "SELECT admin.pl_production_org_id AS org_id, clean_county AS county
-                FROM michigan_professional_licensing_separ_addr AS addr
-                    LEFT JOIN usa_administrative_division_counties_places_matching AS admin
-                    ON admin.county_name = CONCAT(addr.clean_county, ' County')
-                WHERE clean_county = '#{county}' AND
-                      admin.bad_matching IS NULL AND admin.has_duplicate = 0 AND
-                      admin.pl_production_org_id IS NOT NULL AND
-                      admin.pl_production_org_id != ''
-                GROUP BY admin.pl_production_org_id;"
-  data_route.client.query(root_query).to_a
-end
-
-def get_quarter_to_word(quarter)
-  return 'first quarter' if quarter.to_i == 1
-  return 'second quarter' if quarter.to_i == 2
-  return 'third quarter' if quarter.to_i == 3
-  return 'fourth quarter' if quarter.to_i == 4
-end
-
-def short_quarter(quarter_st)
-  return quarter_st.gsub('first quarter', 'Q1') if quarter_st.include? 'first quarter'
-  return quarter_st.gsub('second quarter', 'Q2') if quarter_st.include? 'second quarter'
-  return quarter_st.gsub('third quarter', 'Q3') if quarter_st.include? 'third quarter'
-  return quarter_st.gsub('fourth quarter', 'Q4') if quarter_st.include? 'fourth quarter'
-end
-
-def quarter_to_prev(quarter)
-  return quarter.gsub('first quarter', 'fourth quarter').gsub(/\d{4}/, (quarter.scan(/\d{4}/).first.to_i - 1).to_s) if quarter.include? 'first quarter'
-  return quarter.gsub('second quarter', 'first quarter') if quarter.include? 'second quarter'
-  return quarter.gsub('third quarter', 'second quarter') if quarter.include? 'third quarter'
-  return quarter.gsub('fourth quarter', 'third quarter') if quarter.include? 'fourth quarter'
-end
-
-def get_percentage_diff(data1, data2)
-  if data2 != 0
-    ((data1 - data2) / data2 * 100).round(1).abs.to_s.sub(/\.0$/,'')
-  else
-    100.to_i
-  end
-end
-
-def growth_type(curr, prev)
-  # [a/an] #-percent [increase over/decrease from]|unchanged from]
-  if curr == prev
-    ' unchanged from the previous quarter, '
-  elsif curr > prev && prev != 0
-    ' a ' + get_percentage_diff(curr, prev).to_s + '-percent increase over the previous quarter, '
-  elsif curr < prev && prev != 0
-    ' a ' + get_percentage_diff(curr, prev).to_s + '-percent decrease from the previous quarter, '
-  else
-    ' '
-  end
-end
-
-def prepare_count(val)
-  if val.to_i < 10
-    Numbers.num_to_words(val).capitalize
-  else
-    val
-  end
-end
-
-def growth_type_table(curr, prev)
-  if curr == prev
-    '0'
-  elsif curr > prev && prev.to_i == 0
-    'Increase'
-  elsif curr > prev
-    get_percentage_diff(curr, prev).to_s
-  else
-    '-' + get_percentage_diff(curr, prev).to_s
-  end
-end
-
-def license_count(val)
-  return 'licenses' if val > 1
-  return 'license'
-end
-
-def table_from_data(table_rows)
-  table = []
-
-  table_rows.each do |tr|
-    table << { "License Holder" => tr['license_holder'],
-               "Lapse Date" => tr['lapse_date'],
-               "Issued Date" => tr['issued_date']
-    }
-  end
-  table
-end
-
-def titleize(str)
-  str.split.each(&:capitalize!).join(' ')
-end
-
-def current_quarter(date)
-  quarters = [[1,2,3], [4,5,6], [7,8,9], [10,11,12]]
-  quarters.index(quarters[(date.month - 1) / 3])+1
-end
-
-def was_were(val)
-  val > 1 ? 'were' : 'was'
-end
-
-def michigan_prof_licenses_exp_prof_comp_prev_period_county_q_stage_population(line, argument)
-  require 'bigdecimal'
-  require 'bigdecimal/util'
-  require 'date'
-
-  puts("\n!!!\nParameter year required 'date' \n!!!\n") unless (@options['date'])
-  return 'INVALID' unless @options['date']
-  date = @options['date']
-  return 'INVALID' unless date.to_s.match(/^\d{4}-\d{1,2}-\d{1,2}$/)
-
-  now = Date.parse(@options['date'])
-
-  number_quarter = current_quarter(now)
-  return 'INVALID' unless number_quarter.to_s.match(/^([1-9]|1[0-2])$/)
-  threads_count = @options['threads_count'].to_i || 3
-
-  puts 'number_quarter: ', number_quarter
-
-  matching_hash = {1 => [1,2,3], 2 => [4,5,6], 3 => [7,8,9], 4 => [10, 11, 12] }
-
-  main_route = Route_noprefix.new(host: DB12, stage_db: 'usa_raw')
-  main_route.client.query("use #{main_route.stage_db}")
-
-  data_state = Route_noprefix.new(host: DB12, stage_db: 'usa_raw')
-  data_state.client.query("use #{data_state.stage_db}")
-
-  quarter_str = get_quarter_to_word(number_quarter) + ' of ' + now.year.to_s
-  quarter_period = []
-  quarter_prev_period = []
-
-  quarter_period_from = matching_hash[number_quarter].first
-  quarter_period_to = matching_hash[number_quarter].last
-
-  if number_quarter != 1
-    quarter_period_prev_from = matching_hash[number_quarter - 1].first
-    quarter_period_prev_to = matching_hash[number_quarter - 1].last
-
-    quarter_prev_period << Date.new(now.year, quarter_period_prev_from).to_s
-    quarter_prev_period << Date.civil(now.year, quarter_period_prev_to, -1).to_s
-  else
-    quarter_period_prev_from = matching_hash[4].first
-    quarter_period_prev_to = matching_hash[4].last
-
-    quarter_prev_period << Date.new(now.year - 1, quarter_period_prev_from).to_s
-    quarter_prev_period << Date.civil(now.year - 1, quarter_period_prev_to, -1).to_s
-  end
-
-  quarter_period << Date.new(now.year, quarter_period_from).to_s
-  quarter_period << Date.civil(now.year, quarter_period_to, -1).to_s
-
-  puts 'current_quarter_period: ', quarter_period
-  puts 'quarter_prev_period: ', quarter_prev_period
-
-  records = get_current_quarter_records(data_state, quarter_period[0], quarter_period[1])
-  # records = records.sort_by {|rate| rate['count_license']}.reverse
-  # records = ranking(records)
-
-  @semaphore = Mutex.new
-
-  threads = Array.new(threads_count) do
-    Thread.new do
-      delivery = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
-      delivery.client.query("use #{delivery.stage_db}")
-
-      thread_route = Route_noprefix.new(host: DB12, stage_db: 'usa_raw')
-      thread_route.client.query("use #{thread_route.stage_db}")
-
-      reasons = {
-          publications: [],
-          publication_name: []
-      }
-
-      loop do
-        rec = nil
-        @semaphore.synchronize {
-          rec = records.pop
-        }
-        break if rec.nil? && rec.count.zero?
-
-        org_ids = get_org_ids(data_state, rec['county'])
-
-        unless org_ids
-          reasons[:publications] << rec['county']
-          next
-        end
-
-        table_records = get_table_records(data_state, quarter_period[0], quarter_period[1], rec['county'], rec['profession'])
-        table = table_from_data(table_records)
-        quarter_val_prev = get_prev_quarter_records(data_state, quarter_prev_period[0], quarter_prev_period[1], rec['county'], rec['profession'])
-
-        org_ids.each do |org_id|
-
-          # Metro Business Network
-          # MM-Michigan
-          publications = []
-          publications << Hle::Publications.mm_pubs_excluding_states(org_id['org_id'], 'production', 'Michigan')
-          publications << get_journal_from_org_id(org_id['org_id'], 'production', 120) rescue nil
-
-          publications.flatten!.uniq!
-
-          if publications.count.zero?
-            reasons[:publications] << rec['county']
-            next
-          end
-
-          publications.each do |publication|
-            hash = {}
-
-            hash['publication_name'] = publication['publication_name']
-            if hash['publication_name'].empty?
-              reasons[:publication_name] << publication['id']
-              next
-            end
-
-            hash['client_name'] = publication['client_name']
-            hash['client_id'] = publication['client_id']
-            hash['publication_id'] = publication['id'].to_i
-            hash['source_table_id'] = 19874
-            hash['source_id'] = 19833 * 1000000000 + publication['id'].to_i * 10000000 + Date.today.to_time.to_i
-            hash['organization_id'] = org_id['org_id']
-
-            hash['county'] = org_id['county']
-            hash['profession'] = rec['profession_clear']
-            hash['quarter'] = quarter_str
-            hash['quarter_val'] = rec['count_license']
-            hash['quarter_val_prev'] = quarter_val_prev[0]['count_license_prev']
-
-            hash['table'] = table.to_json
-
-            rules = insert_rules(hash.escaped)
-            query = "insert into #{@config['target_table']}#{rules}"
-            delivery.client.query(query)
-            puts hash
-          end
-          p reasons
-        end
-      end
-
-    rescue => e
-      print "#{e.to_s} ~> #{e.backtrace.join("\n")}\n"
-    ensure
-      data_state.client.close if data_state
-      delivery.client.close
-      thread_route.client.close
-    end
-  end
-  threads.each(&:join)
-  main_route.client.close
-  return 'INVALID'
-end
-
-def michigan_prof_licenses_exp_prof_comp_prev_period_county_q_stage_creation(options, mail_sender = false)
-  i = 0
-  count = @stage_selection.count
-  @stage_selection.each do |stage|
-    i += 1
-    p "#{i}/#{count}: "
-    export = {}
-
-    county = stage['county']
-    profession = stage['profession'].downcase
-    quarter_val = stage['quarter_val']
-    quarter_prev_val = stage['quarter_val_prev']
-    quarter = stage['quarter']
-    growth_type = growth_type(stage['quarter_val'].to_f, stage['quarter_val_prev'].to_f)
-
-    quarter_val == 1 ? license_s = 'license' : license_s = 'licenses'
-
-    if quarter_val < 10
-      count_headline = "#{Numbers.num_to_words(quarter_val).capitalize} #{profession} #{license_s}"
-      count_str = "#{Numbers.num_to_words(quarter_val).capitalize} #{profession} #{license_s}"
-    else
-      count_headline = "#{quarter_val} #{profession} #{license_s}"
-      count_str = "#{quarter_val} #{profession} #{license_s}"
-    end
-
-    table = JSON.parse(stage['table'])
-    table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
-
-    export['headline'] = "#{count_headline} lapsed in #{county} County during #{short_quarter(quarter)}"
-    export['teaser'] = "#{count_str} lapsed in #{county} County during the #{quarter},#{growth_type}according to Michigan's Department of Licensing and Regulatory Affairs (LARA)."
-
-    output = ''
-    output << "#{count_str} lapsed in #{county} County during the #{quarter},#{growth_type}according to <a href='https://www.michigan.gov/lara/'>Michigan's Department of Licensing and Regulatory Affairs (LARA)</a>.\n\n"
-
-    if quarter_prev_val == 0
-      output << "No #{profession} licenses lapsed in #{county} County during the #{quarter_to_prev(quarter)}.\n\n"
-    end
-
-    output << "LARA is composed of several agencies, bureaus and commissions that influence business growth and job creation through regulation.\n\n"
-
-    output << "<div style=\"font-size:18px\"><strong>#{profession.slice(0,1).capitalize + profession.slice(1..-1)} #{license_s} lapsed in #{county} County during #{short_quarter(quarter)}</strong></div>"
-    output << table
-
-    export = prepare_output(stage, output, export, options)
-  end
-end
-
-
 
