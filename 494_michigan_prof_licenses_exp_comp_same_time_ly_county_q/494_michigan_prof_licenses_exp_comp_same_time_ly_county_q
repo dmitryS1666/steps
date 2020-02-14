@@ -14,7 +14,7 @@ population_config_id: #621
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=621 -t --date='2019-12-30' --threads_count=10 +
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=621 -t --date='2019-12-30' --threads_count=10
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=621 -t --date='2019-09-30' --threads_count=10
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=621 -t --date='2019-06-30' --threads_count=10
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=621 -t --date='2019-03-30' --threads_count=10
@@ -60,8 +60,8 @@ desc: Michigan - Professional Licenses Expiring Compared to same time LY (County
 
 config_id - population_config_id
 
-Up to 3 stories per day, per publication, for 30 days, starting January 16.
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=621 --limit=3 --start_date='2020-01-16' --total_days_till_end_date=30
+Up to 3 stories per day, per publication, for up to 60 days, starting Feb. 17. Backdate any other stories to Feb. 9, 2020.
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=621 --limit=3 --start_date='2020-02-17' --total_days_till_end_date=60
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -76,7 +76,7 @@ ______________________________________
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=499 --population_config_id=621 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Quarter)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=499 --population_config_id=621 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Quarter)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=499 --population_config_id=621 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Quarter)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
@@ -86,7 +86,7 @@ ______________________________________
 если все ок, то выполняем без --limit_config=1
 
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=499 --population_config_id=621 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Quarter)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=499 --population_config_id=621 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Quarter)' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=499 --population_config_id=621 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Quarter)' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
 
@@ -104,15 +104,13 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='mi_prof_licenses_exp_comp_same_time_ly_county_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=215338 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='mi_prof_licenses_exp_comp_same_time_ly_county_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=247450 --limit=1
 
 _____
 IF OK
 _____
 
---threads_count=7
-
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='215338,215369,215357,215339,215382,215345,215371,215346,215363,215330,215288,215381,215366,215335,215367,215337,215368,215362,215321,215319,215343,215373,215331,215340,215311,215372,215370,215356,215350,215360,215281,215336,215342,215325,215378,215344,215384,215347,215348,215355,215358,215365,215315,215323,215349,215374,215313,215332,215341,215361,215329,215385,215383,215359,215380,215379,215387,215327,215333,215376,215375,215377,215353,215354,215351,215352,215386,215317,215334,215364'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='247450,247486,247461,247437,247476,247444,247480,247455,247438,247431,247487,247477,247488,247448,247485,247435,247466,247472,247443,247421,247432,247434,247483,247445,247436,247441,247481,247473,247463,247428,247429,247418,247439,247433,247427,247484,247454,247482,247457,247464,247423,247451,247459,247442,247426,247447,247470,247422,247449,247460,247420,247465,247469,247471,247452,247478,247467,247468,247430,247440,247474,247479,247419,247453,247456,247424,247458,247475,247462,247425,247446' --threads_count=10
 ___________________________
 
 
@@ -141,7 +139,7 @@ JOIN job_items AS ji
   ON l.job_item_id=ji.id
 WHERE published_at >= '2020-01-07' AND
       deleted = 0 AND
-      l.job_item_id IN (<result_of_DB05.storycreator_query>)
+      l.job_item_id IN (141941,141920,141961,141921,141948,141940,141934,141947,141952,141922,141950,141944,141955,141938,141931,141935,141966,141943,141932,141945,141936,141963,141928,141929,141939,141927,141954,141957,141964,141923,141951,141918,141959,141942,141926,141949,141960,141965,141953,141956,141924,141958,141925,141946,141937,141933,141930,141962,141986,141976,141987,141988,141977,141985,141972,141983,141969,141980,141973,141984,141982,141967,141970,141971,141978,141968,141974,141979,141919,141975,141981)
 ORDER BY c.name;
 
 
