@@ -58,6 +58,7 @@ desc: Michigan - Professional Licenses Expiring Compared to same time LY (County
 
 config_id - population_config_id
 
+up to 6 stories per day, per publication, for up to 30 days, starting Feb. 17. Backdate any other stories to Feb. 9, 2020.
 Up to 3 stories per day, per publication, for 30 days, starting January 16.
 bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=623 --limit=3 --start_date='2020-01-16' --total_days_till_end_date=30
 
