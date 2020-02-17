@@ -59,8 +59,7 @@ desc: Michigan - Professional Licenses Expiring Compared to same time LY (County
 config_id - population_config_id
 
 up to 6 stories per day, per publication, for up to 30 days, starting Feb. 17. Backdate any other stories to Feb. 9, 2020.
-Up to 3 stories per day, per publication, for 30 days, starting January 16.
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=623 --limit=3 --start_date='2020-01-16' --total_days_till_end_date=30
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=623 --limit=6 --start_date='2020-02-17' --total_days_till_end_date=30
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -75,7 +74,7 @@ ______________________________________
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
@@ -85,7 +84,7 @@ ______________________________________
 если все ок, то выполняем без --limit_config=1
 
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
 
@@ -103,7 +102,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='mi_prof_licenses_exp_comp_same_time_ly_county_m_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=215338 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='mi_prof_licenses_exp_comp_same_time_ly_county_m_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=248034 --limit=1
 
 _____
 IF OK
@@ -111,7 +110,7 @@ _____
 
 --threads_count=7
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='215338,215369,215357,215339,215382,215345,215371,215346,215363,215330,215288,215381,215366,215335,215367,215337,215368,215362,215321,215319,215343,215373,215331,215340,215311,215372,215370,215356,215350,215360,215281,215336,215342,215325,215378,215344,215384,215347,215348,215355,215358,215365,215315,215323,215349,215374,215313,215332,215341,215361,215329,215385,215383,215359,215380,215379,215387,215327,215333,215376,215375,215377,215353,215354,215351,215352,215386,215317,215334,215364'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='248034,248064,248049,248036,248077,248033,248068,248041,248022,248020,248058,248075,248060,248009,248063,248013,248055,248061,248048,248010,248019,248027,248066,248026,248025,248024,248069,248065,248050,248018,248042,247936,248038,248015,248031,248073,248044,248070,248028,248051,248053,248052,248054,248029,248030,248037,248056,248011,248040,248012,248023,248016,248062,248059,248039,248067,248057,248076,248021,248017,248074,248071,247937,248032,248045,248047,248043,248072,248014,248035,248046' --threads_count=7
 ___________________________
 
 
@@ -140,7 +139,7 @@ JOIN job_items AS ji
   ON l.job_item_id=ji.id
 WHERE published_at >= '2020-01-07' AND
       deleted = 0 AND
-      l.job_item_id IN (<result_of_DB05.storycreator_query>)
+      l.job_item_id IN (142424,142423,142449,142410,142409,142417,142427,142437,142439,142411,142434,142433,142441,142422,142420,142413,142455,142448,142419,142426,142425,142450,142418,142442,142438,142431,142444,142428,142451,142453,142452,142407,142454,142429,142430,142440,142412,142416,142432,142445,142447,142443,142435,142446,142436,142415,142421,142414,142464,142477,142458,142460,142475,142463,142461,142466,142462,142468,142465,142473,142470,142457,142456,142459,142467,142476,142474,142471,142408,142472,142469)
 ORDER BY c.name;
 
 
@@ -160,8 +159,8 @@ INSERT INTO loki_storycreator.hle_reminders
         'Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)',
         'mi_prof_licenses_exp_comp_same_time_ly_county_m_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-        'quarterly', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing_%',
-        '2019-12-12', 0, 0, 0, 20000, 'quarterly', 0,
+        'monthly', 1, 1, 'monthly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing_%',
+        '2020-02-16', 0, 0, 0, 20000, 'monthly', 0,
          1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing__l_info;'
     );
 
