@@ -15,7 +15,7 @@ STAGE POPULATION:
 $ cd ~/Loki/procedures
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=645 -t --date='2019-12-15' --threads_count=5 +
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=645 -t --date='2019-09-15' --threads_count=10 +
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=645 -t --date='2019-06-15' --threads_count=10
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=645 -t --date='2019-06-15' --threads_count=10 +
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=645 -t --date='2019-03-15' --threads_count=10
 
 
@@ -60,8 +60,8 @@ desc: Michigan - Professional Licenses Expiring Compared to prev period (City - 
 
 config_id - population_config_id
 
-Up to 5 stories per day, per publication, for up to 50 days, starting January 20
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=645 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
+Up to 5 stories per day, per publication, for up to 60 days, starting Feb. 25
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=645 --limit=5 --start_date='2020-02-25' --total_days_till_end_date=60
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -76,7 +76,7 @@ ______________________________________
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=529 --population_config_id=645 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to prev period (City - Quarter)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=529 --population_config_id=645 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to prev period (City - Quarter)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=529 --population_config_id=645 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to prev period (City - Quarter)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - Michigan%'"
 
 ______________________________________
 
@@ -86,7 +86,7 @@ ______________________________________
 если все ок, то выполняем без --limit_config=1
 
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=529 --population_config_id=645 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to prev period (City - Quarter)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=529 --population_config_id=645 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to prev period (City - Quarter)' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=529 --population_config_id=645 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to prev period (City - Quarter)' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
 
@@ -104,15 +104,13 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='mi_prof_licenses_exp_comp_prev_period_city_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=216480 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='mi_prof_licenses_exp_comp_prev_period_city_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=250037 --limit=1
 
 _____
 IF OK
 _____
 
---threads_count=7 | 13140961 | 13140960
-
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='...'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='250037,249998,250020,250025,250059,250016,250049,250021,250023,250002,250057,250047,250055,250004,250056,250018,250053,250032,250010,250011,250015,250043,250008,250028,250001,250050,250054,250026,250027,250024,249997,250005,250033,250006,250048,250009,250045,250030,250034,250038,250022,250003,250036,250039,250017,249999,250012,250013,250042,250051,250035,250052,250040,250058,250031,250019,250060,250041,250044,250007,250000,250046,250029,250014' --threads_count=7
 ___________________________
 
 
@@ -139,7 +137,7 @@ JOIN job_items AS ji
   ON l.job_item_id=ji.id
 WHERE published_at >= '2020-01-07' AND
       deleted = 0 AND
-      l.job_item_id IN (114665,114653,114643,114638,114637,114644,114655,114649,114658,114663,114632,114645,114670,114639,114652,114642,114647,114648,114657,114661,114634,114636,114668,114660,114656,114651,114669,114671,114662,114654,114640,114646,114664,114650,114666,114672,114641,114635,114659,114667,114698,114687,114678,114702,114691,114676,114693,114674,114703,114675,114682,114633,114700,114673,114684,114685,114699,114694,114695,114704,114692,114677,114696,114681,114683,114697,114705,114688,114706,114679,114690,114680,114707,114701,114686,114689)
+      l.job_item_id IN (143897,143909,143916,143906,143900,143915,143911,143932,143931,143913,143933,143912,143917,143919,143898,143914,143928,143907,143904,143924,143922,143923,143920,143901,143902,143905,143926,143930,143934,143893,143918,143899,143895,143908,143903,143896,143910,143921,143929,143927,143925,143894,143955,143953,143951,143943,143952,143949,143939,143938,143945,143950,143944,143941,143936,143935,143947,143948,143954,143956,143937,143940,143942,143946)
 ORDER BY c.name;
 
 
@@ -161,7 +159,7 @@ VALUES
         'Michigan - Professional Licenses Expiring Compared to prev period (City - Quarter)', 'mi_prof_licenses_exp_comp_prev_period_city_q_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
         'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
-        '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
+        '2020-02-23', 0, 0, 0, 20000, 'quarterly', 0,
          1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
     );
 
