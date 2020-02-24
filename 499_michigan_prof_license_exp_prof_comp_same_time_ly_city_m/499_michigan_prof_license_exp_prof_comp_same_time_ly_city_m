@@ -13,7 +13,14 @@ population_config_id: #655
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=655 -t --date='2019-12-15' --threads_count=5
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=655 -t --date='2019-12-15' --threads_count=5 +
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=655 -t --date='2019-11-15' --threads_count=5 +
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=655 -t --date='2019-10-15' --threads_count=5 +
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=655 -t --date='2019-09-15' --threads_count=5 +
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=655 -t --date='2019-08-15' --threads_count=5 +
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=655 -t --date='2019-07-15' --threads_count=5 +
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=655 -t --date='2019-06-15' --threads_count=5 +
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=655 -t --date='2020-01-02' --threads_count=5 +
 
 
 STORY CREATOR CONFIGURATION:
@@ -70,6 +77,7 @@ PRODUCTION: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 ______________________________________
 
+--where="client_name like 'MM - %'"
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=536 --population_config_id=655 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to same time LY (City - Month)' -t --prod --limit_config=1 --where="client_id = 120"
