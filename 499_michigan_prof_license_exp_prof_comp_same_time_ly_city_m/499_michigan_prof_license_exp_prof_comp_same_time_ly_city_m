@@ -83,7 +83,7 @@ bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=536 --popul
 
 ______________________________________
 
-select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_county_q_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'mi_prof_licenses_exp_by_prof_comp_same_time_ly_city_m_staging' and export_name like '%production%' order by id DESC;
 
 ______________________________________
 если все ок, то выполняем без --limit_config=1
@@ -93,7 +93,7 @@ bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=536 --popul
 _________
 повторяем
 
-select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_county_q_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'mi_prof_licenses_exp_by_prof_comp_same_time_ly_city_m_staging' and export_name like '%production%' order by id DESC;
 
 
 ______________________
@@ -107,14 +107,15 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='mi_prof_licenses_exp_by_prof_comp_same_time_ly_city_m_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=253152 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='mi_prof_licenses_exp_by_prof_comp_same_time_ly_city_m_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=255123 --limit=1
 
 _____
 IF OK
 _____
 
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='253152,253114,253136,253141,253175,253132,253165,253137,253139,253122,253173,253163,253171,253115,253172,253133,253170,253148,253127,253128,253130,253159,253121,253144,253116,253166,253169,253142,253143,253140,253113,253120,253149,253125,253164,253126,253161,253146,253150,253154,253138,253123,253153,253155,253135,253118,253124,253129,253158,253167,253151,253168,253156,253174,253147,253134,253176,253157,253160,253117,253119,253162,253145,253131' --threads_count=10
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='255123,255085,255107,255112,255146,255103,255136,255108,255110,255093,255144,255134,255142,255086,255143,255104,255141,255119,255098,255099,255101,255130,255092,255115,255087,255137,255140,255113,255114,255111,255084,255091,255120,255096,255135,255097,255132,255117,255121,255125,255109,255094,255124,255126,255106,255089,255095,255100,255129,255138,255122,255139,255127,255145,255118,255105,255147,255128,255131,255088,255090,255133,255116,255102' --threads_count=10
+//bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='253152,253114,253136,253141,253175,253132,253165,253137,253139,253122,253173,253163,253171,253115,253172,253133,253170,253148,253127,253128,253130,253159,253121,253144,253116,253166,253169,253142,253143,253140,253113,253120,253149,253125,253164,253126,253161,253146,253150,253154,253138,253123,253153,253155,253135,253118,253124,253129,253158,253167,253151,253168,253156,253174,253147,253134,253176,253157,253160,253117,253119,253162,253145,253131' --threads_count=10
 ___________________________
 
 
