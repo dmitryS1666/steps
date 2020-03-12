@@ -162,3 +162,11 @@ VALUES
         '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
          1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
     );
+
+
+
+
+
+
+
+
