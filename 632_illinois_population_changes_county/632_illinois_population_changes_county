@@ -1,38 +1,38 @@
 STAGE TABLE DEFINITION
 insert into stage_definition_configurations (tbl, definition) select 'illinois_population_changes_county_staging','{"city":"VARCHAR(255)","month":"VARCHAR(255)","profession":"VARCHAR(1024)","month_val":"int(11)","month_val_ly":"int(11)","year":"int(11)","story_table":"LONGTEXT"}';
 
-#537
+#575
 
 STAGE TABLE CREATION
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=537 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=575 -t
 
 STAGE POPULATION CONFIGURATION
 insert into stage_population_configurations(project_name, tbl, definition) select 'Population Changes County', 'illinois_population_changes_county_staging', '{"known_entities":{"project_name":"Population Changes County"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"illinois_population_changes_county_population","arguments":{}}}}';
 
-population_config_id: #655
+population_config_id: #690
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=655 -t --date='2019-12-15' --threads_count=5 +
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=690 -t --year='2018' --threads_count=10
 
 
 STORY CREATOR CONFIGURATION:
 insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'illinois_population_changes_county_staging', 'illinois_population_changes_county_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
-creation_config_id: #536
+creation_config_id: #571
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=536 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=571 -t
 
 
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=536 --population_config_id=655 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id='250061'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id='262926'
 
 
 
@@ -49,8 +49,8 @@ ________________________________________________________________________________
 
 SCHEDULER:
 __________
-population_config_id: #655
-creation_config_id: #536
+population_config_id: #690
+creation_config_id: #571
 
 tbl: illinois_population_changes_county_staging
 desc: Population Changes County
@@ -58,7 +58,7 @@ desc: Population Changes County
 config_id - population_config_id
 
 Up to 5 stories per day, per publication, for up to 50 days, starting January 20
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=655 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=690 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -73,8 +73,8 @@ ______________________________________
 --where="client_name like 'MM - %'"
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=536 --population_config_id=655 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=536 --population_config_id=655 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
 
 ______________________________________
 
@@ -83,8 +83,8 @@ select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issu
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=536 --population_config_id=655 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=536 --population_config_id=655 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --where="client_name like 'MM - %'"
 _________
 повторяем
 
@@ -170,3 +170,294 @@ VALUES
 
 
 
+
+# Creator: Dmitry Suschinsky
+# Story type: Population Changes City
+# Template: https://docs.google.com/document/d/1JhVozb8Ov9Gfns45gNOP8Q1MgQdejLBiwUOS0Xk5T9A/edit#heading=h.gjdgxs
+# Created: February 2020
+
+# tbl: illinois_population_changes_city_staging
+# db06.voters_2016.census_details
+# branch: illinois_population_changes_city_d_sushi
+# illinois_population_changes_city.rb
+
+def get_all_states(data_route, year)
+  root_query = "SELECT DISTINCT(NAME) AS state
+                FROM census_details
+                WHERE year = #{year} AND
+                      geo_type = 'state' AND
+                      state = 0;"
+  data_route.client.query(root_query).to_a
+end
+
+def get_records(data_route, year, prev_year)
+  root_query = "SELECT geo.geo_name_only as city, geo_name_clear, main.value as city_population_curr,
+                       prev.value AS city_population_prev, prev_2010.value AS city_population_2010,
+                       geo.pl_production_org_id AS pl_production_org_id, geo.state_name AS state
+                FROM census_details main
+                INNER JOIN census_details_uniq_geos geo
+                        ON geo.id = main.match_id AND geo.good_org = 1
+                INNER JOIN census_details prev
+                        ON prev.match_id = main.match_id AND prev.year = #{prev_year} AND prev.concept = 'TOTAL POPULATION' AND prev.variable = 'B01003_001E'
+                INNER JOIN census_details prev_2010
+                    ON prev_2010.match_id = main.match_id AND prev_2010.year = 2010 AND prev_2010.concept = 'TOTAL POPULATION' AND prev_2010.variable = 'B01003_001E'
+                WHERE main.year = #{year} AND main.concept = 'TOTAL POPULATION' AND
+                      main.variable = 'B01003_001E' AND
+                      main.geo_type = 'place'
+                GROUP BY main.match_id
+                ORDER BY main.name;"
+  data_route.client.query(root_query).to_a
+end
+
+def get_top_city_by_state(data_route, state, year)
+  root_query = "SELECT geo.geo_name_only as city, value FROM census_details main
+                INNER JOIN census_details_uniq_geos geo
+                        ON geo.geo_id = main.name_id AND geo.good_org = 1 AND geo.state_name = '#{state}' AND geo.geo_type = 'place'
+                WHERE main.year = #{year} AND main.concept = 'TOTAL POPULATION' AND main.variable = 'B01003_001E' AND
+                      main.match_id IN (SELECT id FROM census_details_uniq_geos WHERE geo_type = 'place')
+                ORDER BY main.value DESC LIMIT 1;"
+  data_route.client.query(root_query).to_a
+end
+
+def get_duplicates(data_route)
+  root_query = "SELECT state_name AS state, geo_name_only AS city, geo_name_clear,  count(*)
+                FROM census_details_uniq_geos
+                WHERE good_org = 1 AND geo_type = 'place' AND
+                      geo_name_clear IS NOT NULL
+                GROUP BY state_name, geo_name_only
+                HAVING count(*) > 1;"
+  data_route.client.query(root_query).to_a
+end
+
+def get_duplicate_only(data_route, state, city_name)
+  root_query = "SELECT geo_name, geo_name_clear
+                FROM census_details_uniq_geos
+                WHERE state_name = '#{state}' AND
+                      geo_name_only = '#{city_name}';"
+  data_route.client.query(root_query).to_a
+end
+
+
+def get_county_by_state(data_route, state, place_name, type)
+  root_query = "SELECT county_name
+                FROM usa_administrative_division_counties_places_matching
+                WHERE state_name ='#{state}' AND county_name<>'' AND short_name = '#{place_name}' AND kind = '#{type}';"
+  data_route.client.query(root_query).to_a
+end
+
+def get_percentage_diff(data1, data2)
+  if data2 != 0
+    ((data1 - data2) / data2.to_f * 100)
+  else
+    100.to_i
+  end
+end
+
+def growth_type(curr, prev, city_population_diff)
+  # grew/shrank
+  return "grew by #{separate_comma(city_population_diff)} people" if curr > prev
+  return "shrank by #{separate_comma(city_population_diff)} people" if curr < prev
+  return 'unchanged' if (curr == prev)
+end
+
+def table_from_data(year, prev_year, rec)
+  table = []
+
+  table << { "Municipality" => rec['city'],
+             "#{year}" => rec['city_population_curr'],
+             "#{prev_year}" => rec['city_population_prev'],
+             "% change" => separate_comma(get_percentage_diff(rec['city_population_curr'], rec['city_population_prev']))
+  }
+end
+
+def separate_comma(number)
+  if number.to_f.abs > 999
+    number.to_f.round.abs.to_s.sub(/\.0$/,'').chars.to_a.reverse.each_slice(3).map(&:join).join(",").reverse
+  else
+    number.to_f.round(1).abs.to_s.sub(/\.0$/,'')
+  end
+end
+
+def titleize(str)
+  str.split.each(&:capitalize!).join(' ')
+end
+
+def illinois_population_changes_city_stage_population(line, argument)
+  require 'bigdecimal'
+  require 'bigdecimal/util'
+  require 'date'
+
+  puts("\n!!!\nParameter year required 'year' \n!!!\n") unless (@options['year'])
+  return 'INVALID' unless @options['year']
+  year = @options['year']
+  return 'INVALID' unless year.to_s.match(/^\d{4}$/)
+  threads_count = @options['threads_count'].to_i || 3
+
+  prev_year = year.to_i - 1
+
+  puts 'year: ', year
+  puts 'prev_year: ', prev_year
+
+  route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+  route.client.query("use #{route.stage_db}")
+
+  data_state = Route_noprefix.new(host: DB06, stage_db: 'voters_2016')
+  data_state.client.query("use #{data_state.stage_db}")
+
+  records = get_records(data_state, year, prev_year)
+  all_duplicates = get_duplicates(data_state)
+
+  all_duplicates.each do |dup|
+    get_duplicate_only(data_state, dup['state'], dup['city']).each do |city|
+      case city['geo_name_clear'].downcase
+      when /city/
+        county = get_county_by_state(route, dup['state'], dup['city'], 'city')
+      when /town/
+        county = get_county_by_state(route, dup['state'], dup['city'], 'town')
+      when /village/
+        county = get_county_by_state(route, dup['state'], dup['city'], 'village')
+      when /borough/
+        county = get_county_by_state(route, dup['state'], dup['city'], 'borough')
+      end
+
+      records.each_with_index do |value, index|
+        if value['geo_name_clear'] && value['geo_name_clear'].include?(city['geo_name_clear']) && value['state'].include?(dup['state'])
+          records[index]['county'] = county[0]['county_name'] if county[0]
+        end
+      end
+    end
+  end
+
+  @semaphore = Mutex.new
+  threads = Array.new(threads_count) do
+    Thread.new do
+      delivery = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
+      delivery.client.query("use #{delivery.stage_db}")
+      data_state_06 = Route_noprefix.new(host: DB06, stage_db: 'voters_2016')
+      data_state_06.client.query("use #{data_state_06.stage_db}")
+
+      reasons = {
+          publications: [],
+          publication_name: []
+      }
+
+      loop do
+        rec = nil
+        @semaphore.synchronize {
+          rec = records.pop
+        }
+        break if rec.class == NilClass
+
+        table = table_from_data(year, prev_year, rec)
+
+        unless rec['pl_production_org_id']
+          reasons[:publications] << rec['city']
+          next
+        end
+
+        # MM-Illinois
+        # Metro Business Network 120
+        # LGIS 91
+        publications = []
+        publications << Hle::Publications.mm_pubs_excluding_states(rec['pl_production_org_id'], 'production', 'Illinois')
+        publications << get_journal_from_org_id(rec['pl_production_org_id'], 'production', 120) rescue nil
+        publications << get_journal_from_org_id(rec['pl_production_org_id'], 'production', 91) rescue nil
+        top_city = get_top_city_by_state(data_state_06, rec['state'], year)[0]['city']
+
+        publications.flatten!.uniq!
+
+        if publications.count.zero?
+          reasons[:publications] << rec['city']
+          next
+        end
+
+        publications.each do |publication|
+          hash = {}
+
+          hash['publication_name'] = publication['publication_name']
+
+          if hash['publication_name'].empty?
+            reasons[:publication_name] << publication['id']
+            next
+          end
+
+          hash['client_name'] = publication['client_name']
+          hash['client_id'] = publication['client_id']
+          hash['publication_id'] = publication['id'].to_i
+          hash['source_table_id'] = 19407
+          hash['organization_id'] = rec['pl_production_org_id']
+
+          hash['city'] = rec['city']
+          hash['state'] = rec['state']
+          hash['period'] = "#{year} - #{prev_year}"
+          hash['top_city'] = top_city
+          hash['county'] = rec['county'] if rec['county']
+          hash['city_population_curr'] = rec['city_population_curr']
+          hash['city_population_prev'] = rec['city_population_prev']
+          hash['city_population_2010'] = rec['city_population_2010']
+
+          hash['story_table'] = table.to_json
+
+          rules = insert_rules(hash.escaped)
+          puts "insert into #{@config['target_table']}#{rules}"
+          query = "insert into #{@config['target_table']}#{rules}"
+          delivery.client.query(query)
+          puts hash
+        end
+        p reasons
+      end
+
+    rescue => e
+      print "#{e.to_s} ~> #{e.backtrace.join("\n")}\n"
+    ensure
+      data_state.client.close if data_state
+      data_state_06.client.close if data_state_06
+      route.client.close if route
+      delivery.client.close
+    end
+  end
+  threads.each(&:join)
+  return 'INVALID'
+end
+
+def illinois_population_changes_city_stage_creation(options, mail_sender = false)
+  i = 0
+  count = @stage_selection.count
+  @stage_selection.each do |stage|
+    i += 1
+    p "#{i}/#{count}: "
+    export = {}
+
+    city = stage['city'][-1, 1] == 's' ? "#{stage['city']}'" : "#{stage['city']}'s"
+    if stage['county']
+      county = " (#{stage['county']})"
+    else
+      county = ''
+    end
+    state = stage['state']
+    city_population_diff = (stage['city_population_curr'] - stage['city_population_prev']).abs
+    city_population_diff_2010 = (stage['city_population_curr'] - stage['city_population_2010']).abs
+    top_city = stage['top_city']
+    period = stage['period']
+    growth_type = growth_type(stage['city_population_curr'], stage['city_population_prev'], city_population_diff)
+    growth_type_2010 = growth_type(stage['city_population_curr'], stage['city_population_2010'], city_population_diff_2010)
+
+    table = JSON.parse(stage['story_table'])
+    table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
+
+    export['headline'] = "#{city} population #{growth_type} between #{period.gsub('-', 'and')}"
+    export['teaser'] = "#{city}#{county} population #{growth_type} between #{period.gsub('-', 'and')}, according to American Community Survey."
+
+    output = ''
+    output << "#{city}#{county} population #{growth_type} between #{period.gsub('-', ' and ')}, according to the American Community Survey. Since 2010 the population has #{growth_type_2010}.\n\n"
+
+    output << "The #{state} municipality that saw the largest population growth between the same time period was #{top_city}.\n\n"
+
+    output << "The American Community Survey (ACS) is an ongoing survey by the U.S. Census Bureau. It regularly gathers information previously contained only in the long form of the decennial census, such as ancestry, citizenship, educational attainment, income, language proficiency, migration, disability, employment, and housing characteristics. These data are used by many public-sector, private-sector, and not-for-profit stakeholders to allocate funding, track shifting demographics, plan for emergencies, and learn about local communities.\n\n"
+
+    output << "<div style=\"font-size:18px\"><strong>Population according to ACS</strong></div>"
+    output << table
+
+    export = prepare_output(stage, output, export, options)
+  end
+end
