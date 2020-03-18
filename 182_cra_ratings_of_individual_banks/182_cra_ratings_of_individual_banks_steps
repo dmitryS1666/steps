@@ -1,21 +1,387 @@
+STAGE TABLE DEFINITION
+insert into stage_definition_configurations (tbl, definition) select 'cra_ratings_of_individual_banks','{"publication_id":"int", "publication_name":"varchar(155)", "organization_id":"varchar(255)", "client_id":"int", "client_name":"varchar(155)", "bank_name":"varchar(255)", "bank_name_for_headline":"varchar(255)", "city":"varchar(255)", "state":"varchar(255)", "rating_string":"varchar(255)", "exam_date":"varchar(255)", "assests_size":"varchar(255)", "method_type":"varchar(255)"}';
+
+#191
+
+STAGE TABLE CREATION
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=191 -t
+
+STAGE POPULATION CONFIGURATION
+insert into stage_population_configurations(project_name, tbl, definition) select 'CRA Ratings of Individual Banks', 'cra_ratings_of_individual_banks', '{"known_entities":{"project_name":"CRA Ratings of Individual Banks"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"illinois_population_changes_city_population","arguments":{}}}}';
+
+population_config_id: #323
+
+STAGE POPULATION:
+$ cd ~/Loki/procedures
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=323 -t --year='2018' --threads_count=5
+
+
+STORY CREATOR CONFIGURATION:
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'cra_ratings_of_individual_banks', 'illinois_population_changes_city_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+
+creation_config_id: #200
+
+STORY CREATION COMMAND:
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=200 -t
+
+
+STAGING: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=200 --population_config_id=323 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='CRA Ratings of Individual Banks' -t
+
+
+STAGING: EXPORT STORIES
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id='258854' --threads_count=20
+
+
+
+FIRST FEEDBACK
+________________________________________
+irb ->
+load 'Loki.rb'
+Hle::Story::Feedback.stories_feedback('511680424,511680443,511680442,511680424')
+
+
+
+!!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
+________________________________________________________________________________________________________________________________________
+
+SCHEDULER:
+__________
+population_config_id: #323
+creation_config_id: #200
+
+tbl: cra_ratings_of_individual_banks
+desc: CRA Ratings of Individual Banks
+
+config_id - population_config_id
+
+Up to 5 stories per day, per publication, for up to 50 days, starting January 20
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=323 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
+
+__________________________________________________
+чтоб проверить шедулер, что он "окейно" отработал:
+
+select publication_name, min(publish_on), max(publish_on), count(*) from 'cra_ratings_of_individual_banks' group by publication_name;
+
+______________________________________
+PRODUCTION: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+______________________________________
+
+--where="client_name like 'MM - %'"
+
+РАЗБИВКА ПО КЛИНЕТАМ!!!
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=200 --population_config_id=323 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='CRA Ratings of Individual Banks' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=200 --population_config_id=323 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='CRA Ratings of Individual Banks' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+
+______________________________________
+
+select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_city_q_staging' and export_name like '%production%' order by id DESC;
+
+______________________________________
+если все ок, то выполняем без --limit_config=1
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=200 --population_config_id=323 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='CRA Ratings of Individual Banks' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=200 --population_config_id=323 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='CRA Ratings of Individual Banks' -t --prod --where="client_name like 'MM - %'"
+_________
+повторяем
+
+select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_city_q_staging' and export_name like '%production%' order by id DESC;
+
+
+______________________
+для построения таблицы
+______________________
+
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from cra_ratings_of_individual_banks group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='cra_ratings_of_individual_banks' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+
+
+__________________________
+PRODUCTION: EXPORT STORIES
+__________________________
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='cra_ratings_of_individual_banks' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=216480 --limit=1
+
+_____
+IF OK
+_____
+
+--threads_count=7 | 13140961 | 13140960
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='...'
+___________________________
+
+
+ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
+___________________________
+
+SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
+FROM story_export_configurations_v2
+WHERE tbl = "cra_ratings_of_individual_banks" AND
+      export_name LIKE '%production%';
+
+# pipeline-core-replica2.jnswire_prod query:
+
+SELECT headline, c.name AS publication, concat('https://pipeline.locallabs.com/stories/', s.id) AS url,
+       published_at, ji.name AS job_item, cc.name AS client
+FROM stories AS s
+JOIN communities AS c
+  ON s.community_id = c.id
+JOIN client_companies AS cc
+  ON c.client_company_id = cc.id
+JOIN data_entry_leads AS l
+  ON l.id = s.lead_id
+JOIN job_items AS ji
+  ON l.job_item_id=ji.id
+WHERE published_at >= '2020-01-07' AND
+      deleted = 0 AND
+      l.job_item_id IN (...)
+ORDER BY c.name;
+
+
+
+
+REMINDER TOOL
+___________________________
+
+INSERT INTO loki_storycreator.hle_reminders
+    (
+        story_type_name, story_type_stage_table,
+        dev_name, slack_handle, dev_email,
+        story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
+        last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
+        data_source_checker_on, data_source_host, data_source_db, data_source_update_query
+    )
+VALUES
+    (
+        'CRA Ratings of Individual Banks', 'cra_ratings_of_individual_banks',
+        'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
+        'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
+        '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
+         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
+    );
+
+
+
+
+
 desc: Unfilled Orders for Goods by Cat
 table: cra_ratings_of_individual_banks
 data_table: db13.usa_raw.mm_manufacturers_shipments_inventories_and_orders_data
 
 
-INSERT INTO loki_storycreator.hle_reminders
-(
-    story_type_name, story_type_stage_table, hle_assignments_number,
-    dev_name, slack_handle, dev_email,
-    story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
-    last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
-    data_source_checker_on, data_source_host, data_source_db, data_source_update_query
-)
-VALUES
-(
-    'CRA Ratings of Individual Banks', 'cra_ratings_of_individual_banks', '182',
-    'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-    'yearly', 1, 1, 'yearly', 'The Dataset located on db13.usa_raw.cra_ratings%',
-    '2019-08-13', 0, 0, 0, 20000, 'yearly', 0,
-    1, 'db13','usa_raw', 'select date(max(postedTime)) date from usa_raw.cra_ratings;'
-);
+
+
+
+def get_all_states(data_route, year)
+  root_query = "SELECT DISTINCT(NAME) AS state
+                FROM census_details
+                WHERE year = #{year} AND
+                      geo_type = 'state' AND
+                      state = 0;"
+  data_route.client.query(root_query).to_a
+end
+
+def get_records(data_route, year, prev_year)
+  root_query = "SELECT geo.geo_name_only as city, geo_name_clear, main.value as city_population_curr,
+                       prev.value AS city_population_prev, prev_2010.value AS city_population_2010,
+                       geo.pl_production_org_id AS pl_production_org_id, geo.state_name AS state
+                FROM census_details main
+                INNER JOIN census_details_uniq_geos geo
+                        ON geo.id = main.match_id AND geo.good_org = 1
+                INNER JOIN census_details prev
+                        ON prev.match_id = main.match_id AND prev.year = #{prev_year} AND prev.concept = 'TOTAL POPULATION' AND prev.variable = 'B01003_001E'
+                INNER JOIN census_details prev_2010
+                    ON prev_2010.match_id = main.match_id AND prev_2010.year = 2010 AND prev_2010.concept = 'TOTAL POPULATION' AND prev_2010.variable = 'B01003_001E'
+                WHERE main.year = #{year} AND main.concept = 'TOTAL POPULATION' AND
+                      main.variable = 'B01003_001E' AND
+                      main.geo_type = 'place'
+                GROUP BY main.match_id
+                ORDER BY main.name;"
+  data_route.client.query(root_query).to_a
+end
+
+def get_top_city_by_state(data_route, state, year)
+  root_query = "SELECT geo.geo_name_only as city, geo_name_clear, main.value as city_population_curr,
+                       prev.value AS city_population_prev, (main.value - prev.value) AS top_diff
+                FROM census_details main
+                INNER JOIN census_details_uniq_geos geo
+                        ON geo.id = main.match_id AND geo.good_org = 1 AND geo.state_name = '#{state}'
+                INNER JOIN census_details prev
+                        ON prev.match_id = main.match_id AND prev.year = #{year.to_i - 1} AND prev.concept = 'TOTAL POPULATION' AND prev.variable = 'B01003_001E'
+                WHERE main.year = #{year} AND main.concept = 'TOTAL POPULATION' AND
+                      main.variable = 'B01003_001E' AND
+                      main.geo_type = 'place'
+                GROUP BY main.match_id
+                ORDER BY top_diff DESC LIMIT 1;"
+  data_route.client.query(root_query).to_a
+end
+
+def get_duplicates(data_route)
+  root_query = "SELECT state_name AS state, geo_name_only AS city, geo_name_clear,  count(*)
+                FROM census_details_uniq_geos
+                WHERE good_org = 1 AND geo_type = 'place' AND
+                      geo_name_clear IS NOT NULL
+                GROUP BY state_name, geo_name_only
+                HAVING count(*) > 1;"
+  data_route.client.query(root_query).to_a
+end
+
+def get_duplicate_only(data_route, state, city_name)
+  root_query = "SELECT geo_name, geo_name_clear
+                FROM census_details_uniq_geos
+                WHERE state_name = '#{state}' AND
+                      geo_name_only = '#{city_name}';"
+  data_route.client.query(root_query).to_a
+end
+
+
+def get_county_by_state(data_route, state, place_name, type)
+  root_query = "SELECT county_name
+                FROM usa_administrative_division_counties_places_matching
+                WHERE state_name ='#{state}' AND county_name<>'' AND short_name = '#{place_name}' AND kind = '#{type}';"
+  data_route.client.query(root_query).to_a
+end
+
+def get_percentage_diff(data1, data2)
+  if data2 != 0
+    ((data1 - data2) / data2.to_f * 100)
+  else
+    100.to_i
+  end
+end
+
+def growth_type(curr, prev, city_population_diff)
+  #  increased by #, decreased by #, or remained
+  return "increased by #{separate_comma(city_population_diff)} people" if curr > prev
+  return "decreased by #{separate_comma(city_population_diff)} people" if curr < prev
+  return 'was unchanged' if (curr == prev)
+end
+
+def growth_type_head_line(curr, prev, city_population_diff)
+  # increases by #, decreases by #, or unchanged
+  return "increases by #{separate_comma(city_population_diff)} people" if curr > prev
+  return "decreases by #{separate_comma(city_population_diff)} people" if curr < prev
+  return 'unchanged' if (curr == prev)
+end
+
+def table_from_data(year, prev_year, rec)
+  table = []
+
+  table << { "Municipality" => rec['city'],
+             "#{year}" => rec['city_population_curr'],
+             "#{prev_year}" => rec['city_population_prev'],
+             "% change" => separate_comma(get_percentage_diff(rec['city_population_curr'], rec['city_population_prev']))
+  }
+end
+
+def separate_comma(number)
+  if number.to_f.abs > 999
+    number.to_f.round.abs.to_s.sub(/\.0$/,'').chars.to_a.reverse.each_slice(3).map(&:join).join(",").reverse
+  else
+    number.to_f.round(1).abs.to_s.sub(/\.0$/,'')
+  end
+end
+
+def titleize(str)
+  str.split.each(&:capitalize!).join(' ')
+end
+
+def illinois_population_changes_city_stage_population(line, argument)
+  require 'bigdecimal'
+  require 'bigdecimal/util'
+  require 'date'
+
+  puts("\n!!!\nParameter year required 'year' \n!!!\n") unless (@options['year'])
+  return 'INVALID' unless @options['year']
+  year = @options['year']
+  return 'INVALID' unless year.to_s.match(/^\d{4}$/)
+  threads_count = @options['threads_count'].to_i || 3
+
+  prev_year = year.to_i - 1
+
+  puts 'year: ', year
+  puts 'prev_year: ', prev_year
+
+  route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+  route.client.query("use #{route.stage_db}")
+
+  data_state = Route_noprefix.new(host: DB06, stage_db: 'voters_2016')
+  data_state.client.query("use #{data_state.stage_db}")
+
+  records = get_records(data_state, year, prev_year)
+  all_duplicates = get_duplicates(data_state)
+
+  @semaphore = Mutex.new
+  threads = Array.new(threads_count) do
+    Thread.new do
+      delivery = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
+      delivery.client.query("use #{delivery.stage_db}")
+      data_state_06 = Route_noprefix.new(host: DB06, stage_db: 'voters_2016')
+      data_state_06.client.query("use #{data_state_06.stage_db}")
+
+      reasons = {
+          publications: [],
+          publication_name: []
+      }
+
+
+
+    rescue => e
+      print "#{e.to_s} ~> #{e.backtrace.join("\n")}\n"
+    ensure
+      data_state.client.close if data_state
+      data_state_06.client.close if data_state_06
+      route.client.close if route
+      delivery.client.close
+    end
+  end
+  threads.each(&:join)
+  return 'INVALID'
+end
+
+def illinois_population_changes_city_stage_creation(options, mail_sender = false)
+  i = 0
+  count = @stage_selection.count
+  @stage_selection.each do |stage|
+    i += 1
+    p "#{i}/#{count}: "
+    export = {}
+
+    city = stage['city'][-1, 1] == 's' ? "#{stage['city']}'" : "#{stage['city']}'s"
+    if stage['county']
+      county = " (#{stage['county']})"
+    else
+      county = ''
+    end
+    state = stage['state']
+    city_population_diff = (stage['city_population_curr'] - stage['city_population_prev']).abs
+    city_population_diff_2010 = (stage['city_population_curr'] - stage['city_population_2010']).abs
+    top_city = stage['top_city']
+    top_value = separate_comma(stage['top_value'])
+    period = stage['period']
+    growth_type_head_line = growth_type_head_line(stage['city_population_curr'], stage['city_population_prev'], city_population_diff)
+    growth_type = growth_type(stage['city_population_curr'], stage['city_population_prev'], city_population_diff)
+    growth_type_2010 = growth_type(stage['city_population_curr'], stage['city_population_2010'], city_population_diff_2010)
+
+    table = JSON.parse(stage['story_table'])
+    table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
+
+    export['headline'] = "#{city} population #{growth_type_head_line} between #{period.gsub('-', 'and')}"
+    export['teaser'] = "#{city}#{county} population #{growth_type} between #{period.gsub('-', 'and')}, according to U.S. Census Bureau's American Community Survey."
+
+    output = ''
+    output << "#{city}#{county} population #{growth_type} between #{period.gsub('-', ' and ')}, according to the <a href='https://www.census.gov/programs-surveys/acs'>U.S. Census Bureau's American Community Survey</a>.#{" Since 2010 the population has #{growth_type_2010}." unless growth_type_2010.include? 'was unchanged'}\n\n"
+
+    output << "The #{state} municipality that saw the largest population growth over the same time period was #{top_city}, with a total population increase of #{top_value} people.\n\n"
+
+    output << "The American Community Survey (ACS) is an ongoing survey by the U.S. Census Bureau. It regularly gathers information previously contained only in the long form of the decennial census, such as ancestry, citizenship, educational attainment, income, language proficiency, migration, disability, employment, and housing characteristics. These data are used by many public-sector, private-sector, and not-for-profit stakeholders to allocate funding, track shifting demographics, plan for emergencies, and learn about local communities.\n\n"
+
+    output << "<div style=\"font-size:18px\"><strong>Population according to ACS</strong></div>"
+    output << table
+
+    export = prepare_output(stage, output, export, options)
+  end
+end
