@@ -28,8 +28,7 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=2
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=200 --population_config_id=323 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='CRA Ratings of Individual Banks' -t --where="client_id != 120"
-
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=200 --population_config_id=323 --story_section_ids=2 --story_tag_ids=198 --photobuckets='money' --job_item_name_description='CRA Ratings of Individual Banks' -t --where="stage.client_name like 'MM - %'"
 
 STAGING: EXPORT STORIES
 bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='266042,266052,266057' --threads_count=20
@@ -58,7 +57,8 @@ desc: CRA Ratings of Individual Banks
 config_id - population_config_id
 
 Up to 5 stories per day, per publication, for up to 50 days, starting January 20
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=323 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
+Up to 1 stories per day, per publication, for up to 30 days, starting April 1
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=323 --limit=1 --start_date='2020-04-01' --total_days_till_end_date=30 --where="stage.publish_on = '0000-00-00'"
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -70,25 +70,25 @@ PRODUCTION: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 ______________________________________
 
---where="client_name like 'MM - %'"
+--where="stage.client_name like 'MM - %'"
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=200 --population_config_id=323 --story_section_ids=2 --story_tag_ids=198 --photobuckets='money' --job_item_name_description='CRA Ratings of Individual Banks' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=200 --population_config_id=323 --story_section_ids=2 --story_tag_ids=198 --photobuckets='money' --job_item_name_description='CRA Ratings of Individual Banks' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=200 --population_config_id=323 --story_section_ids=16 --story_tag_ids=198 --photobuckets='money' --job_item_name_description='CRA Ratings of Individual Banks' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
-select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_city_q_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'cra_ratings_of_individual_banks' and export_name like '%production%' order by id DESC;
 
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=200 --population_config_id=323 --story_section_ids=2 --story_tag_ids=198 --photobuckets='money' --job_item_name_description='CRA Ratings of Individual Banks' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=200 --population_config_id=323 --story_section_ids=2 --story_tag_ids=198 --photobuckets='money' --job_item_name_description='CRA Ratings of Individual Banks' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=200 --population_config_id=323 --story_section_ids=2 --story_tag_ids=198 --photobuckets='money' --job_item_name_description='CRA Ratings of Individual Banks' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
 
-select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_city_q_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'cra_ratings_of_individual_banks' and export_name like '%production%' order by id DESC;
 
 
 ______________________
@@ -102,15 +102,15 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='cra_ratings_of_individual_banks' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=216480 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='cra_ratings_of_individual_banks' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=266538 --limit=1
 
 _____
 IF OK
 _____
 
---threads_count=7 | 13140961 | 13140960
+--threads_count=10
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='...'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='266538,266835,266727,43964,44009,266645,266858,266616,266823,266565,266712,266490,266649,44014,43966,266575,266481,266404,266842,266379,266764,266429,266459,266393,266327,266528,266831,266413,266597,266675,266628,266683,266755,266366,266548,266662,266824,266862,266497,266525,43990,266338,266578,266332,266420,266788,266610,266280,266543,266407,266641,266376,266411,266314,266772,266363,266840,266485,266801,266384,266261,266803,266596,266569,266763,266642,266529,266767,266663,266670,266630,266584,266389,266699,266555,266821,266340,266774,266600,266353,43997,266317,266687,266447,266557,266785,43980,266761,266560,266658,266276,266819,266855,266749,266638,44002,266470,266365,266808,266730,266294,266834,266773,266706,266778,266387,266780,266793,266805,266751,266811,266541,266814,266453,266594,266312,266587,266692,266391,266617,266514,266553,266272,266523,266562,266341,266507,266700,266313,266795,266375,266708,266304,266368,266849,266671,266734,266500,266343,266479,266409,266738,266396,44003,266461,266352,266724,266580,266633,266258,266311,266746,266427,266380,266841,43967,266619,266517,266701,266656,266547,266762,266684,266689,266829,266433,266464,44011,266758,266260,266518,266595,266644,266674,266704,266412,266345,266695,266781,266434,266392,266676,266498,266599,266783,266728,44000,43985,266612,43965,266591,266750,43969,266820,266402,266358,266324,266504,266279,266450,266561,266405,266759,43968,266483,266707,266408,266377,43971,266290,266790,43972,266265,266859,266458,266537,266373,266833,266585,266789,266748,266673,266598,266462,266685,266843,266297,266775,266846,266522,266321,266826,266478,43991,266647,266362,266424,266262,266856,266305,266264,266609,266403,266488,43978,266779,266573,266817,266456,266425,43998,43982,266400,266270,266611,266499,266306,266329,266511,43987,266664,266495,266451,266465,266754,43992,43973,266438,43986,266716,266397,266441,266752,266837,43974,266614,266414,266737,266539,266744,266698,266602,266657,266263,266257,266603,266722,266760,266336,266428,266439,266355,266325,266794,266419,266435,266868,266549,266729,266672,266825,266350,266476,266505,266620,266654,266765,266567,266544,266348,266509,266385,266426,266693,266289,266287,266636,266318,266482,266847,266809,266723,266534,266827,266860,266839,266356,43993,266298,44008,44010,44006,43988,266836,43977,266715,266501,266480,266452,266445,266386,266371,43999,266493,266605,266828,266443,44004,266705,266581,266422,266854,266286,266335,266851,266861,266804,266546,266484,266844,266347,266467,266690,266331,266769,266307,266802,266330,266323,266732,266659,266475,266421,266864,266651,266867,266406,266510,266648,266491,266512,266457,266807,266813,266410,266680,266349,266492,266589,266586,266652,266285,266293,266613,266702,266646,43975,266473,266309,43976,266740,266415,266593,266256,44012,266524,266850,266718,43996,266545,266554,266494,266448,266771,266337,266622,266576,266266,266423,266416,266818,266592,266615,266736,266713,266786,266299,266296,266634,266268,266660,266714,44013,266277,266301,266853,266632,266463,266274,266753,266601,266669,266635,266629,266866,266719,266417,266310,266271,266777,266302,266666,266326,266661,266741,266621,266515,266668,266720,266255,266282,266810,266339,266770,266346,266383,266344,266570,266588,266725,266768,266319,266527,266431,266816,266472,266381,266563,266333,266281,266454,266822,266466,266361,266316,266370,266395,266542,266322,266604,266288,266513,266691,266832,266378,266686,266342,266627,266735,266533,266502,266374,266437,266577,266653,266267,266865,266572,266797,266623,266731,266320,266558,266852,266792,266530,266640,43979,266696,266710,266845,266520,266446,266618,266608,266521,266787,266551,266697,266540,266590,266800,266486,266655,266519,266677,266559,266784,266444,266506,266564,266688,266360,266536,266848,266471,266460,266487,266625,266398,266273,266372,266308,266430,266303,266394,266455,266739,266606,266717,266626,266283,266679,266496,266631,266474,266469,266351,266364,266442,266369,266681,266328,266388,266315,266535,266291,266583,266300,266390,266354,43984,43994,266532,266582,266278,266782,266703,266468,266531,266359,266711,266284,266650,266756,266566,266709,266552,266643,266292,266745,266733,266432,44007,266571,266449,43970,266857,44005,266791,266796,266401,43989,266399,44001,266639,266806,266678,266574,266776,266550,266721,266579,266418,266799,266382,266766,266295,266334,266624,266815,266556,266747,266275,266516,266357,266757,266440,266694,266526,266726,266798,266812,43983,266477,266489,266367,266568,266743,266830,266436,266259,266269,266503,266665,266637,43995,266838,266863,43981,266742,266508,266667,266682,266607' --threads_count=10
 ___________________________
 
 
@@ -127,17 +127,64 @@ WHERE tbl = "cra_ratings_of_individual_banks" AND
 SELECT headline, c.name AS publication, concat('https://pipeline.locallabs.com/stories/', s.id) AS url,
        published_at, ji.name AS job_item, cc.name AS client
 FROM stories AS s
-JOIN communities AS c
-  ON s.community_id = c.id
-JOIN client_companies AS cc
-  ON c.client_company_id = cc.id
-JOIN data_entry_leads AS l
-  ON l.id = s.lead_id
-JOIN job_items AS ji
-  ON l.job_item_id=ji.id
-WHERE published_at >= '2020-01-07' AND
-      deleted = 0 AND
-      l.job_item_id IN (...)
+         JOIN communities AS c
+              ON s.community_id = c.id
+         JOIN client_companies AS cc
+              ON c.client_company_id = cc.id
+         JOIN data_entry_leads AS l
+              ON l.id = s.lead_id
+         JOIN job_items AS ji
+              ON l.job_item_id=ji.id
+WHERE published_at >= '2020-03-19' AND
+        deleted = 0 AND
+        l.job_item_id IN (152508,152447,152451,152410,152432,152772,152696,152868,152417,152554,152421,152780,152652,
+                          152725,152601,152660,152545,152726,152370,152651,152494,152857,152848,152602,152493,152313,
+                          152730,152411,152612,152859,152722,152777,152840,152806,152844,152855,152716,152448,152353,
+                          152569,152757,152600,152549,152570,152833,152807,152284,152594,152760,152734,152467,152721,
+                          152644,152645,152643,152701,152704,152758,152673,152878,152281,152791,152877,152670,152689,
+                          152640,152835,152529,152740,152446,152720,152736,152563,152710,152564,152789,152633,152639,
+                          152800,152735,152372,152808,152434,152546,152685,152861,152574,152761,152634,152478,152870,
+                          152583,152753,152298,152714,152449,152677,152826,152341,152405,152862,152312,152824,152838,
+                          152394,152366,152597,152599,152528,152319,152392,152379,152538,152369,152511,152323,152874,
+                          152315,152676,152667,152413,152436,152326,152480,152357,152387,152604,152847,152396,152830,
+                          152752,152837,152453,152578,152825,152358,152400,152402,152356,152291,152880,152560,152364,
+                          152428,152305,152790,152636,152750,152573,152325,152836,152524,152527,152489,152346,152526,
+                          152342,152376,152335,152332,152350,152646,152501,152614,152593,152543,152852,152718,152274,
+                          152521,152278,152746,152579,152675,152653,152884,152622,152715,152695,152754,152774,152331,
+                          152558,152306,152367,152474,152540,152756,152377,152592,152700,152839,152741,152418,152515,
+                          152407,152419,152518,152864,152488,152503,152486,152535,152556,152683,152841,152816,152785,
+                          152744,152536,152294,152784,152445,152809,152452,152763,152435,152371,152584,152572,152575,
+                          152742,152743,152850,152779,152811,152355,152765,152798,152498,152571,152322,152280,152496,
+                          152766,152361,152565,152846,152732,152724,152869,152616,152663,152672,152669,152490,152749,
+                          152642,152796,152425,152792,152618,152656,152422,152637,152627,152457,152424,152647,152686,
+                          152472,152728,152492,152814,152568,152499,152842,152845,152843,152786,152462,152619,152473,
+                          152613,152803,152858,152279,152781,152295,152393,152398,152276,152776,152282,152854,152708,
+                          152348,152365,152775,152292,152309,152866,152537,152337,152805,152481,152513,152591,152797,
+                          152793,152748,152804,152547,152374,152303,152360,152318,152768,152834,152738,152881,152703,
+                          152296,152339,152454,152801,152403,152297,152343,152509,152334,152300,152382,152580,152324,
+                          152440,152530,152532,152399,152444,152544,152559,152386,152404,152693,152471,152697,152363,
+                          152665,152420,152381,152497,152827,152523,152385,152812,152388,152548,152426,152317,152821,
+                          152586,152582,152455,152820,152383,152299,152691,152585,152390,152561,152674,152581,152514,
+                          152849,152484,152465,152541,152867,152487,152562,152764,152373,152395,152555,152851,152762,
+                          152739,152706,152723,152550,152534,152863,152829,152338,152609,152875,152733,152694,152459,
+                          152664,152727,152512,152755,152680,152629,152590,152719,152860,152666,152464,152275,152288,
+                          152476,152707,152661,152654,152626,152468,152606,152658,152553,152607,152283,152277,152709,
+                          152717,152690,152285,152872,152557,152397,152782,152522,152463,152576,152767,152290,152617,
+                          152638,152439,152650,152641,152551,152668,152794,152655,152427,152882,152423,152832,152304,
+                          152310,152301,152314,152354,152380,152885,152799,152649,152773,152273,152351,152482,152778,
+                          152430,152477,152429,152479,152713,152391,152519,152470,152475,152871,152520,152539,152495,
+                          152598,152460,152485,152711,152359,152542,152692,152456,152307,152886,152831,152441,152788,
+                          152699,152817,152433,152525,152316,152344,152336,152822,152818,152340,152401,152330,152500,
+                          152698,152759,152853,152815,152406,152876,152431,152681,152409,152516,152491,152368,152502,
+                          152378,152856,152587,152873,152787,152802,152589,152657,152352,152595,152731,152635,152712,
+                          152819,152603,152682,152810,152504,152483,152623,152615,152659,152628,152769,152506,152328,
+                          152630,152308,152671,152729,152329,152632,152320,152679,152321,152287,152443,152883,152678,
+                          152286,152783,152648,152625,152737,152795,152289,152684,152631,152416,152375,152437,152469,
+                          152389,152517,152347,152384,152610,152596,152345,152327,152879,152567,152510,152605,152608,
+                          152531,152588,152333,152302,152349,152577,152552,152813,152745,152705,152702,152751,152662,
+                          152828,152620,152747,152466,152442,152505,152450,152566,152438,152414,152823,152293,152415,
+                          152770,152621,152461,152865,152311,152611,152771,152687,152533,152362,152412,152624,152408,
+                          152507,152458,152688)
 ORDER BY c.name;
 
 
@@ -159,229 +206,7 @@ VALUES
         'CRA Ratings of Individual Banks', 'cra_ratings_of_individual_banks',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
         'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
-        '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
+        '2020-03-19', 0, 0, 0, 20000, 'quarterly', 0,
          1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
     );
 
-
-
-
-
-desc: Unfilled Orders for Goods by Cat
-table: cra_ratings_of_individual_banks
-data_table: db13.usa_raw.mm_manufacturers_shipments_inventories_and_orders_data
-
-
-
-
-
-def get_all_states(data_route, year)
-  root_query = "SELECT DISTINCT(NAME) AS state
-                FROM census_details
-                WHERE year = #{year} AND
-                      geo_type = 'state' AND
-                      state = 0;"
-  data_route.client.query(root_query).to_a
-end
-
-def get_records(data_route, year, prev_year)
-  root_query = "SELECT geo.geo_name_only as city, geo_name_clear, main.value as city_population_curr,
-                       prev.value AS city_population_prev, prev_2010.value AS city_population_2010,
-                       geo.pl_production_org_id AS pl_production_org_id, geo.state_name AS state
-                FROM census_details main
-                INNER JOIN census_details_uniq_geos geo
-                        ON geo.id = main.match_id AND geo.good_org = 1
-                INNER JOIN census_details prev
-                        ON prev.match_id = main.match_id AND prev.year = #{prev_year} AND prev.concept = 'TOTAL POPULATION' AND prev.variable = 'B01003_001E'
-                INNER JOIN census_details prev_2010
-                    ON prev_2010.match_id = main.match_id AND prev_2010.year = 2010 AND prev_2010.concept = 'TOTAL POPULATION' AND prev_2010.variable = 'B01003_001E'
-                WHERE main.year = #{year} AND main.concept = 'TOTAL POPULATION' AND
-                      main.variable = 'B01003_001E' AND
-                      main.geo_type = 'place'
-                GROUP BY main.match_id
-                ORDER BY main.name;"
-  data_route.client.query(root_query).to_a
-end
-
-def get_top_city_by_state(data_route, state, year)
-  root_query = "SELECT geo.geo_name_only as city, geo_name_clear, main.value as city_population_curr,
-                       prev.value AS city_population_prev, (main.value - prev.value) AS top_diff
-                FROM census_details main
-                INNER JOIN census_details_uniq_geos geo
-                        ON geo.id = main.match_id AND geo.good_org = 1 AND geo.state_name = '#{state}'
-                INNER JOIN census_details prev
-                        ON prev.match_id = main.match_id AND prev.year = #{year.to_i - 1} AND prev.concept = 'TOTAL POPULATION' AND prev.variable = 'B01003_001E'
-                WHERE main.year = #{year} AND main.concept = 'TOTAL POPULATION' AND
-                      main.variable = 'B01003_001E' AND
-                      main.geo_type = 'place'
-                GROUP BY main.match_id
-                ORDER BY top_diff DESC LIMIT 1;"
-  data_route.client.query(root_query).to_a
-end
-
-def get_duplicates(data_route)
-  root_query = "SELECT state_name AS state, geo_name_only AS city, geo_name_clear,  count(*)
-                FROM census_details_uniq_geos
-                WHERE good_org = 1 AND geo_type = 'place' AND
-                      geo_name_clear IS NOT NULL
-                GROUP BY state_name, geo_name_only
-                HAVING count(*) > 1;"
-  data_route.client.query(root_query).to_a
-end
-
-def get_duplicate_only(data_route, state, city_name)
-  root_query = "SELECT geo_name, geo_name_clear
-                FROM census_details_uniq_geos
-                WHERE state_name = '#{state}' AND
-                      geo_name_only = '#{city_name}';"
-  data_route.client.query(root_query).to_a
-end
-
-
-def get_county_by_state(data_route, state, place_name, type)
-  root_query = "SELECT county_name
-                FROM usa_administrative_division_counties_places_matching
-                WHERE state_name ='#{state}' AND county_name<>'' AND short_name = '#{place_name}' AND kind = '#{type}';"
-  data_route.client.query(root_query).to_a
-end
-
-def get_percentage_diff(data1, data2)
-  if data2 != 0
-    ((data1 - data2) / data2.to_f * 100)
-  else
-    100.to_i
-  end
-end
-
-def growth_type(curr, prev, city_population_diff)
-  #  increased by #, decreased by #, or remained
-  return "increased by #{separate_comma(city_population_diff)} people" if curr > prev
-  return "decreased by #{separate_comma(city_population_diff)} people" if curr < prev
-  return 'was unchanged' if (curr == prev)
-end
-
-def growth_type_head_line(curr, prev, city_population_diff)
-  # increases by #, decreases by #, or unchanged
-  return "increases by #{separate_comma(city_population_diff)} people" if curr > prev
-  return "decreases by #{separate_comma(city_population_diff)} people" if curr < prev
-  return 'unchanged' if (curr == prev)
-end
-
-def table_from_data(year, prev_year, rec)
-  table = []
-
-  table << { "Municipality" => rec['city'],
-             "#{year}" => rec['city_population_curr'],
-             "#{prev_year}" => rec['city_population_prev'],
-             "% change" => separate_comma(get_percentage_diff(rec['city_population_curr'], rec['city_population_prev']))
-  }
-end
-
-def separate_comma(number)
-  if number.to_f.abs > 999
-    number.to_f.round.abs.to_s.sub(/\.0$/,'').chars.to_a.reverse.each_slice(3).map(&:join).join(",").reverse
-  else
-    number.to_f.round(1).abs.to_s.sub(/\.0$/,'')
-  end
-end
-
-def titleize(str)
-  str.split.each(&:capitalize!).join(' ')
-end
-
-def illinois_population_changes_city_stage_population(line, argument)
-  require 'bigdecimal'
-  require 'bigdecimal/util'
-  require 'date'
-
-  puts("\n!!!\nParameter year required 'year' \n!!!\n") unless (@options['year'])
-  return 'INVALID' unless @options['year']
-  year = @options['year']
-  return 'INVALID' unless year.to_s.match(/^\d{4}$/)
-  threads_count = @options['threads_count'].to_i || 3
-
-  prev_year = year.to_i - 1
-
-  puts 'year: ', year
-  puts 'prev_year: ', prev_year
-
-  route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
-  route.client.query("use #{route.stage_db}")
-
-  data_state = Route_noprefix.new(host: DB06, stage_db: 'voters_2016')
-  data_state.client.query("use #{data_state.stage_db}")
-
-  records = get_records(data_state, year, prev_year)
-  all_duplicates = get_duplicates(data_state)
-
-  @semaphore = Mutex.new
-  threads = Array.new(threads_count) do
-    Thread.new do
-      delivery = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
-      delivery.client.query("use #{delivery.stage_db}")
-      data_state_06 = Route_noprefix.new(host: DB06, stage_db: 'voters_2016')
-      data_state_06.client.query("use #{data_state_06.stage_db}")
-
-      reasons = {
-          publications: [],
-          publication_name: []
-      }
-
-
-
-    rescue => e
-      print "#{e.to_s} ~> #{e.backtrace.join("\n")}\n"
-    ensure
-      data_state.client.close if data_state
-      data_state_06.client.close if data_state_06
-      route.client.close if route
-      delivery.client.close
-    end
-  end
-  threads.each(&:join)
-  return 'INVALID'
-end
-
-def illinois_population_changes_city_stage_creation(options, mail_sender = false)
-  i = 0
-  count = @stage_selection.count
-  @stage_selection.each do |stage|
-    i += 1
-    p "#{i}/#{count}: "
-    export = {}
-
-    city = stage['city'][-1, 1] == 's' ? "#{stage['city']}'" : "#{stage['city']}'s"
-    if stage['county']
-      county = " (#{stage['county']})"
-    else
-      county = ''
-    end
-    state = stage['state']
-    city_population_diff = (stage['city_population_curr'] - stage['city_population_prev']).abs
-    city_population_diff_2010 = (stage['city_population_curr'] - stage['city_population_2010']).abs
-    top_city = stage['top_city']
-    top_value = separate_comma(stage['top_value'])
-    period = stage['period']
-    growth_type_head_line = growth_type_head_line(stage['city_population_curr'], stage['city_population_prev'], city_population_diff)
-    growth_type = growth_type(stage['city_population_curr'], stage['city_population_prev'], city_population_diff)
-    growth_type_2010 = growth_type(stage['city_population_curr'], stage['city_population_2010'], city_population_diff_2010)
-
-    table = JSON.parse(stage['story_table'])
-    table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
-
-    export['headline'] = "#{city} population #{growth_type_head_line} between #{period.gsub('-', 'and')}"
-    export['teaser'] = "#{city}#{county} population #{growth_type} between #{period.gsub('-', 'and')}, according to U.S. Census Bureau's American Community Survey."
-
-    output = ''
-    output << "#{city}#{county} population #{growth_type} between #{period.gsub('-', ' and ')}, according to the <a href='https://www.census.gov/programs-surveys/acs'>U.S. Census Bureau's American Community Survey</a>.#{" Since 2010 the population has #{growth_type_2010}." unless growth_type_2010.include? 'was unchanged'}\n\n"
-
-    output << "The #{state} municipality that saw the largest population growth over the same time period was #{top_city}, with a total population increase of #{top_value} people.\n\n"
-
-    output << "The American Community Survey (ACS) is an ongoing survey by the U.S. Census Bureau. It regularly gathers information previously contained only in the long form of the decennial census, such as ancestry, citizenship, educational attainment, income, language proficiency, migration, disability, employment, and housing characteristics. These data are used by many public-sector, private-sector, and not-for-profit stakeholders to allocate funding, track shifting demographics, plan for emergencies, and learn about local communities.\n\n"
-
-    output << "<div style=\"font-size:18px\"><strong>Population according to ACS</strong></div>"
-    output << table
-
-    export = prepare_output(stage, output, export, options)
-  end
-end
