@@ -2,21 +2,21 @@ https://docs.google.com/document/d/17BC4--m7Gnz-9mYTcRIH1W4SdC4QR6weHSWXPWMk1uc/
 Generic State - White Population Change City (short and long term)
 
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'gen_st_white_pop_change_city_short_and_long_term_staging','{"city":"VARCHAR(255)","month":"VARCHAR(255)","profession":"VARCHAR(1024)","month_val":"int(11)","month_val_ly":"int(11)","year":"int(11)","story_table":"LONGTEXT"}';
+insert into stage_definition_configurations (tbl, definition) select 'gen_st_white_pop_change_city_short_and_long_term_staging','{"city":"VARCHAR(255)","state":"VARCHAR(255)","county":"VARCHAR(255)","period":"VARCHAR(255)","top_city":"VARCHAR(1024)","top_value":"int(11)","city_population_curr":"int(11)","city_population_prev":"int(11)","city_population_2010":"int(11)","story_table":"LONGTEXT"}';
 
-#575
+#587
 
 STAGE TABLE CREATION
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=575 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=587 -t
 
 STAGE POPULATION CONFIGURATION
 insert into stage_population_configurations(project_name, tbl, definition) select 'Generic State - White Population Change City (short and long term)', 'gen_st_white_pop_change_city_short_and_long_term_staging', '{"known_entities":{"project_name":"Generic State - White Population Change City (short and long term)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"gen_st_white_pop_change_city_short_and_long_term_population","arguments":{}}}}';
 
-population_config_id: #690
+population_config_id: #701
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=690 -t --year='2018' --threads_count=10
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=701 -t --year='2018' --threads_count=10
 
 
 STORY CREATOR CONFIGURATION:
@@ -31,7 +31,7 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=5
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - White Population Change City (short and long term)' -t
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=701 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - White Population Change City (short and long term)' -t
 
 
 STAGING: EXPORT STORIES
@@ -52,7 +52,7 @@ ________________________________________________________________________________
 
 SCHEDULER:
 __________
-population_config_id: #690
+population_config_id: #701
 creation_config_id: #571
 
 tbl: gen_st_white_pop_change_city_short_and_long_term_staging
@@ -61,7 +61,7 @@ desc: Generic State - White Population Change City (short and long term)
 config_id - population_config_id
 
 Up to 5 stories per day, per publication, for up to 50 days, starting January 20
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=690 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=701 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -76,8 +76,8 @@ ______________________________________
 --where="client_name like 'MM - %'"
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - White Population Change City (short and long term)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - White Population Change City (short and long term)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=701 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - White Population Change City (short and long term)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=701 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - White Population Change City (short and long term)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
 
 ______________________________________
 
@@ -86,8 +86,8 @@ select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issu
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - White Population Change City (short and long term)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - White Population Change City (short and long term)' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=701 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - White Population Change City (short and long term)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=701 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - White Population Change City (short and long term)' -t --prod --where="client_name like 'MM - %'"
 _________
 повторяем
 
@@ -140,7 +140,7 @@ JOIN job_items AS ji
   ON l.job_item_id=ji.id
 WHERE published_at >= '2020-01-07' AND
       deleted = 0 AND
-      l.job_item_id IN (114665,114653,114643,114638,114637,114644,114655,114649,114658,114663,114632,114645,114670,114639,114652,114642,114647,114648,114657,114661,114634,114636,114668,114660,114656,114651,114669,114671,114662,114654,114640,114646,114664,114650,114666,114672,114641,114635,114659,114667,114698,114687,114678,114702,114691,114676,114693,114674,114703,114675,114682,114633,114700,114673,114684,114685,114699,114694,114695,114704,114692,114677,114696,114681,114683,114697,114705,114688,114706,114679,114690,114680,114707,114701,114686,114689)
+      l.job_item_id IN (...)
 ORDER BY c.name;
 
 

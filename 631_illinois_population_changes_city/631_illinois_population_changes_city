@@ -1,5 +1,5 @@
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'illinois_population_changes_city_staging','{"city":"VARCHAR(255)","state":"VARCHAR(255)","period":"VARCHAR(255)","top_city":"VARCHAR(1024)","city_population_curr":"int(11)","city_population_prev":"int(11)","story_table":"LONGTEXT"}';
+insert into stage_definition_configurations (tbl, definition) select 'illinois_population_changes_city_staging','{"city":"VARCHAR(255)","state":"VARCHAR(255)","county":"VARCHAR(255)","period":"VARCHAR(255)","top_city":"VARCHAR(1024)","top_value":"int(11)","city_population_curr":"int(11)","city_population_prev":"int(11)","city_population_2010":"int(11)","story_table":"LONGTEXT"}';
 
 #556
 
