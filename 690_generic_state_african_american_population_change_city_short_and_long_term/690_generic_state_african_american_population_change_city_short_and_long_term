@@ -203,15 +203,14 @@ def get_records(data_route, year, prev_year)
 end
 
 def get_top_city_by_state(data_route, state, year)
-  root_query = "SELECT geo.geo_name_only as city, geo_name_clear, main.value as city_population_curr,
-                       prev.value AS city_population_prev, (main.value - prev.value) AS top_diff
+  root_query = "SELECT geo.geo_name_only as city, geo_name_clear, SUM(main.value) as city_population_curr,
+                       SUM(prev.value) AS city_population_prev, (SUM(main.value) - SUM(prev.value)) AS top_diff
                 FROM census_details main
                 INNER JOIN census_details_uniq_geos geo
                         ON geo.id = main.match_id AND geo.good_org = 1 AND geo.state_name = '#{state}'
                 INNER JOIN census_details prev
-                        ON prev.match_id = main.match_id AND prev.year = #{year.to_i - 1} AND prev.concept = 'TOTAL POPULATION' AND prev.variable = 'B01003_001E'
-                WHERE main.year = #{year} AND main.concept = 'TOTAL POPULATION' AND
-                      main.variable = 'B01003_001E' AND
+                        ON prev.match_id = main.match_id AND prev.year = #{year.to_i - 1} AND prev.concept = 'SEX BY AGE (WHITE ALONE)'
+                WHERE main.year = #{year} AND main.concept = 'SEX BY AGE (WHITE ALONE)' AND
                       main.geo_type = 'place'
                 GROUP BY main.match_id
                 ORDER BY top_diff DESC LIMIT 1;"
