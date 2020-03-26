@@ -35,7 +35,7 @@ bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --popul
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id='275612'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='281880,281898'
 
 
 
