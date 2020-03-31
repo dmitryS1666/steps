@@ -29,8 +29,8 @@ STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=561 --population_config_id=673 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes City' -t
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=561 --population_config_id=673 --story_section_ids='2,16' --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes City' -t --where="client_id = 91"
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=561 --population_config_id=673 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes City' -t --where="publication_name like 'Illinois%'"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=561 --population_config_id=673 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes City' -t --where="publication_name like '%LGIS%'"
 
 
 
@@ -60,8 +60,8 @@ desc: Population Changes City
 
 config_id - population_config_id
 
-Up to 5 stories per day, per publication, for up to 50 days, starting January 20
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=673 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
+Up to 17 stories per day, per publication, for up to 100 days, starting April 1
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=673 --limit=17 --start_date='2020-04-01' --total_days_till_end_date=100
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -74,24 +74,30 @@ PRODUCTION: STORY EXPORT CONFIGURATION
 ______________________________________
 
 --where="client_name like 'MM - %'"
+--where="client_name like '%LGIS%'"
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=561 --population_config_id=673 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Population Changes City' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=561 --population_config_id=673 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Population Changes City' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=561 --population_config_id=673 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes City' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=561 --population_config_id=673 --story_section_ids="2,16" --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes City' -t --prod --limit_config=1 --where="client_id = 91"
+
+#bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=561 --population_config_id=673 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes City' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
 
 ______________________________________
 
-select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_city_q_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'illinois_population_changes_city_staging' and export_name like '%production%' order by id DESC;
 
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=561 --population_config_id=673 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Population Changes City' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=561 --population_config_id=673 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Population Changes City' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=561 --population_config_id=673 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes City' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=561 --population_config_id=673 --story_section_ids="2,16" --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes City' -t --prod --where="client_id = 91"
+
+#bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=561 --population_config_id=673 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes City' -t --prod --where="client_name like 'MM - %'"
+
 _________
 повторяем
 
-select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_city_q_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'illinois_population_changes_city_staging' and export_name like '%production%' order by id DESC;
 
 
 ______________________
@@ -105,15 +111,15 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='illinois_population_changes_city_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=216480 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='illinois_population_changes_city_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=284021 --limit=1
 
 _____
 IF OK
 _____
 
---threads_count=7 | 13140961 | 13140960
+--threads_count=7
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='...'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='284021,284023,284042,284033,284170,283997,283986,283795,284019,283821,284034,284178,284166,283799,283990,283788,283797,284029,283999,283786,283984,284173,283807,283560,283718,284031,284067,283809,284168,284003,284040,283993,283813,283792,284167,284172,283559,283825,283805,284176,283823,283561,283817,283819,284009,283815,283982,284007,283801,283790,284164,284163,283988,284036,284171,284001,284011,284017,284027,284005,283992,284169,284038,284015,283827,283803,284177,284175,283828,283811,284179,283995,284025,284174,284013,283793,284165' --threads_count=10
 ___________________________
 
 
@@ -140,7 +146,7 @@ JOIN job_items AS ji
   ON l.job_item_id=ji.id
 WHERE published_at >= '2020-01-07' AND
       deleted = 0 AND
-      l.job_item_id IN (114665,114653,114643,114638,114637,114644,114673,114649,114658,114663,114632,114645,114670,114639,114652,114642,114647,114648,114657,114661,114634,114636,114668,114660,114656,114651,114669,114671,114662,114654,114640,114646,114664,114650,114666,114672,114641,114635,114659,114667,114698,114687,114678,114702,114691,114676,114693,114674,114703,114675,114682,114633,114700,114673,114684,114685,114699,114694,114695,114704,114692,114677,114696,114681,114683,114697,114705,114688,114706,114679,114690,114680,114707,114701,114686,114689)
+      l.job_item_id IN (165031,165052,165077,165027,165025,165058,165016,165055,165050,165053,165065,165062,165048,165054,165047,165064,165066,165061,165046,165051,165068,165060,165067,165075,165029,165059,165049,165074,165069,165070,165057,165026,165071,165045,165035,165083,165072,165044,165063,165056,165073,165028,165084,165038,165092,165080,165021,165020,165087,165019,165076,165032,165082,165023,165086,165015,165040,165030,165090,165039,165034,165017,165036,165037,165022,165078,165085,165091,165089,165042,165033,165093,165024,165079,165081,165041,165088)
 ORDER BY c.name;
 
 

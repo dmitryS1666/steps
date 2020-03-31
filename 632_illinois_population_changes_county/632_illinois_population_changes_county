@@ -57,8 +57,8 @@ desc: Population Changes County
 
 config_id - population_config_id
 
-Up to 5 stories per day, per publication, for up to 50 days, starting January 20
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=690 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
+Up to 1 stories per day, per publication, for up to 85 days, starting April 3
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=690 --limit=1 --start_date='2020-04-03' --total_days_till_end_date=85
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
