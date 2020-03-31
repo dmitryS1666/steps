@@ -167,7 +167,7 @@ VALUES
     (
         'Population Changes City', 'illinois_population_changes_city_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-        'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
-        '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
-         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
+        'annually', 1, 1, 'annually', 'The Dataset located on db06.voters_2016.census_details%',
+        '2020-03-31', 0, 0, 0, 20000, 'annually', 0,
+         1, 'db06','voters_2016', 'select date(max(postedTime)) date from voters_2016.census_details;'
     );
