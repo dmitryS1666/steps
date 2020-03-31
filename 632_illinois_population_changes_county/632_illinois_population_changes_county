@@ -71,10 +71,13 @@ PRODUCTION: STORY EXPORT CONFIGURATION
 ______________________________________
 
 --where="client_name like 'MM - %'"
+--where="client_name like '%LGIS%'"
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids="2,16" --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --limit_config=1 --where="client_id = 91"
+
+#bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
 
 ______________________________________
 
@@ -84,7 +87,9 @@ ______________________________________
 если все ок, то выполняем без --limit_config=1
 
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids="2,16" --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --where="client_id = 91"
+
+#bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --where="client_name like 'MM - %'"
 _________
 повторяем
 
@@ -172,7 +177,7 @@ VALUES
 
 
 # Creator: Dmitry Suschinsky
-# Story type: Population Changes City
+# Story type: Population Changes County
 # Template: https://docs.google.com/document/d/1JhVozb8Ov9Gfns45gNOP8Q1MgQdejLBiwUOS0Xk5T9A/edit#heading=h.gjdgxs
 # Created: February 2020
 
