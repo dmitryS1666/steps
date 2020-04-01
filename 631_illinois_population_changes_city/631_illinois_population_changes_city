@@ -30,7 +30,7 @@ STAGING: STORY EXPORT CONFIGURATION
 
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=561 --population_config_id=673 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes City' -t
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=561 --population_config_id=673 --story_section_ids='2,16' --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes City' -t --where="client_id = 91"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=561 --population_config_id=673 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes City' -t --where="publication_name like 'Illinois%'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=561 --population_config_id=673 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes City' -t --where="stage.client_name LIKE 'MM - %'"
 
 
 
