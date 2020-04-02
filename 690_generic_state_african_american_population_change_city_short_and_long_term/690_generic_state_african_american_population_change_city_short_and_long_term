@@ -32,6 +32,8 @@ STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --population_config_id=702 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - African American Population Change City (short and long term)' -t
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --population_config_id=702 --story_section_ids='2,16' --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - African American Population Change City (short and long term)' -t --where="client_id = 91"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --population_config_id=702 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - African American Population Change City (short and long term)' -t --where="stage.client_name LIKE 'MM - %'"
 
 
 STAGING: EXPORT STORIES
