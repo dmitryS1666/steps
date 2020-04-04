@@ -2,50 +2,38 @@ Flu Statistics - Total % changes compared with Epidemic Baseline (weekly compari
 https://docs.google.com/document/d/1nZ00xOsJuqs8p7yN5QyOCIpX0uLibwvsANQsgGlYV_w/edit#heading=h.gjdgxs
 
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_staging',
-'{
-"city":"VARCHAR(255)",
-"state":"VARCHAR(255)",
-"county":"VARCHAR(255)",
-"period":"VARCHAR(255)",
-"top_city":"VARCHAR(1024)",
-"top_value":"int(11)",
-"city_population_curr":"int(11)",
-"city_population_prev":"int(11)",
-"city_population_2010":"int(11)",
-    "story_table":"LONGTEXT"}';
-}
+insert into stage_definition_configurations (tbl, definition) select 'flu_stat_total_pct_changes_comp_epidemic_baseline_weekly_staging','{"curr_pct":"VARCHAR(128)","prev_pct":"VARCHAR(128)","expected":"VARCHAR(128)","threshold":"VARCHAR(128)","number_week":"int(2)","year":"int(4)","story_table":"LONGTEXT"}';
 
-#588
+#607
 
 STAGE TABLE CREATION
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=588 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=607 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)', 'flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_staging', '{"known_entities":{"project_name":"Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"gen_st_african_american_pop_change_city_short_and_long_term_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)', 'flu_stat_total_pct_changes_comp_epidemic_baseline_weekly_staging', '{"known_entities":{"project_name":"Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_population","arguments":{}}}}';
 
-population_config_id: #702
+population_config_id: #720
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=702 -t --year='2018' --threads_count=10
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=720 -t --year='2018' --threads_count=10
 
 
 STORY CREATOR CONFIGURATION:
-insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_staging', 'gen_st_african_american_pop_change_city_short_and_long_term_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'flu_stat_total_pct_changes_comp_epidemic_baseline_weekly_staging', 'flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
-creation_config_id: #582
+creation_config_id: #601
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=582 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=601 -t
 
 
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --population_config_id=702 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --population_config_id=702 --story_section_ids='2,16' --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --where="client_id = 91"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --population_config_id=702 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --where="stage.client_name LIKE 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids='2,16' --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --where="client_id = 91"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --where="stage.client_name LIKE 'MM - %'"
 
 
 STAGING: EXPORT STORIES
@@ -67,21 +55,21 @@ ________________________________________________________________________________
 
 SCHEDULER:
 __________
-population_config_id: #702
-creation_config_id: #582
+population_config_id: #720
+creation_config_id: #601
 
-tbl: flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_staging
+tbl: flu_stat_total_pct_changes_comp_epidemic_baseline_weekly_staging
 desc: Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)
 
 config_id - population_config_id
 
 Up to 5 stories per day, per publication, for up to 50 days, starting January 20
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=702 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=720 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
-select publication_name, min(publish_on), max(publish_on), count(*) from 'flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_staging' group by publication_name;
+select publication_name, min(publish_on), max(publish_on), count(*) from 'flu_stat_total_pct_changes_comp_epidemic_baseline_weekly_staging' group by publication_name;
 
 ______________________________________
 PRODUCTION: STORY EXPORT CONFIGURATION
@@ -91,8 +79,8 @@ ______________________________________
 --where="client_name like 'MM - %'"
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --population_config_id=702 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --population_config_id=702 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
 
 ______________________________________
 
@@ -101,8 +89,8 @@ select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issu
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --population_config_id=702 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --population_config_id=702 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --where="client_name like 'MM - %'"
 _________
 повторяем
 
@@ -113,14 +101,14 @@ ______________________
 для построения таблицы
 ______________________
 
-select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from flu_stat_total_pct_changes_comp_epidemic_baseline_weekly_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='flu_stat_total_pct_changes_comp_epidemic_baseline_weekly_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
 
 
 __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=216480 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='flu_stat_total_pct_changes_comp_epidemic_baseline_weekly_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=216480 --limit=1
 
 _____
 IF OK
@@ -137,7 +125,7 @@ ___________________________
 
 SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
 FROM story_export_configurations_v2
-WHERE tbl = "flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_staging" AND
+WHERE tbl = "flu_stat_total_pct_changes_comp_epidemic_baseline_weekly_staging" AND
       export_name LIKE '%production%';
 
 # pipeline-core-replica2.jnswire_prod query:
@@ -174,7 +162,7 @@ INSERT INTO loki_storycreator.hle_reminders
     )
 VALUES
     (
-        'Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)', 'flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_staging',
+        'Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)', 'flu_stat_total_pct_changes_comp_epidemic_baseline_weekly_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
         'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
         '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
@@ -193,10 +181,10 @@ VALUES
 # Template: https://docs.google.com/document/d/17BC4--m7Gnz-9mYTcRIH1W4SdC4QR6weHSWXPWMk1uc/edit
 # Created: March 2020
 
-# tbl: flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_staging
+# tbl: flu_stat_total_pct_changes_comp_epidemic_baseline_weekly_staging
 # db06.voters_2016.census_details
-# branch: gen_st_african_american_pop_change_city_short_and_long_term_d_sushi
-# gen_st_african_american_pop_change_city_short_and_long_term.rb
+# branch: flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_d_sushi
+# flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly.rb
 
 # variable = 'B01001A_002E' OR variable = 'B01001A_017E'
 def get_records(data_route, year, prev_year)
