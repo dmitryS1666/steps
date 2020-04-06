@@ -2,7 +2,7 @@ Flu Statistics - Total % changes compared with Epidemic Baseline (weekly compari
 https://docs.google.com/document/d/1nZ00xOsJuqs8p7yN5QyOCIpX0uLibwvsANQsgGlYV_w/edit#heading=h.gjdgxs
 
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'flu_stat_total_pct_changes_comp_epidemic_baseline_weekly_staging','{"curr_pct":"VARCHAR(128)","prev_pct":"VARCHAR(128)","expected":"VARCHAR(128)","threshold":"VARCHAR(128)","number_week":"int(2)","year":"int(4)","story_table":"LONGTEXT"}';
+insert into stage_definition_configurations (tbl, definition) select 'flu_stat_total_pct_changes_comp_epidemic_baseline_weekly_staging','{"curr_pct":"VARCHAR(128)","prev_pct":"VARCHAR(128)","prev_year_curr_pct":"VARCHAR(128)","prev_year_prev_pct":"VARCHAR(128)","expected":"VARCHAR(128)","threshold":"VARCHAR(128)","number_week":"int(2)","year":"int(4)","story_table":"LONGTEXT"}';
 
 #607
 
@@ -37,8 +37,7 @@ bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --popul
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id='282115'
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id='282097'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id='291270'
 
 
 
@@ -48,6 +47,7 @@ irb ->
 load 'Loki.rb'
 Hle::Story::Feedback.stories_feedback('511680424,511680443,511680442,511680424')
 
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511699393,511699389,511699388,511699345
 
 
 !!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
