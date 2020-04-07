@@ -63,8 +63,8 @@ desc: Generic State - African American Population Change City (short and long te
 
 config_id - population_config_id
 
-Up to 5 stories per day, per publication, for up to 50 days, starting January 20
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=702 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
+Up to 30 stories per day, per publication, for up to 200, starting April 6. Any extra stories can be backdated to Feb. 20.
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=702 --limit=30 --start_date='2020-04-06' --total_days_till_end_date=200
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -80,21 +80,22 @@ ______________________________________
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --population_config_id=702 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - African American Population Change City (short and long term)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --population_config_id=702 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - African American Population Change City (short and long term)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
-
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --population_config_id=702 --story_section_ids='2,16' --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - African American Population Change City (short and long term)' --prod --limit_config=1 -t --where="client_id = 91"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --population_config_id=702 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - African American Population Change City (short and long term)' -t --prod --limit_config=1 --where="stage.client_name LIKE 'MM - %'"
 ______________________________________
 
-select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_county_q_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'gen_st_afric_americ_pop_chg_city_short_long_term_staging' and export_name like '%production%' order by id DESC;
 
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --population_config_id=702 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - African American Population Change City (short and long term)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --population_config_id=702 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - African American Population Change City (short and long term)' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --population_config_id=702 --story_section_ids='2,16' --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - African American Population Change City (short and long term)' --prod -t --where="client_id = 91"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=582 --population_config_id=702 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Generic State - African American Population Change City (short and long term)' -t --prod --where="stage.client_name LIKE 'MM - %'"
 _________
 повторяем
 
-select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_county_q_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'gen_st_afric_americ_pop_chg_city_short_long_term_staging' and export_name like '%production%' order by id DESC;
 
 
 ______________________
@@ -114,9 +115,17 @@ _____
 IF OK
 _____
 
---threads_count=7 | 13140961 | 13140960
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='295130,295125,295041,295289,294929,294740,295042,295113,295242,295129,294699,295203,295225,295031,295111,294836,295286,295102,295245,294846,294998,295240,294844,295222,294736,294986,294774,294782,294813,295267,295089,295183,294895,294864,294784,295163,294806,295213,294841,294872,294981,294848,294725,294683,294707,294831,294808,294758,294735,294837,295036,294917,294734,295288,294835,295014,295088' --threads_count=7
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='294839,295164,294876,295118,294711,295219,295136,294681,295281,295112,295177,294696,294700,295285,295279,295191,295241,295284,294894,294828,294982,294943,294939,295024,295185,295176,295032,295152,295083,294749,295180,295283,294779,294777,295280,295135,294687,294653,295103,295216,295278,295175,295265,295126,294672,295236,295257,294776,294810,294795,294678,294946,294961,295043,294818,294984,294889,294794,295142,295076,294933,295095,295072,294805,294867,295151,295184,294772,295271,294801,295087,295109,295246,295165,294714,294899,294791,294857,295049,294973,294991,295025' --threads_count=7
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='294887,294821,295117,294799,295174,294987,295007,294661,294957,294812,295143,294927,294753,295119,295156,295277,294680,294727,295060,294639,294792,294897,294891,295029,294708,295104,295116,294697,295003,295066,295073,295204,294658,294717,295101,295131,295120,295228,295209,295099,294623,294930,295223,295107,295273,295239,294983,294716,295149,295110,294625,294643,294669,294634,294769,294632,295047,294829,295017,295237,295068,295096,295122,294754,294686,294673,294657,295077,294668,294910,295127,294907,295045,294640,295160,294630,295144,295146,295261,295051,294849,294765' --threads_count=7
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='...'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='294622,294771,295081,294726,295197,295266,294770,295268,294830,295195,294888,295269,295004,294883,295061,294733,295035,294646,294796,294992,294959,294737,294780,295028,294688,294785,294722,294866,294629,295243,295249,294995,295108,295212,294633,294649,295071,294691,294693,294945,295258,294854,294916,294671,294842,295274,295264,294621,294819,294742,294896,294834,295252,294664,294652,294953,294654,294856,294852,295106,295012,294761,294651,294815,294926,295139,295000,294759,294710,295171,295157,295123,295244,294861,295015,295026,294827,294787,294978,295098,294940,295199' --threads_count=7
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='294925,295148,294947,294979,294958,295057,294709,294955,294788,295238,294997,294786,294800,294923,295056,294789,294874,294919,295053,294951,295250,294963,294890,294862,295196,294944,295167,294999,295134,295054,295002,294665,295263,294636,294641,294647,294638,295155,294644,295254,294886,295021,295009,294966,295141,295187,294662,294767,294938,294952,294676,294989,294631,294667,294720,294755,294745,294807,295046,294775,294798,295247,295262,295105,294718,294804,295255,294721,295132,295217,295092,295082,294803,294906,295147,294773,294746,295287,294968,294730,294751,294822' --threads_count=7
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='295010,294689,294811,295075,295085,294870,295030,295188,294980,294934,294833,294816,294892,294901,295186,295193,295172,295033,295208,295093,294628,294843,294648,295064,295270,294824,295205,294642,295206,295050,294823,295100,294660,295080,295040,294996,294880,295128,295086,294679,294971,295276,294985,295018,295138,295229,295020,295023,295210,295038,294763,295234,294719,294712,294924,294698,294723,295192,295230,294655,295202,294760,294942,294750,294909,295013,294674,294677,295218,294931,295124,295067,295220,295182,295178,295211,295251,295169,294694,294802,295114,294902' --threads_count=7
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='294855,295194,295016,295166,295069,294914,295253,294875,294882,294893,294932,294764,294858,294701,294970,294948,294840,295275,294994,295153,294684,295008,294838,294928,294850,295145,294911,295248,295097,294752,294918,295070,295058,295189,295059,294859,295224,294814,295221,295019,294783,295207,294941,294975,294873,295181,295048,294977,294900,294675,295154,294670,295084,294915,294663,294748,294863,295091,295094,294869,295226,295214,295161,295162,294851,294877,295137,294766,294865,295260,294878,294950,294741,295233,294903,294898,295022,295256,295140,294692,294884,294724' --threads_count=7
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='295231,294908,295272,294743,295005,295201,294976,294964,295215,295198,294809,295179,294972,294845,295062,295200,294990,294881,294690,295173,294739,295158,294922,295150,294912,295001,294781,294993,294935,294715,294706,294832,294913,295027,294650,294656,294797,294705,294969,295039,295227,295063,294885,294704,294738,295115,294713,294967,295006,295121,294702,294904,294974,295052,295055,294637,294937,295090,294635,294790,294627,294949,294936,294768,294659,294778,294666,295044,294920,294879,294817,294747,294826,294847,294954,295159,294905,295037,295034,294965,294703,294793' --threads_count=7
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='295079,295259,294744,294853,294682,294685,294962,294820,295232,294960,294728,294871,294921,295065,295074,295078,295168,294626,294860,294825,294756,295190,294729,294731,295011,294695,294757,295133,295170,295235,294624,294762,295282,294645,294956,294988,294732,294868' --threads_count=7
 ___________________________
 
 
@@ -133,19 +142,65 @@ WHERE tbl = "gen_st_afric_americ_pop_chg_city_short_long_term_staging" AND
 SELECT headline, c.name AS publication, concat('https://pipeline.locallabs.com/stories/', s.id) AS url,
        published_at, ji.name AS job_item, cc.name AS client
 FROM stories AS s
-JOIN communities AS c
-  ON s.community_id = c.id
-JOIN client_companies AS cc
-  ON c.client_company_id = cc.id
-JOIN data_entry_leads AS l
-  ON l.id = s.lead_id
-JOIN job_items AS ji
-  ON l.job_item_id=ji.id
-WHERE published_at >= '2020-01-07' AND
-      deleted = 0 AND
-      l.job_item_id IN (...)
+         JOIN communities AS c
+              ON s.community_id = c.id
+         JOIN client_companies AS cc
+              ON c.client_company_id = cc.id
+         JOIN data_entry_leads AS l
+              ON l.id = s.lead_id
+         JOIN job_items AS ji
+              ON l.job_item_id=ji.id
+WHERE published_at >= '2020-04-05' AND
+        deleted = 0 AND
+        l.job_item_id IN (171582,171624,171612,171595,171613,171628,171574,171643,171623,171625,171633,171646,171621,171626,
+                          171631,171635,171637,171642,171630,171634,171638,171647,171636,171648,171608,171629,171622,171645,
+                          171640,171639,171641,171584,171649,171620,171583,171615,171650,171619,171632,171627,171644,171580,
+                          171605,171591,171610,171577,171586,171609,171592,171598,171581,171585,171601,171616,171606,171603,
+                          171617,171588,171593,171599,171573,171590,171596,171614,171600,171594,171607,171589,171587,171579,
+                          171611,171618,171576,171597,171604,171602,172155,172197,172156,172191,171767,171578,172204,171769,
+                          171775,171730,172183,171674,171660,171675,171862,171658,171663,171653,171809,171764,171705,171907,
+                          172006,171683,171652,171703,171655,171651,171950,172230,172223,172094,172012,171575,171706,172105,
+                          171677,171685,171713,171662,171761,171727,172173,171829,171924,171657,171656,171654,171696,171678,
+                          171937,171908,172031,171996,172042,172015,172152,171859,172176,172153,172041,172011,172016,171902,
+                          172193,172086,172075,171952,172209,172098,172145,171977,172053,172228,171947,172216,171967,171949,
+                          171978,172160,172052,172032,172024,172057,171948,172038,171990,172066,172113,171991,172014,171979,
+                          172112,172181,171688,171684,172147,171805,171681,171994,171695,171852,172194,171766,171783,171700,
+                          171922,171682,172168,172239,171698,171747,171756,172078,171831,171999,171687,171752,171906,171697,
+                          171763,171712,171735,171790,172046,171691,171719,172058,171732,171689,171840,172132,172177,172097,
+                          172111,172150,171782,171722,172118,172102,172138,172025,172141,172120,171839,171731,172151,171701,
+                          172035,172140,171846,171989,172040,171793,171916,172115,171863,171866,171796,171886,172005,171869,
+                          172178,171920,172143,171858,171972,172208,171875,172224,171953,171940,172189,171969,171891,171988,
+                          171933,172219,172167,172063,172165,172188,172117,172095,172126,172157,172122,172068,172083,172062,
+                          172074,172109,172119,172100,172233,172158,172090,172144,172076,172172,172049,172133,172089,172044,
+                          172185,172073,172241,171715,171665,171666,171718,171704,171768,172060,171835,171939,171690,171699,
+                          171820,172236,172148,171897,171723,171758,172237,171720,171773,171956,172164,172055,171787,172232,
+                          171837,171849,172082,172187,172065,172030,172088,172026,172072,172235,171917,172229,171901,172225,
+                          171926,172163,171895,171919,171992,172128,171879,171884,172010,172104,171913,171923,171914,171898,
+                          171961,172136,172001,171911,171987,172149,172069,172130,171981,171904,172182,171728,171750,172218,
+                          171881,172190,171774,171900,172000,172211,171762,171760,171780,171934,172087,172238,171744,171737,
+                          171779,171962,172019,171807,171946,171815,171833,171888,171778,171788,171736,171951,172009,171716,
+                          171974,172170,172131,172180,171984,172240,171791,172070,172154,171743,171679,172071,171709,171669,
+                          171980,172107,172207,172169,171725,171673,171680,171664,171861,171667,171724,171860,171693,171810,
+                          171803,171702,171694,172201,172195,172221,172217,171983,171671,172171,171954,172124,171811,171784,
+                          172234,172220,171921,172013,171963,172101,172008,172020,171930,172037,171880,172146,172110,172039,
+                          171794,171759,171822,172103,171792,171741,172017,171841,171925,172093,171765,171746,171942,172175,
+                          171748,171781,171686,171751,171814,171740,171708,172050,171802,172036,172079,171876,172116,172142,
+                          172092,172159,172099,172227,172081,171726,171960,172137,171753,171943,172125,171738,172108,171739,
+                          171997,172003,171717,171711,171799,171836,171707,171749,172184,172043,171936,171929,171721,171742,
+                          172206,171935,171804,172045,171958,171832,171878,171816,171806,171927,171843,172054,172027,171821,
+                          172196,172210,172213,172134,172018,171856,171903,172166,172048,171845,171867,171887,171853,172096,
+                          172085,172022,172231,171910,171893,171998,172091,171882,171938,172029,172023,171798,171789,171909,
+                          172059,171801,171973,171918,171982,171894,171971,172114,171812,171874,172084,171826,172061,172002,
+                          171955,172051,171905,171871,171877,171932,171970,172021,171864,171857,172222,172198,172215,172203,
+                          172202,172214,172212,172200,172205,172028,171915,171785,172121,171754,172077,171825,171733,171986,
+                          171692,171734,172064,171757,171668,171795,171661,171670,171676,171714,171828,171729,171755,171850,
+                          171889,171872,171745,172186,171819,171873,171966,172047,172033,171771,172106,171830,171786,171890,
+                          171710,171659,171770,171672,172162,171818,172179,171928,171912,171892,171848,172139,171868,172226,
+                          172135,171975,171824,172192,172199,171899,171844,171885,171817,171870,171834,171945,172067,172034,
+                          171855,171896,171851,171993,172174,171976,172127,172056,172004,172161,171968,172123,171931,172080,
+                          171944,171957,172007,171847,171800,171959,171995,171772,171808,171964,171813,171838,171941,171842,
+                          171985,171776,171965,171883,171854,171827,171797,171865,171777,171823,172129)
 ORDER BY c.name;
-
 
 
 
@@ -164,9 +219,9 @@ VALUES
     (
         'Generic State - African American Population Change City (short and long term)', 'gen_st_afric_americ_pop_chg_city_short_long_term_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-        'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
-        '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
-         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
+        'year', 1, 1, 'annually', 'The Dataset located on db06.voters_2016.census_details',
+        '2020-04-06', 0, 0, 0, 20000, 'annually', 0,
+        1, 'db06','usa_raw', 'select date(max(postedTime)) date from voters_2016.census_details;'
     );
 
 
@@ -177,7 +232,7 @@ VALUES
 
 
 # Creator: Dmitry Suschinsky
-# Story type: Generic State - White Population Change City (short and long term)
+# Story type: Generic State - African American Population Change City (short and long term)
 # Template: https://docs.google.com/document/d/17BC4--m7Gnz-9mYTcRIH1W4SdC4QR6weHSWXPWMk1uc/edit
 # Created: March 2020
 
