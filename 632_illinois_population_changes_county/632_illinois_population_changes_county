@@ -59,9 +59,8 @@ desc: Population Changes County
 
 config_id - population_config_id
 
-Up to 1 stories per day, per publication, for up to 85 days, starting April 3
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=690 --limit=1 --start_date='2020-04-03' --total_days_till_end_date=85
-
+Up to 1 story per day, per pub, for up to 170 days, starting April 10.
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=690 --limit=1 --start_date='2020-04-10' --total_days_till_end_date=170
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
@@ -72,30 +71,24 @@ PRODUCTION: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 ______________________________________
 
---where="client_name like 'MM - %'"
---where="client_name like '%LGIS%'"
-
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids="2,16" --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --limit_config=1 --where="client_id = 91"
-
-#bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
-
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids='2,16' --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' --prod --limit_config=1 -t --where="client_id = 91"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --limit_config=1 --where="stage.client_name LIKE 'MM - %'"
 ______________________________________
 
-select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_county_q_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'illinois_population_changes_county_staging' and export_name like '%production%' order by id DESC;
 
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids="2,16" --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --where="client_id = 91"
-
-#bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids='2,16' --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' --prod -t --where="client_id = 91"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=571 --population_config_id=690 --story_section_ids=16 --story_tag_ids=37 --photobuckets='Census 1000x667' --job_item_name_description='Population Changes County' -t --prod --where="stage.client_name LIKE 'MM - %'"
 _________
 повторяем
 
-select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_county_q_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'illinois_population_changes_county_staging' and export_name like '%production%' order by id DESC;
 
 
 ______________________
@@ -109,7 +102,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='illinois_population_changes_county_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=284828 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='illinois_population_changes_county_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=300106 --limit=1
 
 _____
 IF OK
@@ -117,7 +110,7 @@ _____
 
 --threads_count=7
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='284828,284835,284852,284839,284813,284834,284851,284804,284842,284823,284803,284849,284848,284824,284801,284847,284843,284822,284846,284844,284837,284814,284817,284810,284818,284807,284806,284820,284811,284812,284805,284826,284850,284831,284808,284815,284825,284802,284855,284845,284829,284838,284832,284833,284853,284836,284841,284809,284827,284816,284840,284854,284821,284830,284819' --threads_count=10
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='300106,300103,300111,300109,300107,300041,300102,300101,300001,300033,299975,300061,300112,300008,300074,300098,300025,300040,300065,300089,300088,300090,300075,300045,300042,300012,300091,300048,300081,299986,300007,300024,300082,300079,300056,300077,299977,300015,299996,299976,300093,300022,300021,299997,299973,300020,300094,300068,300016,299995,300019,300017,300010,299987,299990,299983,299991,300113,299980,299979,299993,299984,299985,299978,300087,300110,299999,300023,300083,300071,300030,300099,300095,300004,300046,300043,300080,300058,299981,299988,300057,299998,300055,299974,300054,300052,300028,300062,300018,300002,300011,300050,300059,300032,300039,300072,300005,300037,300076,300051,300053,300073,300064,300006,300026,300035,300036,300100,300069,300070,300009,300085,300105,300044,300014,300047,300086,300060,299982,300049,300067,300108,300000,300034,299989,300104,300084,300096,300092,300063,300066,300013,300027,300038,300097,300078,299994,300031,300003,299992,300029' --threads_count=10
 ___________________________
 
 
@@ -165,9 +158,9 @@ VALUES
     (
         'Population Changes County', 'illinois_population_changes_county_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-        'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
-        '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
-         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
+        'annually', 1, 1, 'annually', 'The Dataset located on db06.voters_2016.census_details%',
+        '2020-04-09', 0, 0, 0, 20000, 'annually', 0,
+         1, 'db06','voters_2016', 'select date(max(postedTime)) date from voters_2016.census_details;'
     );
 
 
