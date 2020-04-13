@@ -177,28 +177,33 @@ VALUES
 
 
 # Creator: Dmitry Suschinsky
-# Story type: Generic State - White Population Change City (short and long term)
-# Template: https://docs.google.com/document/d/17BC4--m7Gnz-9mYTcRIH1W4SdC4QR6weHSWXPWMk1uc/edit
-# Created: March 2020
+# Story type: Population Changes City
+# Template: https://docs.google.com/document/d/1JhVozb8Ov9Gfns45gNOP8Q1MgQdejLBiwUOS0Xk5T9A/edit#heading=h.gjdgxs
+# Created: February 2020
 
-# tbl: flu_stat_total_pct_changes_comp_epidemic_baseline_weekly_staging
+# tbl: illinois_population_changes_city_staging
 # db06.voters_2016.census_details
-# branch: flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_d_sushi
-# flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly.rb
+# branch: illinois_population_changes_city_d_sushi
+# illinois_population_changes_city.rb
 
-# variable = 'B01001A_002E' OR variable = 'B01001A_017E'
+def get_states(data_route)
+  root_query = "SELECT DISTINCT state_name FROM census_details_uniq_geos;"
+  data_route.client.query(root_query).to_a
+end
+
 def get_records(data_route, year, prev_year)
-  root_query = "SELECT geo.geo_name_only as city, geo_name_clear, SUM(main.value) as city_population_curr,
-                       SUM(prev.value) AS city_population_prev, SUM(prev_2010.value) AS city_population_2010,
+  root_query = "SELECT geo.geo_name_only as city, geo_name_clear, main.value as city_population_curr,
+                       prev.value AS city_population_prev, prev_2010.value AS city_population_2010,
                        geo.pl_production_org_id AS pl_production_org_id, geo.state_name AS state
                 FROM census_details main
-                         INNER JOIN census_details_uniq_geos geo
-                                 ON geo.id = main.match_id AND geo.good_org = 1
-                         INNER JOIN census_details prev
-                                 ON prev.match_id = main.match_id AND prev.year = #{prev_year} AND prev.concept = 'SEX BY AGE (WHITE ALONE)'
-                         INNER JOIN census_details prev_2010
-                                 ON prev_2010.match_id = main.match_id AND prev_2010.year = 2010 AND prev_2010.concept = 'SEX BY AGE (WHITE ALONE)'
-                WHERE main.year = #{year} AND main.concept = 'SEX BY AGE (WHITE ALONE)' AND
+                INNER JOIN census_details_uniq_geos geo
+                        ON geo.id = main.match_id AND geo.good_org = 1
+                INNER JOIN census_details prev
+                        ON prev.match_id = main.match_id AND prev.year = #{prev_year} AND prev.concept = 'TOTAL POPULATION' AND prev.variable = 'B01003_001E'
+                INNER JOIN census_details prev_2010
+                    ON prev_2010.match_id = main.match_id AND prev_2010.year = 2010 AND prev_2010.concept = 'TOTAL POPULATION' AND prev_2010.variable = 'B01003_001E'
+                WHERE main.year = #{year} AND main.concept = 'TOTAL POPULATION' AND
+                      main.variable = 'B01003_001E' AND
                       main.geo_type = 'place'
                 GROUP BY main.match_id
                 ORDER BY main.name;"
@@ -206,14 +211,15 @@ def get_records(data_route, year, prev_year)
 end
 
 def get_top_city_by_state(data_route, state, year)
-  root_query = "SELECT geo.geo_name_only as city, geo_name_clear, SUM(main.value) as city_population_curr,
-                       SUM(prev.value) AS city_population_prev, (SUM(main.value) - SUM(prev.value)) AS top_diff
+  root_query = "SELECT geo.geo_name_only as city, geo_name_clear, main.value as city_population_curr,
+                       prev.value AS city_population_prev, (main.value - prev.value) AS top_diff
                 FROM census_details main
                 INNER JOIN census_details_uniq_geos geo
                         ON geo.id = main.match_id AND geo.good_org = 1 AND geo.state_name = '#{state}'
                 INNER JOIN census_details prev
-                        ON prev.match_id = main.match_id AND prev.year = #{year.to_i - 1} AND prev.concept = 'SEX BY AGE (WHITE ALONE)'
-                WHERE main.year = #{year} AND main.concept = 'SEX BY AGE (WHITE ALONE)' AND
+                        ON prev.match_id = main.match_id AND prev.year = #{year.to_i - 1} AND prev.concept = 'TOTAL POPULATION' AND prev.variable = 'B01003_001E'
+                WHERE main.year = #{year} AND main.concept = 'TOTAL POPULATION' AND
+                      main.variable = 'B01003_001E' AND
                       main.geo_type = 'place'
                 GROUP BY main.match_id
                 ORDER BY top_diff DESC LIMIT 1;"
@@ -238,6 +244,7 @@ def get_duplicate_only(data_route, state, city_name)
   data_route.client.query(root_query).to_a
 end
 
+
 def get_county_by_state(data_route, state, place_name, type)
   root_query = "SELECT county_name
                 FROM usa_administrative_division_counties_places_matching
@@ -257,7 +264,7 @@ def growth_type(curr, prev, city_population_diff)
   #  increased by #, decreased by #, or remained
   return "increased by #{separate_comma(city_population_diff)} people" if curr > prev
   return "decreased by #{separate_comma(city_population_diff)} people" if curr < prev
-  return 'remained' if (curr == prev)
+  return 'was unchanged' if (curr == prev)
 end
 
 def growth_type_head_line(curr, prev, city_population_diff)
@@ -289,7 +296,7 @@ def titleize(str)
   str.split.each(&:capitalize!).join(' ')
 end
 
-def gen_st_white_pop_change_city_short_and_long_term_stage_population(line, argument)
+def illinois_population_changes_city_stage_population(line, argument)
   require 'bigdecimal'
   require 'bigdecimal/util'
   require 'date'
@@ -335,6 +342,16 @@ def gen_st_white_pop_change_city_short_and_long_term_stage_population(line, argu
     end
   end
 
+  states = get_states(data_state)
+  tops = Hash.new
+  states.each do |state|
+    data = get_top_city_by_state(data_state, state['state_name'], year)[0]
+    if data
+      tops[state['state_name']] = Hash.new
+      tops[state['state_name']] = data
+    end
+  end
+
   @semaphore = Mutex.new
   threads = Array.new(threads_count) do
     Thread.new do
@@ -362,14 +379,14 @@ def gen_st_white_pop_change_city_short_and_long_term_stage_population(line, argu
           next
         end
 
-        # MM-Illinois
+        # MM
         # Metro Business Network 120
         # LGIS 91
         publications = []
-        publications << Hle::Publications.mm_pubs_excluding_states(rec['pl_production_org_id'], 'production', 'Illinois')
+        publications << Hle::Publications.mm_pubs_excluding_states(rec['pl_production_org_id'], 'production')
         publications << get_journal_from_org_id(rec['pl_production_org_id'], 'production', 120) rescue nil
         publications << get_journal_from_org_id(rec['pl_production_org_id'], 'production', 91) rescue nil
-        top = get_top_city_by_state(data_state_06, rec['state'], year)[0]
+        # top = get_top_city_by_state(data_state_06, rec['state'], year)[0]
 
         publications.flatten!.uniq!
 
@@ -396,9 +413,9 @@ def gen_st_white_pop_change_city_short_and_long_term_stage_population(line, argu
 
           hash['city'] = rec['city']
           hash['state'] = rec['state']
-          hash['period'] = "#{year} - #{prev_year}"
-          hash['top_city'] = top['city']
-          hash['top_value'] = top['top_diff']
+          hash['period'] = "#{prev_year} - #{year}"
+          hash['top_city'] = tops[rec['state']]['city']
+          hash['top_value'] = tops[rec['state']]['top_diff']
           hash['county'] = rec['county'] if rec['county']
           hash['city_population_curr'] = rec['city_population_curr']
           hash['city_population_prev'] = rec['city_population_prev']
@@ -428,7 +445,7 @@ def gen_st_white_pop_change_city_short_and_long_term_stage_population(line, argu
   return 'INVALID'
 end
 
-def gen_st_white_pop_change_city_short_and_long_term_stage_creation(options, mail_sender = false)
+def illinois_population_changes_city_stage_creation(options, mail_sender = false)
   i = 0
   count = @stage_selection.count
   @stage_selection.each do |stage|
@@ -446,24 +463,24 @@ def gen_st_white_pop_change_city_short_and_long_term_stage_creation(options, mai
     city_population_diff = (stage['city_population_curr'] - stage['city_population_prev']).abs
     city_population_diff_2010 = (stage['city_population_curr'] - stage['city_population_2010']).abs
     top_city = stage['top_city']
-    # top_value = separate_comma(stage['top_value'])
+    top_value = separate_comma(stage['top_value'])
     period = stage['period']
-    growth_type_head_line = growth_type(stage['city_population_curr'], stage['city_population_prev'], city_population_diff)
+    growth_type_head_line = growth_type_head_line(stage['city_population_curr'], stage['city_population_prev'], city_population_diff)
     growth_type = growth_type(stage['city_population_curr'], stage['city_population_prev'], city_population_diff)
     growth_type_2010 = growth_type(stage['city_population_curr'], stage['city_population_2010'], city_population_diff_2010)
 
     table = JSON.parse(stage['story_table'])
     table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
 
-    export['headline'] = "#{city} population classified as white #{growth_type_head_line} between #{period.gsub('-', 'and')}"
-    export['teaser'] = "#{city}#{county} population classified as white #{growth_type} between #{period.gsub('-', 'and')}, according to U.S. Census Bureau's American Community Survey."
+    export['headline'] = "#{city} population #{growth_type_head_line} between #{period.gsub('-', 'and')}"
+    export['teaser'] = "#{city}#{county} population #{growth_type} between #{period.gsub('-', 'and')}, according to U.S. Census Bureau's American Community Survey."
 
     output = ''
-    output << "#{city}#{county} population classified as white #{growth_type} between #{period.gsub('-', ' and ')}, according to the <a href='https://www.census.gov/programs-surveys/acs'>U.S. Census Bureau's American Community Survey</a>. Since 2010 the population has #{growth_type_2010}.\n\n"
+    output << "#{city}#{county} population #{growth_type} between #{period.gsub('-', ' and ')}, according to the <a href='https://www.census.gov/programs-surveys/acs'>U.S. Census Bureau's American Community Survey</a>.#{" Since 2010 the population has #{growth_type_2010}." unless growth_type_2010.include? 'was unchanged'}\n\n"
 
-    output << "The #{state} municipality that saw the largest population growth in the white community between the same time period was #{top_city}.\n\n"
+    output << "The #{state} municipality that saw the largest population growth over the same time period was #{top_city}, with a total population increase of #{top_value} people.\n\n"
 
-    output << "The American Community Survey (ACS) is an ongoing survey by the U.S. Census Bureau. It regularly gathers information previously contained only in the long form of the decennial census, such as ancestry, citizenship, educational attainment, income, language proficiency, migration, disability, employment, and housing characteristics. This data is used by many public-sector, private-sector, and not-for-profit stakeholders to allocate funding, track shifting demographics, plan for emergencies, and learn about local communities.\n\n"
+    output << "The American Community Survey (ACS) is an ongoing survey by the U.S. Census Bureau. It regularly gathers information previously contained only in the long form of the decennial census, such as ancestry, citizenship, educational attainment, income, language proficiency, migration, disability, employment, and housing characteristics. These data are used by many public-sector, private-sector, and not-for-profit stakeholders to allocate funding, track shifting demographics, plan for emergencies, and learn about local communities.\n\n"
 
     output << "<div style=\"font-size:18px\"><strong>Population according to ACS</strong></div>"
     output << table

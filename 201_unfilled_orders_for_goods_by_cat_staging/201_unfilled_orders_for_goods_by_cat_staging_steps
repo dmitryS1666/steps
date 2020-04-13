@@ -4,42 +4,41 @@ data_table: db13.usa_raw.mm_manufacturers_shipments_inventories_and_orders_data
 
 
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'unfilled_orders_for_goods_by_cat_staging','{"curr_pct":"VARCHAR(128)","prev_pct":"VARCHAR(128)","prev_year_curr_pct":"VARCHAR(128)","prev_year_prev_pct":"VARCHAR(128)","expected":"VARCHAR(128)","threshold":"VARCHAR(128)","number_week":"int(2)","year":"int(4)","story_table":"LONGTEXT"}';
+insert into stage_definition_configurations (tbl, definition) select 'unfilled_orders_for_goods_by_cat_staging','{"client_id":"int", "client_name":"varchar(255)", "publication_id":"int", "publication_name":"varchar(255)", "organization_id":"bigint(20)", "cur_money":"decimal", "pre_money":"decimal", "pre_prev_money":"decimal", "month":"varchar(255)", "created_str":"timestamp", "year":"int", "industry":"varchar(255)"}';
 
-#607
+#223
 
 STAGE TABLE CREATION
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=607 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=223 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'Unfilled Orders for Goods by Cat', 'unfilled_orders_for_goods_by_cat_staging', '{"known_entities":{"project_name":"Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'Unfilled Orders for Goods by Cat', 'unfilled_orders_for_goods_by_cat_staging', '{"known_entities":{"project_name":"Unfilled Orders for Goods by Cat"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"unfilled_orders_for_goods_by_cat_population","arguments":{}}}}';
 
-population_config_id: #720
+population_config_id: #353
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=720 -t --year='2018' --threads_count=10
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=353 -t --year='2018' --threads_count=10
 
 
 STORY CREATOR CONFIGURATION:
-insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'unfilled_orders_for_goods_by_cat_staging', 'flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'unfilled_orders_for_goods_by_cat_staging', 'unfilled_orders_for_goods_by_cat_staging', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
-creation_config_id: #601
+creation_config_id: #235
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=601 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=235 -t
 
 
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t
-####bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids='2,16' --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --where="client_id = 91"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --where="stage.client_name LIKE 'MM - %'"
+##bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=235 --population_config_id=353 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=235 --population_config_id=353 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --where="stage.client_name LIKE 'MM - %'"
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id='300114'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=''
 
 
 
@@ -57,8 +56,8 @@ ________________________________________________________________________________
 
 SCHEDULER:
 __________
-population_config_id: #720
-creation_config_id: #601
+population_config_id: #353
+creation_config_id: #235
 
 tbl: unfilled_orders_for_goods_by_cat_staging
 desc: Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)
@@ -66,7 +65,7 @@ desc: Flu Statistics - Total % changes compared with Epidemic Baseline (weekly c
 config_id - population_config_id
 
 Up to 5 stories per day, per publication, for up to 50 days, starting January 20
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=720 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=353 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -81,8 +80,8 @@ ______________________________________
 --where="client_name like 'MM - %'"
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=235 --population_config_id=353 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=235 --population_config_id=353 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
 
 ______________________________________
 
@@ -91,8 +90,8 @@ select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issu
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=235 --population_config_id=353 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=235 --population_config_id=353 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --where="client_name like 'MM - %'"
 _________
 повторяем
 
