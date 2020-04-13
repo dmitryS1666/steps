@@ -4,39 +4,42 @@ data_table: db13.usa_raw.mm_manufacturers_shipments_inventories_and_orders_data
 
 
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'unfilled_orders_for_goods_by_cat_staging','{"publication_id":"int", "publication_name":"varchar(155)", "organization_id":"varchar(255)", "client_id":"int", "client_name":"varchar(155)", "bank_name":"varchar(255)", "bank_name_for_headline":"varchar(255)", "city":"varchar(255)", "state":"varchar(255)", "rating_string":"varchar(255)", "exam_date":"varchar(255)", "assests_size":"varchar(255)", "method_type":"varchar(255)"}';
+insert into stage_definition_configurations (tbl, definition) select 'unfilled_orders_for_goods_by_cat_staging','{"curr_pct":"VARCHAR(128)","prev_pct":"VARCHAR(128)","prev_year_curr_pct":"VARCHAR(128)","prev_year_prev_pct":"VARCHAR(128)","expected":"VARCHAR(128)","threshold":"VARCHAR(128)","number_week":"int(2)","year":"int(4)","story_table":"LONGTEXT"}';
 
-#191
+#607
 
 STAGE TABLE CREATION
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=191 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=607 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'Unfilled Orders for Goods by Cat', 'unfilled_orders_for_goods_by_cat_staging', '{"known_entities":{"project_name":"Unfilled Orders for Goods by Cat"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"illinois_population_changes_city_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'Unfilled Orders for Goods by Cat', 'unfilled_orders_for_goods_by_cat_staging', '{"known_entities":{"project_name":"Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_population","arguments":{}}}}';
 
-population_config_id: #323
+population_config_id: #720
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=323 -t --year='2018' --threads_count=5
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=720 -t --year='2018' --threads_count=10
 
 
 STORY CREATOR CONFIGURATION:
-insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'unfilled_orders_for_goods_by_cat_staging', 'illinois_population_changes_city_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'unfilled_orders_for_goods_by_cat_staging', 'flu_statistics_total_pc_changes_compared_epidemic_baseline_weekly_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
-creation_config_id: #200
+creation_config_id: #601
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=200 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=601 -t
 
 
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=200 --population_config_id=323 --story_section_ids=2 --story_tag_ids=198 --photobuckets='money' --job_item_name_description='Unfilled Orders for Goods by Cat' -t --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t
+####bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids='2,16' --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --where="client_id = 91"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --where="stage.client_name LIKE 'MM - %'"
+
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='266042,266052,266057' --threads_count=20
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id='300114'
 
 
 
@@ -46,6 +49,7 @@ irb ->
 load 'Loki.rb'
 Hle::Story::Feedback.stories_feedback('511680424,511680443,511680442,511680424')
 
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511699742,511699739,511699738
 
 
 !!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
@@ -53,17 +57,16 @@ ________________________________________________________________________________
 
 SCHEDULER:
 __________
-population_config_id: #323
-creation_config_id: #200
+population_config_id: #720
+creation_config_id: #601
 
 tbl: unfilled_orders_for_goods_by_cat_staging
-desc: Unfilled Orders for Goods by Cat
+desc: Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)
 
 config_id - population_config_id
 
 Up to 5 stories per day, per publication, for up to 50 days, starting January 20
-Up to 1 stories per day, per publication, for up to 30 days, starting April 1
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=323 --limit=1 --start_date='2020-04-01' --total_days_till_end_date=30 --where="stage.publish_on = '0000-00-00'"
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=720 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -75,25 +78,25 @@ PRODUCTION: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 ______________________________________
 
---where="stage.client_name like 'MM - %'"
+--where="client_name like 'MM - %'"
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=200 --population_config_id=323 --story_section_ids=2 --story_tag_ids=198 --photobuckets='money' --job_item_name_description='Unfilled Orders for Goods by Cat' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=200 --population_config_id=323 --story_section_ids=16 --story_tag_ids=198 --photobuckets='money' --job_item_name_description='Unfilled Orders for Goods by Cat' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
 
 ______________________________________
 
-select * from story_export_configurations_v2 where tbl = 'unfilled_orders_for_goods_by_cat_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_county_q_staging' and export_name like '%production%' order by id DESC;
 
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=200 --population_config_id=323 --story_section_ids=2 --story_tag_ids=198 --photobuckets='money' --job_item_name_description='Unfilled Orders for Goods by Cat' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=200 --population_config_id=323 --story_section_ids=2 --story_tag_ids=198 --photobuckets='money' --job_item_name_description='Unfilled Orders for Goods by Cat' -t --prod --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --prod --where="client_name like 'MM - %'"
 _________
 повторяем
 
-select * from story_export_configurations_v2 where tbl = 'unfilled_orders_for_goods_by_cat_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issued_comp_prev_per_county_q_staging' and export_name like '%production%' order by id DESC;
 
 
 ______________________
@@ -107,15 +110,15 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='unfilled_orders_for_goods_by_cat_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=266538 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='unfilled_orders_for_goods_by_cat_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=216480 --limit=1
 
 _____
 IF OK
 _____
 
---threads_count=10
+--threads_count=7 | 13140961 | 13140960
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='266538,266835,266727,43964,44009,266645,266858,266616,266823,266565,266712,266490,266649,44014,43966,266575,266481,266404,266842,266379,266764,266429,266459,266393,266327,266528,266831,266413,266597,266675,266628,266683,266755,266366,266548,266662,266824,266862,266497,266525,43990,266338,266578,266332,266420,266788,266610,266280,266543,266407,266641,266376,266411,266314,266772,266363,266840,266485,266801,266384,266261,266803,266596,266569,266763,266642,266529,266767,266663,266670,266630,266584,266389,266699,266555,266821,266340,266774,266600,266353,43997,266317,266687,266447,266557,266785,43980,266761,266560,266658,266276,266819,266855,266749,266638,44002,266470,266365,266808,266730,266294,266834,266773,266706,266778,266387,266780,266793,266805,266751,266811,266541,266814,266453,266594,266312,266587,266692,266391,266617,266514,266553,266272,266523,266562,266341,266507,266700,266313,266795,266375,266708,266304,266368,266849,266671,266734,266500,266343,266479,266409,266738,266396,44003,266461,266352,266724,266580,266633,266258,266311,266746,266427,266380,266841,43967,266619,266517,266701,266656,266547,266762,266684,266689,266829,266433,266464,44011,266758,266260,266518,266595,266644,266674,266704,266412,266345,266695,266781,266434,266392,266676,266498,266599,266783,266728,44000,43985,266612,43965,266591,266750,43969,266820,266402,266358,266324,266504,266279,266450,266561,266405,266759,43968,266483,266707,266408,266377,43971,266290,266790,43972,266265,266859,266458,266537,266373,266833,266585,266789,266748,266673,266598,266462,266685,266843,266297,266775,266846,266522,266321,266826,266478,43991,266647,266362,266424,266262,266856,266305,266264,266609,266403,266488,43978,266779,266573,266817,266456,266425,43998,43982,266400,266270,266611,266499,266306,266329,266511,43987,266664,266495,266451,266465,266754,43992,43973,266438,43986,266716,266397,266441,266752,266837,43974,266614,266414,266737,266539,266744,266698,266602,266657,266263,266257,266603,266722,266760,266336,266428,266439,266355,266325,266794,266419,266435,266868,266549,266729,266672,266825,266350,266476,266505,266620,266654,266765,266567,266544,266348,266509,266385,266426,266693,266289,266287,266636,266318,266482,266847,266809,266723,266534,266827,266860,266839,266356,43993,266298,44008,44010,44006,43988,266836,43977,266715,266501,266480,266452,266445,266386,266371,43999,266493,266605,266828,266443,44004,266705,266581,266422,266854,266286,266335,266851,266861,266804,266546,266484,266844,266347,266467,266690,266331,266769,266307,266802,266330,266323,266732,266659,266475,266421,266864,266651,266867,266406,266510,266648,266491,266512,266457,266807,266813,266410,266680,266349,266492,266589,266586,266652,266285,266293,266613,266702,266646,43975,266473,266309,43976,266740,266415,266593,266256,44012,266524,266850,266718,43996,266545,266554,266494,266448,266771,266337,266622,266576,266266,266423,266416,266818,266592,266615,266736,266713,266786,266299,266296,266634,266268,266660,266714,44013,266277,266301,266853,266632,266463,266274,266753,266601,266669,266635,266629,266866,266719,266417,266310,266271,266777,266302,266666,266326,266661,266741,266621,266515,266668,266720,266255,266282,266810,266339,266770,266346,266383,266344,266570,266588,266725,266768,266319,266527,266431,266816,266472,266381,266563,266333,266281,266454,266822,266466,266361,266316,266370,266395,266542,266322,266604,266288,266513,266691,266832,266378,266686,266342,266627,266735,266533,266502,266374,266437,266577,266653,266267,266865,266572,266797,266623,266731,266320,266558,266852,266792,266530,266640,43979,266696,266710,266845,266520,266446,266618,266608,266521,266787,266551,266697,266540,266590,266800,266486,266655,266519,266677,266559,266784,266444,266506,266564,266688,266360,266536,266848,266471,266460,266487,266625,266398,266273,266372,266308,266430,266303,266394,266455,266739,266606,266717,266626,266283,266679,266496,266631,266474,266469,266351,266364,266442,266369,266681,266328,266388,266315,266535,266291,266583,266300,266390,266354,43984,43994,266532,266582,266278,266782,266703,266468,266531,266359,266711,266284,266650,266756,266566,266709,266552,266643,266292,266745,266733,266432,44007,266571,266449,43970,266857,44005,266791,266796,266401,43989,266399,44001,266639,266806,266678,266574,266776,266550,266721,266579,266418,266799,266382,266766,266295,266334,266624,266815,266556,266747,266275,266516,266357,266757,266440,266694,266526,266726,266798,266812,43983,266477,266489,266367,266568,266743,266830,266436,266259,266269,266503,266665,266637,43995,266838,266863,43981,266742,266508,266667,266682,266607' --threads_count=10
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='...'
 ___________________________
 
 
@@ -132,32 +135,38 @@ WHERE tbl = "unfilled_orders_for_goods_by_cat_staging" AND
 SELECT headline, c.name AS publication, concat('https://pipeline.locallabs.com/stories/', s.id) AS url,
        published_at, ji.name AS job_item, cc.name AS client
 FROM stories AS s
-         JOIN communities AS c
-              ON s.community_id = c.id
-         JOIN client_companies AS cc
-              ON c.client_company_id = cc.id
-         JOIN data_entry_leads AS l
-              ON l.id = s.lead_id
-         JOIN job_items AS ji
-              ON l.job_item_id=ji.id
-WHERE published_at >= '2020-03-19' AND
-        deleted = 0 AND
-        l.job_item_id IN (0 )
+JOIN communities AS c
+  ON s.community_id = c.id
+JOIN client_companies AS cc
+  ON c.client_company_id = cc.id
+JOIN data_entry_leads AS l
+  ON l.id = s.lead_id
+JOIN job_items AS ji
+  ON l.job_item_id=ji.id
+WHERE published_at >= '2020-01-07' AND
+      deleted = 0 AND
+      l.job_item_id IN (...)
 ORDER BY c.name;
 
+
+
+
+REMINDER TOOL
+___________________________
+
 INSERT INTO loki_storycreator.hle_reminders
-(
-    story_type_name, story_type_stage_table, hle_assignments_number,
-    dev_name, slack_handle, dev_email,
-    story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
-    last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
-    data_source_checker_on, data_source_host, data_source_db, data_source_update_query
-)
+    (
+        story_type_name, story_type_stage_table,
+        dev_name, slack_handle, dev_email,
+        story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
+        last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
+        data_source_checker_on, data_source_host, data_source_db, data_source_update_query
+    )
 VALUES
-(
-    'Unfilled Orders for Goods by Cat', 'unfilled_orders_for_goods_by_cat_staging', '201',
-    'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-    'monthly', 1, 1, 'monthly', 'The Dataset located on db13.usa_raw.mm_manufacturers_shipments_inventories_and_orders_%',
-    '2019-08-24', 0, 0, 0, 20000, 'monthly', 0,
-    1, 'db13','usa_raw', 'select date(max(postedTime)) date from usa_raw.mm_manufacturers_shipments_inventories_and_orders_data;'
-);
+    (
+        'Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)', 'unfilled_orders_for_goods_by_cat_staging',
+        'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
+        'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
+        '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
+         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
+    );
