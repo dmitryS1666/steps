@@ -176,276 +176,236 @@ VALUES
 
 
 
-# Creator: Dmitry Suschinsky
-# Story type: Population Changes City
-# Template: https://docs.google.com/document/d/1JhVozb8Ov9Gfns45gNOP8Q1MgQdejLBiwUOS0Xk5T9A/edit#heading=h.gjdgxs
-# Created: February 2020
 
-# tbl: illinois_population_changes_city_staging
-# db06.voters_2016.census_details
-# branch: illinois_population_changes_city_d_sushi
-# illinois_population_changes_city.rb
+def quarter(month)
+  case month
+  when 1,2,3 then 1
+  when 4,5,6 then 2
+  when 7,8,9 then 3
+  when 10,11,12 then 4
+  end
+end
 
-def get_states(data_route)
-  root_query = "SELECT DISTINCT state_name FROM census_details_uniq_geos;"
+def ranking(records)
+  records.each_with_index do |value, j|
+    value['rank'] = j + 1 if j == 0
+    value['rank'] = j + 1 if records[j]['count_license_prev'] < records[j - 1]['count_license_prev'] && j != 0
+    value['rank'] = records[j-1]['rank'] if records[j]['count_license_prev'] == records[j - 1]['count_license_prev']
+  end
+end
+
+def get_records(data_route, start_quarter, finish_quarter, start_quarter_last, finish_quarter_last)
+  root_query = "SELECT separ_addr.city AS city, COUNT(prev_q.id) AS count_license_prev,
+                       COUNT(NULLIF(prev_q_last.id, 0)) AS count_license_last,
+                       IFNULL(prev_q.license_type, 'N/A') AS license_type,
+                       separ_addr.pl_production_org_id AS pl_production_org_id
+
+                FROM michigan_professional_licensing_separ_addr AS separ_addr
+
+                    LEFT JOIN
+                       (SELECT id, address, issue_date, license_type
+                          FROM michigan_professional_licensing__l_info
+                          WHERE id IS NOT NULL AND issue_date BETWEEN '#{start_quarter}' AND '#{finish_quarter}' AND license_type LIKE '%Professional%'
+                       ) AS prev_q
+                       ON prev_q.address = separ_addr.address
+
+                    LEFT JOIN
+                     (SELECT id, address, issue_date, license_type
+                        FROM michigan_professional_licensing__l_info
+                        WHERE issue_date BETWEEN '#{start_quarter_last}' AND '#{finish_quarter_last}' AND license_type LIKE '%Professional%') AS prev_q_last
+                     ON prev_q_last.address = separ_addr.address
+
+                WHERE separ_addr.pl_production_org_id != '' AND separ_addr.kind = 'city' AND prev_q.id IS NOT NULL
+                GROUP BY separ_addr.pl_production_org_id, separ_addr.city ORDER BY city ASC;"
   data_route.client.query(root_query).to_a
 end
 
-def get_records(data_route, year, prev_year)
-  root_query = "SELECT geo.geo_name_only as city, geo_name_clear, main.value as city_population_curr,
-                       prev.value AS city_population_prev, prev_2010.value AS city_population_2010,
-                       geo.pl_production_org_id AS pl_production_org_id, geo.state_name AS state
-                FROM census_details main
-                INNER JOIN census_details_uniq_geos geo
-                        ON geo.id = main.match_id AND geo.good_org = 1
-                INNER JOIN census_details prev
-                        ON prev.match_id = main.match_id AND prev.year = #{prev_year} AND prev.concept = 'TOTAL POPULATION' AND prev.variable = 'B01003_001E'
-                INNER JOIN census_details prev_2010
-                    ON prev_2010.match_id = main.match_id AND prev_2010.year = 2010 AND prev_2010.concept = 'TOTAL POPULATION' AND prev_2010.variable = 'B01003_001E'
-                WHERE main.year = #{year} AND main.concept = 'TOTAL POPULATION' AND
-                      main.variable = 'B01003_001E' AND
-                      main.geo_type = 'place'
-                GROUP BY main.match_id
-                ORDER BY main.name;"
-  data_route.client.query(root_query).to_a
+def get_quarter_to_word(quarter)
+  return 'first quarter' if quarter.to_i == 1
+  return 'second quarter' if quarter.to_i == 2
+  return 'third quarter' if quarter.to_i == 3
+  return 'fourth quarter' if quarter.to_i == 4
 end
 
-def get_top_city_by_state(data_route, state, year)
-  root_query = "SELECT geo.geo_name_only as city, geo_name_clear, main.value as city_population_curr,
-                       prev.value AS city_population_prev, (main.value - prev.value) AS top_diff
-                FROM census_details main
-                INNER JOIN census_details_uniq_geos geo
-                        ON geo.id = main.match_id AND geo.good_org = 1 AND geo.state_name = '#{state}'
-                INNER JOIN census_details prev
-                        ON prev.match_id = main.match_id AND prev.year = #{year.to_i - 1} AND prev.concept = 'TOTAL POPULATION' AND prev.variable = 'B01003_001E'
-                WHERE main.year = #{year} AND main.concept = 'TOTAL POPULATION' AND
-                      main.variable = 'B01003_001E' AND
-                      main.geo_type = 'place'
-                GROUP BY main.match_id
-                ORDER BY top_diff DESC LIMIT 1;"
-  data_route.client.query(root_query).to_a
-end
-
-def get_duplicates(data_route)
-  root_query = "SELECT state_name AS state, geo_name_only AS city, geo_name_clear,  count(*)
-                FROM census_details_uniq_geos
-                WHERE good_org = 1 AND geo_type = 'place' AND
-                      geo_name_clear IS NOT NULL
-                GROUP BY state_name, geo_name_only
-                HAVING count(*) > 1;"
-  data_route.client.query(root_query).to_a
-end
-
-def get_duplicate_only(data_route, state, city_name)
-  root_query = "SELECT geo_name, geo_name_clear
-                FROM census_details_uniq_geos
-                WHERE state_name = '#{state}' AND
-                      geo_name_only = '#{city_name}';"
-  data_route.client.query(root_query).to_a
-end
-
-
-def get_county_by_state(data_route, state, place_name, type)
-  root_query = "SELECT county_name
-                FROM usa_administrative_division_counties_places_matching
-                WHERE state_name ='#{state}' AND county_name<>'' AND short_name = '#{place_name}' AND kind = '#{type}';"
-  data_route.client.query(root_query).to_a
+def short_quarter(quarter_st)
+  return quarter_st.gsub('first quarter', 'Q1') if quarter_st.include? 'first quarter'
+  return quarter_st.gsub('second quarter', 'Q2') if quarter_st.include? 'second quarter'
+  return quarter_st.gsub('third quarter', 'Q3') if quarter_st.include? 'third quarter'
+  return quarter_st.gsub('fourth quarter', 'Q4') if quarter_st.include? 'fourth quarter'
 end
 
 def get_percentage_diff(data1, data2)
   if data2 != 0
-    ((data1 - data2) / data2.to_f * 100)
+    ((data1 - data2) / data2 * 100).abs.round(1).to_i
   else
     100.to_i
   end
 end
 
-def growth_type(curr, prev, city_population_diff)
-  #  increased by #, decreased by #, or remained
-  return "increased by #{separate_comma(city_population_diff)} people" if curr > prev
-  return "decreased by #{separate_comma(city_population_diff)} people" if curr < prev
-  return 'was unchanged' if (curr == prev)
+def growth_type(curr, prev)
+  if curr.to_f == prev.to_f
+    'unchanged from'
+  elsif prev == 0
+    "an increase of #{Numbers.num_to_words(curr.to_i)} over"
+  elsif curr.to_f > prev.to_f
+    'a ' + get_percentage_diff(curr.to_f, prev.to_f).to_s + '-percent increase over'
+  else
+    'a ' + get_percentage_diff(curr.to_f, prev.to_f).to_s + '-percent decrease from'
+  end
 end
 
-def growth_type_head_line(curr, prev, city_population_diff)
-  # increases by #, decreases by #, or unchanged
-  return "increases by #{separate_comma(city_population_diff)} people" if curr > prev
-  return "decreases by #{separate_comma(city_population_diff)} people" if curr < prev
-  return 'unchanged' if (curr == prev)
+def prepare_count(val)
+  if val.to_i < 10
+    Numbers.num_to_words(val)
+  else
+    val
+  end
 end
 
-def table_from_data(year, prev_year, rec)
+def was_were(val)
+  if val.to_i > 0 && val.to_i == 1
+    'license'
+  elsif val.to_i > 0 && val.to_i > 1
+    'licenses'
+  end
+end
+
+def growth_type_table(curr, prev)
+  if curr.to_f == prev.to_f
+    '0'
+  elsif curr.to_f > prev.to_f
+    get_percentage_diff(curr.to_f, prev.to_f).to_s
+  else
+    '-' + get_percentage_diff(curr.to_f, prev.to_f).to_s
+  end
+end
+
+def table_from_data(table_rows, prev_quarter_str, prev_quarter_str_last)
   table = []
 
-  table << { "Municipality" => rec['city'],
-             "#{year}" => rec['city_population_curr'],
-             "#{prev_year}" => rec['city_population_prev'],
-             "% change" => separate_comma(get_percentage_diff(rec['city_population_curr'], rec['city_population_prev']))
-  }
-end
-
-def separate_comma(number)
-  if number.to_f.abs > 999
-    number.to_f.round.abs.to_s.sub(/\.0$/,'').chars.to_a.reverse.each_slice(3).map(&:join).join(",").reverse
-  else
-    number.to_f.round(1).abs.to_s.sub(/\.0$/,'')
+  table_rows.each do |tr|
+    table << { "Rank" => tr['rank'],
+               "City" => titleize(tr['city']),
+               "Licenses Issued in #{prev_quarter_str}" => tr['count_license_prev'],
+               "Licenses Issued in #{prev_quarter_str_last}" => tr['count_license_last'],
+               "% Change" => growth_type_table(tr['count_license_prev'], tr['count_license_last'])
+    }
   end
+  table
 end
 
 def titleize(str)
   str.split.each(&:capitalize!).join(' ')
 end
 
-def illinois_population_changes_city_stage_population(line, argument)
+def michigan_prof_licenses_issued_city_comp_per_ly_q_stage_population(line, argument)
   require 'bigdecimal'
   require 'bigdecimal/util'
   require 'date'
 
-  puts("\n!!!\nParameter year required 'year' \n!!!\n") unless (@options['year'])
-  return 'INVALID' unless @options['year']
-  year = @options['year']
-  return 'INVALID' unless year.to_s.match(/^\d{4}$/)
-  threads_count = @options['threads_count'].to_i || 3
+  matching_hash = {1 => [1,2,3], 2 => [4,5,6], 3 => [7,8,9], 4 => [10, 11, 12] }
 
-  prev_year = year.to_i - 1
+  now = DateTime.now.to_date
+  prev_quarter = quarter(now.month) - 1
+  prev_quarter_str = get_quarter_to_word(prev_quarter) + ' of ' + now.year.to_s
+  prev_quarter_str_last = get_quarter_to_word(prev_quarter) + ' of ' + now.prev_year.year.to_s
+  prev_quarter_period = []
+  prev_quarter_last_year_period = []
 
-  puts 'year: ', year
-  puts 'prev_year: ', prev_year
+  prev_quarter_period_from = matching_hash[prev_quarter].first
+  prev_quarter_period_to = matching_hash[prev_quarter].last
 
-  route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
-  route.client.query("use #{route.stage_db}")
+  prev_quarter_period << Date.new(now.year, prev_quarter_period_from).to_s
+  prev_quarter_period << Date.civil(now.year, prev_quarter_period_to, -1).to_s
 
-  data_state = Route_noprefix.new(host: DB06, stage_db: 'voters_2016')
+  prev_quarter_last_year_period << Date.new(now.prev_year.year, prev_quarter_period_from).to_s
+  prev_quarter_last_year_period << Date.civil(now.prev_year.year, prev_quarter_period_to, -1).to_s
+
+  data_route = Route_noprefix.new(host: 'db13', stage_db: 'usa_raw')
+  data_route.client.query("use #{data_route.stage_db}")
+
+  delivery = Route_noprefix.new(host: 'db05', stage_db: 'loki_storycreator')
+  delivery.client.query("use #{delivery.stage_db}")
+
+  data_state = Route_noprefix.new(host: 'db12', stage_db: 'usa_raw')
   data_state.client.query("use #{data_state.stage_db}")
 
-  records = get_records(data_state, year, prev_year)
-  all_duplicates = get_duplicates(data_state)
+  records = get_records(data_state, prev_quarter_period[0], prev_quarter_period[1], prev_quarter_last_year_period[0], prev_quarter_last_year_period[1])
 
-  all_duplicates.each do |dup|
-    get_duplicate_only(data_state, dup['state'], dup['city']).each do |city|
-      case city['geo_name_clear'].downcase
-      when /city/
-        county = get_county_by_state(route, dup['state'], dup['city'], 'city')
-      when /town/
-        county = get_county_by_state(route, dup['state'], dup['city'], 'town')
-      when /village/
-        county = get_county_by_state(route, dup['state'], dup['city'], 'village')
-      when /borough/
-        county = get_county_by_state(route, dup['state'], dup['city'], 'borough')
+  records = records.sort_by {|rate| rate['count_license_prev']}.reverse
+  records = ranking(records)
+
+  table = table_from_data(records, prev_quarter_str, prev_quarter_str_last)
+
+  reasons = {
+      publications: [],
+      publication_name: []
+  }
+  records.each do |rec|
+
+    unless rec['pl_production_org_id']
+      reasons[:publications] << rec['city']
+      next
+    end
+
+    # Metro Business Network
+    # MM-Michigan
+    publications = []
+    publications << Hle::Publications.mm_pubs_excluding_states(rec['pl_production_org_id'], 'production', 'Michigan')
+    publications << get_journal_from_org_id(rec['pl_production_org_id'], 'production', 120) rescue nil
+
+    p 'publications.to_a'
+    p publications.to_a
+
+    publications.flatten!.uniq!
+
+    if publications.count.zero?
+      reasons[:publications] << rec['city']
+      next
+    end
+
+    publications.each do |publication|
+      hash = {}
+
+      hash['publication_name'] = publication['publication_name']
+      if hash['publication_name'].empty?
+        reasons[:publication_name] << publication['id']
+        next
       end
 
-      records.each_with_index do |value, index|
-        if value['geo_name_clear'] && value['geo_name_clear'].include?(city['geo_name_clear']) && value['state'].include?(dup['state'])
-          records[index]['county'] = county[0]['county_name'] if county[0]
-        end
-      end
+      hash['client_name'] = publication['client_name']
+      hash['client_id'] = publication['client_id']
+      hash['publication_id'] = publication['id'].to_i
+      hash['source_table_id'] = 19874
+      hash['source_id'] = 19833 * 1000000000 + publication['id'].to_i * 10000000 + Date.today.to_time.to_i
+      hash['organization_id'] = rec['pl_production_org_id']
+
+      hash['city'] = titleize(rec['city'])
+      hash['rank'] = rec['rank']
+      hash['prev_q'] = prev_quarter_str
+      hash['prev_q_val'] = rec['count_license_prev']
+      hash['prev_q_last_year_val'] = rec['count_license_last']
+
+      hash['table'] = table.to_json
+
+      rules = insert_rules(hash.escaped)
+      query = "insert into #{@config['target_table']}#{rules}"
+      delivery.client.query(query)
+      puts hash
     end
+    p reasons
   end
 
-  states = get_states(data_state)
-  tops = Hash.new
-  states.each do |state|
-    data = get_top_city_by_state(data_state, state['state_name'], year)[0]
-    if data
-      tops[state['state_name']] = Hash.new
-      tops[state['state_name']] = data
-    end
-  end
-
-  @semaphore = Mutex.new
-  threads = Array.new(threads_count) do
-    Thread.new do
-      delivery = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
-      delivery.client.query("use #{delivery.stage_db}")
-      data_state_06 = Route_noprefix.new(host: DB06, stage_db: 'voters_2016')
-      data_state_06.client.query("use #{data_state_06.stage_db}")
-
-      reasons = {
-          publications: [],
-          publication_name: []
-      }
-
-      loop do
-        rec = nil
-        @semaphore.synchronize {
-          rec = records.pop
-        }
-        break if rec.class == NilClass
-
-        table = table_from_data(year, prev_year, rec)
-
-        unless rec['pl_production_org_id']
-          reasons[:publications] << rec['city']
-          next
-        end
-
-        # MM
-        # Metro Business Network 120
-        # LGIS 91
-        publications = []
-        publications << Hle::Publications.mm_pubs_excluding_states(rec['pl_production_org_id'], 'production')
-        publications << get_journal_from_org_id(rec['pl_production_org_id'], 'production', 120) rescue nil
-        publications << get_journal_from_org_id(rec['pl_production_org_id'], 'production', 91) rescue nil
-        # top = get_top_city_by_state(data_state_06, rec['state'], year)[0]
-
-        publications.flatten!.uniq!
-
-        if publications.count.zero?
-          reasons[:publications] << rec['city']
-          next
-        end
-
-        publications.each do |publication|
-          hash = {}
-
-          hash['publication_name'] = publication['publication_name']
-
-          if hash['publication_name'].empty?
-            reasons[:publication_name] << publication['id']
-            next
-          end
-
-          hash['client_name'] = publication['client_name']
-          hash['client_id'] = publication['client_id']
-          hash['publication_id'] = publication['id'].to_i
-          hash['source_table_id'] = 19407
-          hash['organization_id'] = rec['pl_production_org_id']
-
-          hash['city'] = rec['city']
-          hash['state'] = rec['state']
-          hash['period'] = "#{prev_year} - #{year}"
-          hash['top_city'] = tops[rec['state']]['city']
-          hash['top_value'] = tops[rec['state']]['top_diff']
-          hash['county'] = rec['county'] if rec['county']
-          hash['city_population_curr'] = rec['city_population_curr']
-          hash['city_population_prev'] = rec['city_population_prev']
-          hash['city_population_2010'] = rec['city_population_2010']
-
-          hash['story_table'] = table.to_json
-
-          rules = insert_rules(hash.escaped)
-          puts "insert into #{@config['target_table']}#{rules}"
-          query = "insert into #{@config['target_table']}#{rules}"
-          delivery.client.query(query)
-          puts hash
-        end
-        p reasons
-      end
-
-    rescue => e
-      print "#{e.to_s} ~> #{e.backtrace.join("\n")}\n"
-    ensure
-      data_state.client.close if data_state
-      data_state_06.client.close if data_state_06
-      route.client.close if route
-      delivery.client.close
-    end
-  end
-  threads.each(&:join)
+  rescue => e
+    print "#{e.to_s} ~> #{e.backtrace.join("\n")}\n"
+  ensure
+    data_state.client.close if data_state
+    data_route.client.close if data_route
+    delivery.client.close if delivery
   return 'INVALID'
 end
 
-def illinois_population_changes_city_stage_creation(options, mail_sender = false)
+def michigan_prof_licenses_issued_city_comp_per_ly_q_stage_creation(options, mail_sender = false)
   i = 0
   count = @stage_selection.count
   @stage_selection.each do |stage|
@@ -453,36 +413,24 @@ def illinois_population_changes_city_stage_creation(options, mail_sender = false
     p "#{i}/#{count}: "
     export = {}
 
-    city = stage['city'][-1, 1] == 's' ? "#{stage['city']}'" : "#{stage['city']}'s"
-    if stage['county']
-      county = " (#{stage['county']})"
-    else
-      county = ''
-    end
-    state = stage['state']
-    city_population_diff = (stage['city_population_curr'] - stage['city_population_prev']).abs
-    city_population_diff_2010 = (stage['city_population_curr'] - stage['city_population_2010']).abs
-    top_city = stage['top_city']
-    top_value = separate_comma(stage['top_value'])
-    period = stage['period']
-    growth_type_head_line = growth_type_head_line(stage['city_population_curr'], stage['city_population_prev'], city_population_diff)
-    growth_type = growth_type(stage['city_population_curr'], stage['city_population_prev'], city_population_diff)
-    growth_type_2010 = growth_type(stage['city_population_curr'], stage['city_population_2010'], city_population_diff_2010)
+    city = stage['city']
+    rank = stage['rank']
+    quarter_header = stage['prev_q']
+    quarter_body = stage['prev_q']
+    prev_quarter_val = stage['prev_q_val']
+    growth_type = growth_type(stage['prev_q_val'], stage['prev_q_last_year_val'])
 
-    table = JSON.parse(stage['story_table'])
+    table = JSON.parse(stage['table'])
     table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
 
-    export['headline'] = "#{city} population #{growth_type_head_line} between #{period.gsub('-', 'and')}"
-    export['teaser'] = "#{city}#{county} population #{growth_type} between #{period.gsub('-', 'and')}, according to U.S. Census Bureau's American Community Survey."
+    export['headline'] = "#{city} ranks #{Numbers.nthification(rank)} in professional licenses issued in #{short_quarter(quarter_header)}"
+    export['teaser'] = "The Michigan Department of Licensing and Regulatory Affairs (LARA) has issued #{prepare_count(prev_quarter_val)} professional #{was_were(prev_quarter_val)} to occupational and health professionals in #{city} in the #{quarter_body}, #{growth_type} the same quarter of the previous year, according to LARA.\n"
 
     output = ''
-    output << "#{city}#{county} population #{growth_type} between #{period.gsub('-', ' and ')}, according to the <a href='https://www.census.gov/programs-surveys/acs'>U.S. Census Bureau's American Community Survey</a>.#{" Since 2010 the population has #{growth_type_2010}." unless growth_type_2010.include? 'was unchanged'}\n\n"
+    output << "The Michigan Department of Licensing and Regulatory Affairs (LARA) has issued #{prepare_count(prev_quarter_val)} professional #{was_were(prev_quarter_val)} to occupational and health professionals in #{city} in the #{quarter_body}, #{growth_type} the same quarter of the previous year, <a href='https://www.michigan.gov/lara'>according to LARA</a>.\n\n"
+    output << "LARA is composed of several agencies, bureaus and commissions that influence business growth and job creation through regulation.\n\n"
 
-    output << "The #{state} municipality that saw the largest population growth over the same time period was #{top_city}, with a total population increase of #{top_value} people.\n\n"
-
-    output << "The American Community Survey (ACS) is an ongoing survey by the U.S. Census Bureau. It regularly gathers information previously contained only in the long form of the decennial census, such as ancestry, citizenship, educational attainment, income, language proficiency, migration, disability, employment, and housing characteristics. These data are used by many public-sector, private-sector, and not-for-profit stakeholders to allocate funding, track shifting demographics, plan for emergencies, and learn about local communities.\n\n"
-
-    output << "<div style=\"font-size:18px\"><strong>Population according to ACS</strong></div>"
+    output << "<div style=\"font-size:18px\"><strong>Michigan-issued professional licenses ranked by city</strong></div>"
     output << table
 
     export = prepare_output(stage, output, export, options)
