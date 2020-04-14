@@ -18,7 +18,7 @@ population_config_id: #353
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=353 -t --year='2018' --threads_count=10
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=353 -t --year='2019' --month=4
 
 
 STORY CREATOR CONFIGURATION:
@@ -38,7 +38,7 @@ bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=235 --popul
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=''
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id='306502'
 
 
 
