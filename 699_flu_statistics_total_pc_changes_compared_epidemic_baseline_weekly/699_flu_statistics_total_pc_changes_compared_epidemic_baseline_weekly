@@ -32,12 +32,12 @@ STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t
-####bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids='2,16' --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --where="client_id = 91"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids='2,16' --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --where="client_id = 91"
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=720 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='Flu Statistics - Total % changes compared with Epidemic Baseline (weekly comparison)' -t --where="stage.client_name LIKE 'MM - %'"
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id='300114'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id='306887'
 
 
 
