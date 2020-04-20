@@ -22,22 +22,22 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id
 STORY CREATOR CONFIGURATION:
 insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'california_professional_licenses_issued_city_month_staging', 'california_professional_licenses_issued_city_month_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
-creation_config_id: #601
+creation_config_id: #620
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=601 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=620 -t
 
 
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=734 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (City - Month)' -t
-####bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=734 --story_section_ids='2,16' --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (City - Month)' -t --where="client_id = 91"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=734 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (City - Month)' -t --where="stage.client_name LIKE 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=620 --population_config_id=734 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (City - Month)' -t
+####bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=620 --population_config_id=734 --story_section_ids='2,16' --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (City - Month)' -t --where="client_id = 91"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=620 --population_config_id=734 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (City - Month)' -t --where="stage.client_name LIKE 'MM - %'"
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id='300114'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='310885,310887,310888,310889,310890,310891,310892,310893,310894'
 
 
 
@@ -56,7 +56,7 @@ ________________________________________________________________________________
 SCHEDULER:
 __________
 population_config_id: #734
-creation_config_id: #601
+creation_config_id: #620
 
 tbl: california_professional_licenses_issued_city_month_staging
 desc: California - Professional Licenses Issued (City - Month)
@@ -79,8 +79,8 @@ ______________________________________
 --where="client_name like 'MM - %'"
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=734 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (City - Month)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=734 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (City - Month)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=620 --population_config_id=734 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (City - Month)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=620 --population_config_id=734 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (City - Month)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
 
 ______________________________________
 
@@ -89,8 +89,8 @@ select * from story_export_configurations_v2 where tbl = 'michigan_prof_lic_issu
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=734 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (City - Month)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=601 --population_config_id=734 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (City - Month)' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=620 --population_config_id=734 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (City - Month)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=620 --population_config_id=734 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (City - Month)' -t --prod --where="client_name like 'MM - %'"
 _________
 повторяем
 
