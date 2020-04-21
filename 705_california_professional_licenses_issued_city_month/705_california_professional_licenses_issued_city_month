@@ -177,61 +177,88 @@ VALUES
 
 
 
-def quarter(month)
-  case month
-  when 1,2,3 then 1
-  when 4,5,6 then 2
-  when 7,8,9 then 3
-  when 10,11,12 then 4
-  end
-end
+# Creator: Dmitry Suschinsky
+# Story type: California - Professional Licenses Issued (City - Month)
+# Template: https://docs.google.com/document/d/1VuClNg2xzs-e_AFWIjquUId-o1OJ8TiUg2bX7lXpFUw/edit
+# Created: April 2020
 
-def ranking(records)
-  records.each_with_index do |value, j|
-    value['rank'] = j + 1 if j == 0
-    value['rank'] = j + 1 if records[j]['count_license_prev'] < records[j - 1]['count_license_prev'] && j != 0
-    value['rank'] = records[j-1]['rank'] if records[j]['count_license_prev'] == records[j - 1]['count_license_prev']
-  end
-end
+# tbl: california_professional_licenses_issued_city_month_staging
+# db01.usa_raw.california_professional_licensing_list
+# branch: california_professional_licenses_issued_city_month_d_sushi
+# california_professional_licenses_issued_city_month.rb
 
-def get_records(data_route, start_quarter, finish_quarter, start_quarter_last, finish_quarter_last)
-  root_query = "SELECT separ_addr.city AS city, COUNT(prev_q.id) AS count_license_prev,
-                       COUNT(NULLIF(prev_q_last.id, 0)) AS count_license_last,
-                       IFNULL(prev_q.license_type, 'N/A') AS license_type,
-                       separ_addr.pl_production_org_id AS pl_production_org_id
-
-                FROM michigan_professional_licensing_separ_addr AS separ_addr
-
-                    LEFT JOIN
-                       (SELECT id, address, issue_date, license_type
-                          FROM michigan_professional_licensing__l_info
-                          WHERE id IS NOT NULL AND issue_date BETWEEN '#{start_quarter}' AND '#{finish_quarter}' AND license_type LIKE '%Professional%'
-                       ) AS prev_q
-                       ON prev_q.address = separ_addr.address
-
-                    LEFT JOIN
-                     (SELECT id, address, issue_date, license_type
-                        FROM michigan_professional_licensing__l_info
-                        WHERE issue_date BETWEEN '#{start_quarter_last}' AND '#{finish_quarter_last}' AND license_type LIKE '%Professional%') AS prev_q_last
-                     ON prev_q_last.address = separ_addr.address
-
-                WHERE separ_addr.pl_production_org_id != '' AND separ_addr.kind = 'city' AND prev_q.id IS NOT NULL
-                GROUP BY separ_addr.pl_production_org_id, separ_addr.city ORDER BY city ASC;"
+def get_cities(data_route)
+  root_query = "SELECT DISTINCT (city) FROM california_professional_licensing_list WHERE state = 'California';"
   data_route.client.query(root_query).to_a
 end
 
-def get_quarter_to_word(quarter)
-  return 'first quarter' if quarter.to_i == 1
-  return 'second quarter' if quarter.to_i == 2
-  return 'third quarter' if quarter.to_i == 3
-  return 'fourth quarter' if quarter.to_i == 4
+def growth_type_head_line(curr, prev, city_population_diff)
+  # increases by #, decreases by #, or unchanged
+  return "increases by #{separate_comma(city_population_diff)} people" if curr > prev
+  return "decreases by #{separate_comma(city_population_diff)} people" if curr < prev
+  return 'unchanged' if (curr == prev)
 end
 
-def short_quarter(quarter_st)
-  return quarter_st.gsub('first quarter', 'Q1') if quarter_st.include? 'first quarter'
-  return quarter_st.gsub('second quarter', 'Q2') if quarter_st.include? 'second quarter'
-  return quarter_st.gsub('third quarter', 'Q3') if quarter_st.include? 'third quarter'
-  return quarter_st.gsub('fourth quarter', 'Q4') if quarter_st.include? 'fourth quarter'
+def table_from_data(records)
+  table = []
+  records.each do |rec|
+    puts 'rec[\'lapse_date\']', rec['lapse_date']
+    if rec['lapse_date'] != '0000-00-00'
+      lapse_date = DateTime.strptime(rec['lapse_date'], '%Y-%m-%d').strftime('%m-%d-%Y')
+    else
+      lapse_date = '00-00-0000'
+    end
+    issued_date = DateTime.strptime(rec['issued_date'], '%Y-%m-%d')
+
+    table << {
+        "License Holder" => rec['license_holder'],
+        "License Type" => rec['license_type'],
+        "Lapse Date" => lapse_date,
+        "Issued Date" => issued_date.strftime('%m-%d-%Y')
+    }
+  end
+  table
+end
+
+def separate_comma(number)
+  if number.to_f.abs > 999
+    number.to_f.round.abs.to_s.sub(/\.0$/,'').chars.to_a.reverse.each_slice(3).map(&:join).join(",").reverse
+  else
+    number.to_f.round(1).abs.to_s.sub(/\.0$/,'')
+  end
+end
+
+def titleize(str)
+  str.split.each(&:capitalize!).join(' ')
+end
+
+def get_count(data_route, city, month, year)
+  root_query = "SELECT COUNT(main.license_number) AS count
+                FROM california_professional_licensing_list AS main
+                LEFT JOIN california_professional_licensing AS params
+                       ON params.list_id = main.id
+                WHERE MONTH(params.issuance_date) = #{month} AND YEAR(params.issuance_date) = #{year} AND
+                      main.city = '#{city}' AND state = 'California';"
+  data_route.client.query(root_query).to_a
+end
+def get_org_id_by_city_and_state(data_route, city, state)
+  root_query = "SELECT pl_production_org_id AS org_id
+                FROM usa_raw.usa_administrative_division_counties_places_matching
+                WHERE short_name = '#{city}' AND kind = 'city' AND bad_matching IS NULL AND state_name = '#{state}';"
+  data_route.client.query(root_query).to_a
+end
+
+def get_table_records(data_route, city, month, year)
+  # 'license_holder' 'license_type' 'lapse_date' 'issued_date'
+  root_query = "SELECT main.name AS license_holder, main.license_number,
+                       main.license_type AS license_type, params.issuance_date AS issued_date,
+                       params.expiration_date AS lapse_date
+                FROM california_professional_licensing_list AS main
+                LEFT JOIN california_professional_licensing AS params
+                       ON params.list_id = main.id
+                WHERE MONTH(params.issuance_date) = #{month} AND YEAR(params.issuance_date) = #{year} AND
+                      main.license_number != '' AND main.city = '#{city}' AND state = 'California'"
+  data_route.client.query(root_query).to_a
 end
 
 def get_percentage_diff(data1, data2)
@@ -280,132 +307,139 @@ def growth_type_table(curr, prev)
   end
 end
 
-def table_from_data(table_rows, prev_quarter_str, prev_quarter_str_last)
-  table = []
-
-  table_rows.each do |tr|
-    table << { "Rank" => tr['rank'],
-               "City" => titleize(tr['city']),
-               "Licenses Issued in #{prev_quarter_str}" => tr['count_license_prev'],
-               "Licenses Issued in #{prev_quarter_str_last}" => tr['count_license_last'],
-               "% Change" => growth_type_table(tr['count_license_prev'], tr['count_license_last'])
-    }
-  end
-  table
-end
-
-def titleize(str)
-  str.split.each(&:capitalize!).join(' ')
-end
-
-def michigan_prof_licenses_issued_city_comp_per_ly_q_stage_population(line, argument)
+def california_professional_licenses_issued_city_month_stage_population(line, argument)
   require 'bigdecimal'
   require 'bigdecimal/util'
   require 'date'
 
-  matching_hash = {1 => [1,2,3], 2 => [4,5,6], 3 => [7,8,9], 4 => [10, 11, 12] }
+  puts("\n!!!\nParameter required 'month' \n!!!\n") unless (@options['month'])
+  return 'INVALID' unless @options['month']
+  month = @options['month']
 
-  now = DateTime.now.to_date
-  prev_quarter = quarter(now.month) - 1
-  prev_quarter_str = get_quarter_to_word(prev_quarter) + ' of ' + now.year.to_s
-  prev_quarter_str_last = get_quarter_to_word(prev_quarter) + ' of ' + now.prev_year.year.to_s
-  prev_quarter_period = []
-  prev_quarter_last_year_period = []
+  puts("\n!!!\nParameter required 'year' \n!!!\n") unless (@options['year'])
+  return 'INVALID' unless @options['year']
+  year = @options['year']
 
-  prev_quarter_period_from = matching_hash[prev_quarter].first
-  prev_quarter_period_to = matching_hash[prev_quarter].last
+  threads_count = @options['threads_count'].to_i || 3
 
-  prev_quarter_period << Date.new(now.year, prev_quarter_period_from).to_s
-  prev_quarter_period << Date.civil(now.year, prev_quarter_period_to, -1).to_s
+  puts 'month: ', month
+  puts 'year: ', year
 
-  prev_quarter_last_year_period << Date.new(now.prev_year.year, prev_quarter_period_from).to_s
-  prev_quarter_last_year_period << Date.civil(now.prev_year.year, prev_quarter_period_to, -1).to_s
+  route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+  route.client.query("use #{route.stage_db}")
 
-  data_route = Route_noprefix.new(host: 'db13', stage_db: 'usa_raw')
-  data_route.client.query("use #{data_route.stage_db}")
-
-  delivery = Route_noprefix.new(host: 'db05', stage_db: 'loki_storycreator')
-  delivery.client.query("use #{delivery.stage_db}")
-
-  data_state = Route_noprefix.new(host: 'db12', stage_db: 'usa_raw')
+  data_state = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
   data_state.client.query("use #{data_state.stage_db}")
 
-  records = get_records(data_state, prev_quarter_period[0], prev_quarter_period[1], prev_quarter_last_year_period[0], prev_quarter_last_year_period[1])
+  cities = get_cities(route)
 
-  records = records.sort_by {|rate| rate['count_license_prev']}.reverse
-  records = ranking(records)
+  records = []
+  cities.each do |city|
+    record = []
+    count = get_count(route, city['city'], month, year)[0]['count'].to_i
+    pl_org_id = get_org_id_by_city_and_state(route, city['city'], 'California')[0]
+    org_id = pl_org_id['org_id'] if pl_org_id.class != NilClass
 
-  table = table_from_data(records, prev_quarter_str, prev_quarter_str_last)
-
-  reasons = {
-      publications: [],
-      publication_name: []
-  }
-  records.each do |rec|
-
-    unless rec['pl_production_org_id']
-      reasons[:publications] << rec['city']
+    if count.to_i == 0 || org_id == 0 || org_id == nil
       next
     end
 
-    # Metro Business Network
-    # MM-Michigan
-    publications = []
-    publications << Hle::Publications.mm_pubs_excluding_states(rec['pl_production_org_id'], 'production', 'Michigan')
-    publications << get_journal_from_org_id(rec['pl_production_org_id'], 'production', 120) rescue nil
-
-    p 'publications.to_a'
-    p publications.to_a
-
-    publications.flatten!.uniq!
-
-    if publications.count.zero?
-      reasons[:publications] << rec['city']
-      next
-    end
-
-    publications.each do |publication|
-      hash = {}
-
-      hash['publication_name'] = publication['publication_name']
-      if hash['publication_name'].empty?
-        reasons[:publication_name] << publication['id']
-        next
-      end
-
-      hash['client_name'] = publication['client_name']
-      hash['client_id'] = publication['client_id']
-      hash['publication_id'] = publication['id'].to_i
-      hash['source_table_id'] = 19874
-      hash['source_id'] = 19833 * 1000000000 + publication['id'].to_i * 10000000 + Date.today.to_time.to_i
-      hash['organization_id'] = rec['pl_production_org_id']
-
-      hash['city'] = titleize(rec['city'])
-      hash['rank'] = rec['rank']
-      hash['prev_q'] = prev_quarter_str
-      hash['prev_q_val'] = rec['count_license_prev']
-      hash['prev_q_last_year_val'] = rec['count_license_last']
-
-      hash['table'] = table.to_json
-
-      rules = insert_rules(hash.escaped)
-      query = "insert into #{@config['target_table']}#{rules}"
-      delivery.client.query(query)
-      puts hash
-    end
-    p reasons
+    records << {month: month, year: year, city: city['city'], count: count, org_id: org_id}
   end
 
-  rescue => e
-    print "#{e.to_s} ~> #{e.backtrace.join("\n")}\n"
-  ensure
-    data_state.client.close if data_state
-    data_route.client.close if data_route
-    delivery.client.close if delivery
-  return 'INVALID'
+  puts 'records: ', records
+  puts 'records count: ', records.count
+
+  @semaphore = Mutex.new
+  threads = Array.new(threads_count) do
+    Thread.new do
+      delivery = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
+      delivery.client.query("use #{delivery.stage_db}")
+      data_state_01 = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+      data_state_01.client.query("use #{data_state_01.stage_db}")
+
+      reasons = {
+          publications: [],
+          publication_name: []
+      }
+
+      loop do
+        rec = nil
+        @semaphore.synchronize {
+          rec = records.pop
+        }
+        break if rec.class == NilClass
+
+        puts 'rec: ', rec
+        puts 'rec[0][:city]: ', rec[:city]
+
+        unless rec[:org_id]
+          reasons[:publications] << rec[:city]
+          next
+        end
+
+        # Metro Business Network
+        # MM-California
+        publications = []
+        publications << Hle::Publications.mm_pubs_excluding_states(rec[:org_id], 'production', 'California')
+        publications << get_journal_from_org_id(rec[:org_id], 'production', 120) rescue nil
+
+        publications.flatten!.uniq!
+
+        if publications.count.zero?
+          reasons[:publications] << rec['city']
+          next
+        end
+
+        table_records = get_table_records(data_state_01, rec[:city], rec[:month], rec[:year])
+        table = table_from_data(table_records)
+
+        publications.each do |publication|
+          hash = {}
+
+          hash['publication_name'] = publication['publication_name']
+
+          if hash['publication_name'].empty?
+            reasons[:publication_name] << publication['id']
+            next
+          end
+
+          hash['client_name'] = publication['client_name']
+          hash['client_id'] = publication['client_id']
+          hash['publication_id'] = publication['id'].to_i
+          hash['source_table_id'] = 20483
+          hash['organization_id'] = rec[:org_id]
+
+          hash['city'] = rec[:city]
+          hash['count'] = rec[:count]
+          hash['month'] = rec[:month]
+          hash['year'] = rec[:year]
+
+          hash['story_table'] = table.to_json
+
+          rules = insert_rules(hash.escaped)
+          puts "insert into #{@config['target_table']}#{rules}"
+          query = "insert into #{@config['target_table']}#{rules}"
+          delivery.client.query(query)
+          puts hash
+        end
+        p reasons
+      end
+
+    rescue => e
+      print "#{e.to_s} ~> #{e.backtrace.join("\n")}\n"
+    ensure
+      data_state.client.close if data_state
+      data_state_01.client.close if data_state_01
+      route.client.close if route
+      delivery.client.close
+    end
+  end
+  threads.each(&:join)
+  'INVALID'
 end
 
-def michigan_prof_licenses_issued_city_comp_per_ly_q_stage_creation(options, mail_sender = false)
+def california_professional_licenses_issued_city_month_stage_creation(options, mail_sender = false)
   i = 0
   count = @stage_selection.count
   @stage_selection.each do |stage|
@@ -413,24 +447,27 @@ def michigan_prof_licenses_issued_city_comp_per_ly_q_stage_creation(options, mai
     p "#{i}/#{count}: "
     export = {}
 
-    city = stage['city']
-    rank = stage['rank']
-    quarter_header = stage['prev_q']
-    quarter_body = stage['prev_q']
-    prev_quarter_val = stage['prev_q_val']
-    growth_type = growth_type(stage['prev_q_val'], stage['prev_q_last_year_val'])
+    # city = stage['city'][-1, 1] == 's' ? "#{stage['city']}'" : "#{stage['city']}'s"
+    city = titleize(stage['city'])
+    count_num = stage['count'].to_i
+    count = Numbers.num_to_words(count_num)
+    month = Date::MONTHNAMES[stage['month']]
+    license_str = "license was" if count_num == 1
+    license_str = "licenses were" if count_num > 1
+    license_s = "License" if count_num == 1
+    license_s = "Licenses" if count_num > 1
 
-    table = JSON.parse(stage['table'])
+    table = JSON.parse(stage['story_table'])
     table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
 
-    export['headline'] = "#{city} ranks #{Numbers.nthification(rank)} in professional licenses issued in #{short_quarter(quarter_header)}"
-    export['teaser'] = "The Michigan Department of Licensing and Regulatory Affairs (LARA) has issued #{prepare_count(prev_quarter_val)} professional #{was_were(prev_quarter_val)} to occupational and health professionals in #{city} in the #{quarter_body}, #{growth_type} the same quarter of the previous year, according to LARA.\n"
+    export['headline'] = "#{count.capitalize} professional #{license_str} issued in #{city} during #{month}"
+    export['teaser'] = "There were #{count} professional #{license_str} issued in #{city} during #{month}, according to California’s Department of Consumer Affairs."
 
     output = ''
-    output << "The Michigan Department of Licensing and Regulatory Affairs (LARA) has issued #{prepare_count(prev_quarter_val)} professional #{was_were(prev_quarter_val)} to occupational and health professionals in #{city} in the #{quarter_body}, #{growth_type} the same quarter of the previous year, <a href='https://www.michigan.gov/lara'>according to LARA</a>.\n\n"
-    output << "LARA is composed of several agencies, bureaus and commissions that influence business growth and job creation through regulation.\n\n"
+    output << "There were #{count} professional #{license_str} issued in #{city} during #{month}, according to <a href='https://search.dca.ca.gov/'>California’s Department of Consumer Affairs (DCA)</a>.\n\n"
 
-    output << "<div style=\"font-size:18px\"><strong>Michigan-issued professional licenses ranked by city</strong></div>"
+    output << "IDFPR is composed of several agencies, bureaus and commissions that influence business growth and job creation through regulation. The agency has roots that date back to 1876 when California passed the Medical Practice Act of 1876. Today the agency issues more than 280 license types including certificates, registrations and permits.\n\n"
+    output << "<div style=\"font-size:18px\"><strong>#{license_s} issued during #{month} in #{city}</strong></div>"
     output << table
 
     export = prepare_output(stage, output, export, options)
