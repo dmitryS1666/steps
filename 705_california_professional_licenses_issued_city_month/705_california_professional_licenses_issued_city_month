@@ -37,7 +37,7 @@ bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=620 --popul
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='310885,310887,310888,310889,310890,310891,310892,310893,310894'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='311048,311049,311050,311051,311052,311053,311054,311055,311056,311057'
 
 
 
@@ -45,9 +45,9 @@ FIRST FEEDBACK
 ________________________________________
 irb ->
 load 'Loki.rb'
-Hle::Story::Feedback.stories_feedback('511680424,511680443,511680442,511680424')
+Hle::Story::Feedback.stories_feedback('511701546,511701553,511701552')
 
-bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511699742,511699739,511699738
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511701546,511701553,511701552
 
 
 !!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
@@ -176,7 +176,6 @@ VALUES
 
 
 
-
 # Creator: Dmitry Suschinsky
 # Story type: California - Professional Licenses Issued (City - Month)
 # Template: https://docs.google.com/document/d/1VuClNg2xzs-e_AFWIjquUId-o1OJ8TiUg2bX7lXpFUw/edit
@@ -201,17 +200,18 @@ end
 
 def table_from_data(records)
   table = []
+  det = Determiner.new
+
   records.each do |rec|
-    puts 'rec[\'lapse_date\']', rec['lapse_date']
     if rec['lapse_date'] != '0000-00-00'
       lapse_date = DateTime.strptime(rec['lapse_date'], '%Y-%m-%d').strftime('%m-%d-%Y')
     else
-      lapse_date = '00-00-0000'
+      lapse_date = 'N/A'
     end
     issued_date = DateTime.strptime(rec['issued_date'], '%Y-%m-%d')
 
     table << {
-        "License Holder" => rec['license_holder'],
+        "License Holder" => det.determine(rec['license_holder']) == "Organization" ?  Cleaner.org_clean(rec['license_holder']) : Cleaner.person_clean(rec['license_holder']),
         "License Type" => rec['license_type'],
         "Lapse Date" => lapse_date,
         "Issued Date" => issued_date.strftime('%m-%d-%Y')
@@ -252,7 +252,7 @@ def get_table_records(data_route, city, month, year)
   # 'license_holder' 'license_type' 'lapse_date' 'issued_date'
   root_query = "SELECT main.name AS license_holder, main.license_number,
                        main.license_type AS license_type, params.issuance_date AS issued_date,
-                       params.expiration_date AS lapse_date
+                       main.expiration_date AS lapse_date
                 FROM california_professional_licensing_list AS main
                 LEFT JOIN california_professional_licensing AS params
                        ON params.list_id = main.id
