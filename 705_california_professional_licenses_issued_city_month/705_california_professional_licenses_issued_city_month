@@ -175,7 +175,6 @@ VALUES
 
 
 
-
 # Creator: Dmitry Suschinsky
 # Story type: California - Professional Licenses Issued (City - Month)
 # Template: https://docs.google.com/document/d/1VuClNg2xzs-e_AFWIjquUId-o1OJ8TiUg2bX7lXpFUw/edit
@@ -335,15 +334,18 @@ def california_professional_licenses_issued_city_month_stage_population(line, ar
 
   records = []
   cities.each do |city|
-    record = []
     count = get_count(route, city['city'], month, year)[0]['count'].to_i
-    pl_org_id = get_org_id_by_city_and_state(route, city['city'], 'California')[0]
-    org_id = pl_org_id['org_id'] if pl_org_id.class != NilClass
 
-    if count.to_i == 0 || org_id == 0 || org_id == nil
+    if count.to_i == 0
       next
     end
 
+    pl_org_id = get_org_id_by_city_and_state(route, city['city'], 'California')[0]
+    org_id = pl_org_id['org_id'] if pl_org_id.class != NilClass
+
+    if org_id == 0 || org_id == nil
+      next
+    end
     records << {month: month, year: year, city: city['city'], count: count, org_id: org_id}
   end
 
@@ -387,7 +389,7 @@ def california_professional_licenses_issued_city_month_stage_population(line, ar
         publications.flatten!.uniq!
 
         if publications.count.zero?
-          reasons[:publications] << rec['city']
+          reasons[:publications] << rec[:city]
           next
         end
 
@@ -423,7 +425,7 @@ def california_professional_licenses_issued_city_month_stage_population(line, ar
           delivery.client.query(query)
           puts hash
         end
-        p reasons
+        puts 'REASONS: ', reasons
       end
 
     rescue => e
@@ -452,21 +454,23 @@ def california_professional_licenses_issued_city_month_stage_creation(options, m
     count_num = stage['count'].to_i
     count = Numbers.num_to_words(count_num)
     month = Date::MONTHNAMES[stage['month']]
-    license_str = "license was" if count_num == 1
-    license_str = "licenses were" if count_num > 1
+    license_header_str = "license" if count_num == 1
+    license_header_str = "licenses" if count_num > 1
+    license_str = "was #{count} professional license" if count_num == 1
+    license_str = "were #{count} professional licenses" if count_num > 1
     license_s = "License" if count_num == 1
     license_s = "Licenses" if count_num > 1
 
     table = JSON.parse(stage['story_table'])
     table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
 
-    export['headline'] = "#{count.capitalize} professional #{license_str} issued in #{city} during #{month}"
-    export['teaser'] = "There were #{count} professional #{license_str} issued in #{city} during #{month}, according to California’s Department of Consumer Affairs."
+    export['headline'] = "#{count_num} professional #{license_header_str} issued in #{city} during #{month}"
+    export['teaser'] = "There #{license_str} issued in #{city} during #{month}, according to California’s Department of Consumer Affairs."
 
     output = ''
-    output << "There were #{count} professional #{license_str} issued in #{city} during #{month}, according to <a href='https://search.dca.ca.gov/'>California’s Department of Consumer Affairs (DCA)</a>.\n\n"
+    output << "There #{license_str} issued in #{city} during #{month}, according to <a href='https://search.dca.ca.gov/'>California’s Department of Consumer Affairs (DCA)</a>.\n\n"
 
-    output << "IDFPR is composed of several agencies, bureaus and commissions that influence business growth and job creation through regulation. The agency has roots that date back to 1876 when California passed the Medical Practice Act of 1876. Today the agency issues more than 280 license types including certificates, registrations and permits.\n\n"
+    output << "The DCA is composed of several agencies, bureaus and commissions that influence business growth and job creation through regulation. The agency has roots that date back to 1876 when California passed the Medical Practice Act of 1876. Today the agency issues more than 280 license types including certificates, registrations and permits.\n\n"
     output << "<div style=\"font-size:18px\"><strong>#{license_s} issued during #{month} in #{city}</strong></div>"
     output << table
 
