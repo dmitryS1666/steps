@@ -233,17 +233,19 @@ def get_count(data_route, zip, month, year)
   root_query = "SELECT COUNT(main.license_number) AS count
                 FROM california_professional_licensing_list AS main
                 LEFT JOIN california_professional_licensing AS params
-                       ON params.list_id = main.id
+                       ON params.list_id = main.id AND params.name = main.name
                 WHERE MONTH(params.issuance_date) = #{month} AND YEAR(params.issuance_date) = #{year} AND
                       main.zip = #{zip} AND state = 'California';"
   data_route.client.query(root_query).to_a
 end
 
-# TODO переделать на получение ORG_IDS по ZIP
 def get_org_id_by_zip_and_state(data_route, zip, state)
   root_query = "SELECT pl_production_org_id AS org_id
                 FROM usa_raw.usa_administrative_division_counties_places_matching
-                WHERE short_name = '#{zip}' AND kind = 'zip' AND bad_matching IS NULL AND state_name = '#{state}';"
+                WHERE short_name = (SELECT primary_city FROM zipcode_data WHERE zip = '#{zip}' AND state = 'CA') AND
+                      kind = 'city' AND
+                      bad_matching IS NULL AND
+                      state_name = '#{state}';"
   data_route.client.query(root_query).to_a
 end
 
@@ -254,7 +256,7 @@ def get_table_records(data_route, zip, month, year)
                        main.expiration_date AS lapse_date
                 FROM california_professional_licensing_list AS main
                 LEFT JOIN california_professional_licensing AS params
-                       ON params.list_id = main.id
+                       ON params.list_id = main.id AND params.name = main.name
                 WHERE MONTH(params.issuance_date) = #{month} AND YEAR(params.issuance_date) = #{year} AND
                       main.license_number != '' AND main.zip = '#{zip}' AND state = 'California'"
   data_route.client.query(root_query).to_a
@@ -335,9 +337,6 @@ def ca_prof_licenses_issued_zip_month_stage_population(line, argument)
   records = []
   zips.each do |zip|
     count = get_count(route, zip['zip'], month, year)[0]['count'].to_i
-    puts 'COUNT: ', count if count != 0
-    puts 'ZIP: ', zip if count != 0
-
     if count.to_i == 0
       next
     end
@@ -451,7 +450,7 @@ def ca_prof_licenses_issued_zip_month_stage_creation(options, mail_sender = fals
     p "#{i}/#{count}: "
     export = {}
 
-    zip = titleize(stage['zip'])
+    zip = stage['zip']
     count_num = stage['count'].to_i
     count = Numbers.num_to_words(count_num)
     month = Date::MONTHNAMES[stage['month']]
