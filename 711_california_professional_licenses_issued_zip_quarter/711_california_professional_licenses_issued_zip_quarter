@@ -1,42 +1,42 @@
-California - Professional Licenses Issued (Zip - Month)
+California - Professional Licenses Issued (Zip - Quarter)
 https://docs.google.com/document/d/1nwQLZJy8N-mX5uHJPzE5g866L2zn-f0Bh3LxtEWLeOE/edit#heading=h.gjdgxs
 
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'ca_prof_licenses_issued_zip_month_staging','{"zip":"VARCHAR(128)","count":"int(10)","month":"int(2)","year":"int(4)","story_table":"LONGTEXT"}';
+insert into stage_definition_configurations (tbl, definition) select 'ca_prof_licenses_issued_zip_q_staging','{"zip":"VARCHAR(128)","count":"int(10)","quarter":"int(2)","year":"int(4)","story_table":"LONGTEXT"}';
 
-#637
+#641
 
 STAGE TABLE CREATION
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=637 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=641 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'California - Professional Licenses Issued (Zip - Month)', 'ca_prof_licenses_issued_zip_month_staging', '{"known_entities":{"project_name":"California - Professional Licenses Issued (Zip - Month)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"ca_prof_licenses_issued_zip_month_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'California - Professional Licenses Issued (Zip - Quarter)', 'ca_prof_licenses_issued_zip_q_staging', '{"known_entities":{"project_name":"California - Professional Licenses Issued (Zip - Quarter)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"ca_prof_licenses_issued_zip_q_population","arguments":{}}}}';
 
-population_config_id: #751
+population_config_id: #755
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=751 -t --month='3' --year='2020' --threads_count=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=755 -t --quarter='1' --year='2020' --threads_count=1
 
 
 STORY CREATOR CONFIGURATION:
-insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'ca_prof_licenses_issued_zip_month_staging', 'ca_prof_licenses_issued_zip_month_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'ca_prof_licenses_issued_zip_q_staging', 'ca_prof_licenses_issued_zip_q_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
-creation_config_id: #632
+creation_config_id: #635
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=632 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=635 -t
 
 
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=632 --population_config_id=751 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Month)' -t
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=632 --population_config_id=751 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Month)' -t --where="stage.client_name LIKE 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=635 --population_config_id=755 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Quarter)' -t
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=635 --population_config_id=755 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Quarter)' -t --where="stage.client_name LIKE 'MM - %'"
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='315402-315415'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='315210-315219'
 
 
 
@@ -46,7 +46,7 @@ irb ->
 load 'Loki.rb'
 Hle::Story::Feedback.stories_feedback('511701546,511701553,511701552')
 
-bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511702956,511702949,511702965
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511701546,511701553,511701552
 
 
 !!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
@@ -54,21 +54,21 @@ ________________________________________________________________________________
 
 SCHEDULER:
 __________
-population_config_id: #751
-creation_config_id: #632
+population_config_id: #755
+creation_config_id: #635
 
-tbl: ca_prof_licenses_issued_zip_month_staging
-desc: California - Professional Licenses Issued (Zip - Month)
+tbl: ca_prof_licenses_issued_zip_q_staging
+desc: California - Professional Licenses Issued (Zip - Quarter)
 
 config_id - population_config_id
 
 Up to 5 stories per day, per publication, for up to 50 days, starting January 20
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=751 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=755 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
-select publication_name, min(publish_on), max(publish_on), count(*) from 'ca_prof_licenses_issued_zip_month_staging' group by publication_name;
+select publication_name, min(publish_on), max(publish_on), count(*) from 'ca_prof_licenses_issued_zip_q_staging' group by publication_name;
 
 ______________________________________
 PRODUCTION: STORY EXPORT CONFIGURATION
@@ -78,36 +78,36 @@ ______________________________________
 --where="client_name like 'MM - %'"
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=632 --population_config_id=751 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Month)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=632 --population_config_id=751 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Month)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=635 --population_config_id=755 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Quarter)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=635 --population_config_id=755 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Quarter)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
 
 ______________________________________
 
-select * from story_export_configurations_v2 where tbl = 'ca_prof_licenses_issued_zip_month_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'ca_prof_licenses_issued_zip_q_staging' and export_name like '%production%' order by id DESC;
 
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=632 --population_config_id=751 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Month)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=632 --population_config_id=751 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Month)' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=635 --population_config_id=755 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Quarter)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=635 --population_config_id=755 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Quarter)' -t --prod --where="client_name like 'MM - %'"
 _________
 повторяем
 
-select * from story_export_configurations_v2 where tbl = 'ca_prof_licenses_issued_zip_month_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'ca_prof_licenses_issued_zip_q_staging' and export_name like '%production%' order by id DESC;
 
 
 ______________________
 для построения таблицы
 ______________________
 
-select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from ca_prof_licenses_issued_zip_month_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='ca_prof_licenses_issued_zip_month_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from ca_prof_licenses_issued_zip_q_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='ca_prof_licenses_issued_zip_q_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
 
 
 __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='ca_prof_licenses_issued_zip_month_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=216480 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='ca_prof_licenses_issued_zip_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=216480 --limit=1
 
 _____
 IF OK
@@ -124,7 +124,7 @@ ___________________________
 
 SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
 FROM story_export_configurations_v2
-WHERE tbl = "ca_prof_licenses_issued_zip_month_staging" AND
+WHERE tbl = "ca_prof_licenses_issued_zip_q_staging" AND
       export_name LIKE '%production%';
 
 # pipeline-core-replica2.jnswire_prod query:
@@ -161,7 +161,7 @@ INSERT INTO loki_storycreator.hle_reminders
     )
 VALUES
     (
-        'California - Professional Licenses Issued (Zip - Month)', 'ca_prof_licenses_issued_zip_month_staging',
+        'California - Professional Licenses Issued (Zip - Quarter)', 'ca_prof_licenses_issued_zip_q_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
         'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
         '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
@@ -172,16 +172,15 @@ VALUES
 
 
 
-
 # Creator: Dmitry Suschinsky
-# Story type: California - Professional Licenses Issued (Zip - Month)
-# Template: https://docs.google.com/document/d/1nwQLZJy8N-mX5uHJPzE5g866L2zn-f0Bh3LxtEWLeOE/edit
+# Story type: California - Professional Licenses Issued (Zip - Quarter)
+# Template: https://docs.google.com/document/d/1MDXgVdwxnvQKjbqXOC2R-OcBBk5MU8CnRtdNNic5Mu0/edit
 # Created: April 2020
 
-# tbl: ca_prof_licenses_issued_zip_month_staging
+# tbl: ca_prof_licenses_issued_zip_q_staging
 # db01.usa_raw.california_professional_licensing_list
-# branch: ca_prof_licenses_issued_zip_month_d_sushi
-# ca_prof_licenses_issued_zip_month.rb
+# branch: ca_prof_licenses_issued_zip_q_d_sushi
+# ca_prof_licenses_issued_zip_q.rb
 
 def get_zips(data_route)
   root_query = "SELECT DISTINCT (zip) FROM california_professional_licensing_list WHERE state = 'California' AND zip != 'N/A';"
@@ -229,12 +228,12 @@ def titleize(str)
   str.split.each(&:capitalize!).join(' ')
 end
 
-def get_count(data_route, zip, month, year)
+def get_count(data_route, zip, quarter, year)
   root_query = "SELECT COUNT(main.license_number) AS count
                 FROM california_professional_licensing_list AS main
                 LEFT JOIN california_professional_licensing AS params
                        ON params.list_id = main.id AND params.name = main.name
-                WHERE MONTH(params.issuance_date) = #{month} AND YEAR(params.issuance_date) = #{year} AND
+                WHERE QUARTER(params.issuance_date) = #{quarter} AND YEAR(params.issuance_date) = #{year} AND
                       main.zip = #{zip} AND state = 'California';"
   data_route.client.query(root_query).to_a
 end
@@ -249,7 +248,7 @@ def get_org_id_by_zip_and_state(data_route, zip, state)
   data_route.client.query(root_query).to_a
 end
 
-def get_table_records(data_route, zip, month, year)
+def get_table_records(data_route, zip, quarter, year)
   # 'license_holder' 'license_type' 'lapse_date' 'issued_date'
   root_query = "SELECT main.name AS license_holder, main.license_number,
                        main.license_type AS license_type, params.issuance_date AS issued_date,
@@ -257,7 +256,7 @@ def get_table_records(data_route, zip, month, year)
                 FROM california_professional_licensing_list AS main
                 LEFT JOIN california_professional_licensing AS params
                        ON params.list_id = main.id AND params.name = main.name
-                WHERE MONTH(params.issuance_date) = #{month} AND YEAR(params.issuance_date) = #{year} AND
+                WHERE QUARTER(params.issuance_date) = #{quarter} AND YEAR(params.issuance_date) = #{year} AND
                       main.license_number != '' AND main.zip = '#{zip}' AND state = 'California'"
   data_route.client.query(root_query).to_a
 end
@@ -308,14 +307,14 @@ def growth_type_table(curr, prev)
   end
 end
 
-def ca_prof_licenses_issued_zip_month_stage_population(line, argument)
+def ca_prof_licenses_issued_zip_q_stage_population(line, argument)
   require 'bigdecimal'
   require 'bigdecimal/util'
   require 'date'
 
-  puts("\n!!!\nParameter required 'month' \n!!!\n") unless (@options['month'])
-  return 'INVALID' unless @options['month']
-  month = @options['month']
+  puts("\n!!!\nParameter required 'quarter' \n!!!\n") unless (@options['quarter'])
+  return 'INVALID' unless @options['quarter']
+  quarter = @options['quarter']
 
   puts("\n!!!\nParameter required 'year' \n!!!\n") unless (@options['year'])
   return 'INVALID' unless @options['year']
@@ -323,7 +322,7 @@ def ca_prof_licenses_issued_zip_month_stage_population(line, argument)
 
   threads_count = @options['threads_count'].to_i || 3
 
-  puts 'month: ', month
+  puts 'quarter: ', quarter
   puts 'year: ', year
 
   route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
@@ -336,7 +335,10 @@ def ca_prof_licenses_issued_zip_month_stage_population(line, argument)
 
   records = []
   zips.each do |zip|
-    count = get_count(route, zip['zip'], month, year)[0]['count'].to_i
+    count = get_count(route, zip['zip'], quarter, year)[0]['count'].to_i
+    puts 'COUNT: ', count if count != 0
+    puts 'ZIP: ', zip if count != 0
+
     if count.to_i == 0
       next
     end
@@ -344,10 +346,16 @@ def ca_prof_licenses_issued_zip_month_stage_population(line, argument)
     pl_org_id = get_org_id_by_zip_and_state(route, zip['zip'], 'California')[0]
     org_id = pl_org_id['org_id'] if pl_org_id.class != NilClass
 
-    if org_id == 0 || org_id == nil
+    if org_id == 0 || org_id == nil && count != 0
+      org_id = '645047731' # 645047731 for California state
+    elsif org_id == 0 || org_id == nil
       next
     end
-    records << {month: month, year: year, zip: zip['zip'], count: count, org_id: org_id}
+
+    puts 'org_id', org_id
+    puts '*----------------------------*'
+
+    records << {quarter: quarter, year: year, zip: zip['zip'], count: count, org_id: org_id}
   end
 
   puts 'records: ', records
@@ -374,7 +382,7 @@ def ca_prof_licenses_issued_zip_month_stage_population(line, argument)
         break if rec.class == NilClass
 
         puts 'rec: ', rec
-        puts 'rec[0][:zip]: ', rec[:zip]
+        puts 'rec[:zip]: ', rec[:zip]
 
         unless rec[:org_id]
           reasons[:publications] << rec[:zip]
@@ -394,7 +402,7 @@ def ca_prof_licenses_issued_zip_month_stage_population(line, argument)
           next
         end
 
-        table_records = get_table_records(data_state_01, rec[:zip], rec[:month], rec[:year])
+        table_records = get_table_records(data_state_01, rec[:zip], rec[:quarter], rec[:year])
         table = table_from_data(table_records)
 
         publications.each do |publication|
@@ -415,7 +423,7 @@ def ca_prof_licenses_issued_zip_month_stage_population(line, argument)
 
           hash['zip'] = rec[:zip]
           hash['count'] = rec[:count]
-          hash['month'] = rec[:month]
+          hash['quarter'] = rec[:quarter]
           hash['year'] = rec[:year]
 
           hash['story_table'] = table.to_json
@@ -442,7 +450,7 @@ def ca_prof_licenses_issued_zip_month_stage_population(line, argument)
   'INVALID'
 end
 
-def ca_prof_licenses_issued_zip_month_stage_creation(options, mail_sender = false)
+def ca_prof_licenses_issued_zip_q_stage_creation(options, mail_sender = false)
   i = 0
   count = @stage_selection.count
   @stage_selection.each do |stage|
@@ -450,10 +458,14 @@ def ca_prof_licenses_issued_zip_month_stage_creation(options, mail_sender = fals
     p "#{i}/#{count}: "
     export = {}
 
-    zip = stage['zip']
+    zip = titleize(stage['zip'])
     count_num = stage['count'].to_i
     count = Numbers.num_to_words(count_num)
-    month = Date::MONTHNAMES[stage['month']]
+    # header: Q2 of 2019
+    # body_and_teaser: the second quarter of 2019
+    quarter_header = "Q#{stage['quarter']} of #{stage['year']}"
+    quarter_body = "the #{Numbers.nthification(stage['quarter'].to_i)} quarter of #{stage['year']}"
+    quarter_title_table = "Q#{stage['quarter']}"
     license_header_str = "license" if count_num == 1
     license_header_str = "licenses" if count_num > 1
     license_str = "was #{count} professional license" if count_num == 1
@@ -464,14 +476,14 @@ def ca_prof_licenses_issued_zip_month_stage_creation(options, mail_sender = fals
     table = JSON.parse(stage['story_table'])
     table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
 
-    export['headline'] = "#{count_num} professional #{license_header_str} issued in #{zip} during #{month}"
-    export['teaser'] = "There #{license_str} issued in #{zip} during #{month}, according to California’s Department of Consumer Affairs."
+    export['headline'] = "#{count_num} professional #{license_header_str} issued in #{zip} during #{quarter_header}"
+    export['teaser'] = "There #{license_str} issued in #{zip} during #{quarter_body}, according to California’s Department of Consumer Affairs."
 
     output = ''
-    output << "There #{license_str} issued in #{zip} during #{month}, according to <a href='https://search.dca.ca.gov/'>California’s Department of Consumer Affairs (DCA)</a>.\n\n"
+    output << "There #{license_str} issued in #{zip} during #{quarter_body}, according to <a href='https://search.dca.ca.gov/'>California’s Department of Consumer Affairs (DCA)</a>.\n\n"
 
     output << "The DCA is composed of several agencies, bureaus and commissions that influence business growth and job creation through regulation. The agency has roots that date back to 1876 when California passed the Medical Practice Act of 1876. Today the agency issues more than 280 license types including certificates, registrations and permits.\n\n"
-    output << "<div style=\"font-size:18px\"><strong>#{license_s} issued during #{month} in #{zip}</strong></div>"
+    output << "<div style=\"font-size:18px\"><strong>#{license_s} issued during #{quarter_title_table} in #{zip}</strong></div>"
     output << table
 
     export = prepare_output(stage, output, export, options)
