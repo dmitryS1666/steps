@@ -18,7 +18,7 @@ STAGE POPULATION:
 $ cd ~/Loki/procedures
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=751 -t --month='3' --year='2020' --threads_count=1
 
-
+SELECT zip, zip_char FROM usa_raw.zipcode_data WHERE LENGTH(zip) < 5;
 STORY CREATOR CONFIGURATION:
 insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'ca_prof_licenses_issued_zip_month_staging', 'ca_prof_licenses_issued_zip_month_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
