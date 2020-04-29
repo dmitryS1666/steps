@@ -39,6 +39,8 @@ STAGING: EXPORT STORIES
 bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='315210-315219'
 
 
+SPREDSHEET
+bundle exec ruby Loki.rb :hle_tools@any_method_samples -t --source_table="db01.usa_raw.california_professional_licensing" --expr='Cleaner.person_clean("#{name}")'
 
 FIRST FEEDBACK
 ________________________________________
@@ -78,8 +80,8 @@ ______________________________________
 --where="client_name like 'MM - %'"
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=635 --population_config_id=755 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Quarter)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=635 --population_config_id=755 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Quarter)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=635 --population_config_id=755 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - Quarter)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=635 --population_config_id=755 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - Quarter)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
@@ -88,8 +90,9 @@ select * from story_export_configurations_v2 where tbl = 'ca_prof_licenses_issue
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=635 --population_config_id=755 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Quarter)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=635 --population_config_id=755 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Quarter)' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=635 --population_config_id=755 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - Quarter)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=635 --population_config_id=755 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - Quarter)' -t --prod --where="stage.client_name like 'MM - %'"
+
 _________
 повторяем
 
@@ -229,19 +232,21 @@ def titleize(str)
 end
 
 def get_count(data_route, zip, quarter, year)
-  root_query = "SELECT COUNT(main.license_number) AS count
-                FROM california_professional_licensing_list AS main
-                LEFT JOIN california_professional_licensing AS params
-                       ON params.list_id = main.id AND params.name = main.name
-                WHERE QUARTER(params.issuance_date) = #{quarter} AND YEAR(params.issuance_date) = #{year} AND
-                      main.zip = #{zip} AND state = 'California';"
+  root_query = "SELECT SUM(count) AS count FROM
+                (SELECT COUNT(params.name) AS count, params.name AS license_holder
+                    FROM california_professional_licensing_list AS main
+                    LEFT JOIN california_professional_licensing AS params
+                           ON params.list_id = main.id
+                    WHERE QUARTER(params.issuance_date) = #{quarter} AND YEAR(params.issuance_date) = #{year} AND
+                          main.license_number != '' AND main.zip = #{zip} AND state = 'California'
+                 GROUP BY license_holder) as clh;"
   data_route.client.query(root_query).to_a
 end
 
 def get_org_id_by_zip_and_state(data_route, zip, state)
   root_query = "SELECT pl_production_org_id AS org_id
                 FROM usa_raw.usa_administrative_division_counties_places_matching
-                WHERE short_name = (SELECT primary_city FROM zipcode_data WHERE zip = '#{zip}' AND state = 'CA') AND
+                WHERE short_name = (SELECT primary_city FROM zipcode_data WHERE zip_char = '#{zip}' AND state = 'CA') AND
                       kind = 'city' AND
                       bad_matching IS NULL AND
                       state_name = '#{state}';"
@@ -250,14 +255,15 @@ end
 
 def get_table_records(data_route, zip, quarter, year)
   # 'license_holder' 'license_type' 'lapse_date' 'issued_date'
-  root_query = "SELECT main.name AS license_holder, main.license_number,
+  root_query = "SELECT params.name AS license_holder, main.license_number,
                        main.license_type AS license_type, params.issuance_date AS issued_date,
-                       main.expiration_date AS lapse_date
+                       main.expiration_date AS lapse_date, MAX(params.expiration_date) AS expiration_date
                 FROM california_professional_licensing_list AS main
                 LEFT JOIN california_professional_licensing AS params
-                       ON params.list_id = main.id AND params.name = main.name
+                       ON params.list_id = main.id
                 WHERE QUARTER(params.issuance_date) = #{quarter} AND YEAR(params.issuance_date) = #{year} AND
-                      main.license_number != '' AND main.zip = '#{zip}' AND state = 'California'"
+                      main.license_number != '' AND main.zip = '#{zip}' AND state = 'California'
+                GROUP BY license_holder;"
   data_route.client.query(root_query).to_a
 end
 
@@ -476,11 +482,11 @@ def ca_prof_licenses_issued_zip_q_stage_creation(options, mail_sender = false)
     table = JSON.parse(stage['story_table'])
     table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
 
-    export['headline'] = "#{count_num} professional #{license_header_str} issued in #{zip} during #{quarter_header}"
-    export['teaser'] = "There #{license_str} issued in #{zip} during #{quarter_body}, according to California’s Department of Consumer Affairs."
+    export['headline'] = "#{count_num} professional #{license_header_str} issued in zip code #{zip} during #{quarter_header}"
+    export['teaser'] = "There #{license_str} issued in zip code #{zip} during #{quarter_body}, according to California’s Department of Consumer Affairs."
 
     output = ''
-    output << "There #{license_str} issued in #{zip} during #{quarter_body}, according to <a href='https://search.dca.ca.gov/'>California’s Department of Consumer Affairs (DCA)</a>.\n\n"
+    output << "There #{license_str} issued in zip code #{zip} during #{quarter_body}, according to <a href='https://search.dca.ca.gov/'>California’s Department of Consumer Affairs (DCA)</a>.\n\n"
 
     output << "The DCA is composed of several agencies, bureaus and commissions that influence business growth and job creation through regulation. The agency has roots that date back to 1876 when California passed the Medical Practice Act of 1876. Today the agency issues more than 280 license types including certificates, registrations and permits.\n\n"
     output << "<div style=\"font-size:18px\"><strong>#{license_s} issued during #{quarter_title_table} in #{zip}</strong></div>"
