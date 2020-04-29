@@ -167,9 +167,9 @@ VALUES
     (
         'California - Professional Licenses Issued (Zip - Month)', 'ca_prof_licenses_issued_zip_month_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-        'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
-        '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
-         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
+        'month', 1, 1, 'monthly', 'The Dataset located on db01.usa_raw.california_professional_licensing_list%',
+        '2020-04-29', 0, 0, 0, 20000, 'monthly', 0,
+         1, 'db01','usa_raw', 'select date(max(postedTime)) date from usa_raw.california_professional_licensing_list;'
     );
 
 
@@ -184,7 +184,7 @@ VALUES
 
 # tbl: ca_prof_licenses_issued_zip_month_staging
 # db01.usa_raw.california_professional_licensing_list
-# branch: ca_prof_licenses_issued_zip_month_d_sushi
+# branch: ca_prof_licenses_issued_zip_month
 # ca_prof_licenses_issued_zip_month.rb
 
 def get_zips(data_route)
@@ -234,19 +234,21 @@ def titleize(str)
 end
 
 def get_count(data_route, zip, month, year)
-  root_query = "SELECT COUNT(main.license_number) AS count
-                FROM california_professional_licensing_list AS main
-                LEFT JOIN california_professional_licensing AS params
-                       ON params.list_id = main.id AND params.name = main.name
-                WHERE MONTH(params.issuance_date) = #{month} AND YEAR(params.issuance_date) = #{year} AND
-                      main.zip = #{zip} AND state = 'California';"
+  root_query = "SELECT SUM(count) AS count FROM
+                (SELECT COUNT(params.name) AS count, params.name AS license_holder
+                    FROM california_professional_licensing_list AS main
+                    LEFT JOIN california_professional_licensing AS params
+                           ON params.list_id = main.id
+                    WHERE MONTH(params.issuance_date) = #{month} AND YEAR(params.issuance_date) = #{year} AND
+                          main.license_number != '' AND main.zip = #{zip} AND state = 'California'
+                 GROUP BY license_holder) as clh;"
   data_route.client.query(root_query).to_a
 end
 
 def get_org_id_by_zip_and_state(data_route, zip, state)
   root_query = "SELECT pl_production_org_id AS org_id
                 FROM usa_raw.usa_administrative_division_counties_places_matching
-                WHERE short_name = (SELECT primary_city FROM zipcode_data WHERE zip = '#{zip}' AND state = 'CA') AND
+                WHERE short_name = (SELECT primary_city FROM zipcode_data WHERE zip_char = '#{zip}' AND state = 'CA') AND
                       kind = 'city' AND
                       bad_matching IS NULL AND
                       state_name = '#{state}';"
@@ -255,14 +257,15 @@ end
 
 def get_table_records(data_route, zip, month, year)
   # 'license_holder' 'license_type' 'lapse_date' 'issued_date'
-  root_query = "SELECT main.name AS license_holder, main.license_number,
+  root_query = "SELECT params.name AS license_holder, main.license_number,
                        main.license_type AS license_type, params.issuance_date AS issued_date,
-                       main.expiration_date AS lapse_date
+                       main.expiration_date AS lapse_date, MAX(params.expiration_date) AS expiration_date
                 FROM california_professional_licensing_list AS main
                 LEFT JOIN california_professional_licensing AS params
-                       ON params.list_id = main.id AND params.name = main.name
+                       ON params.list_id = main.id
                 WHERE MONTH(params.issuance_date) = #{month} AND YEAR(params.issuance_date) = #{year} AND
-                      main.license_number != '' AND main.zip = '#{zip}' AND state = 'California'"
+                      main.license_number != '' AND main.zip = '#{zip}' AND state = 'California'
+                GROUP BY license_holder"
   data_route.client.query(root_query).to_a
 end
 
@@ -468,11 +471,11 @@ def ca_prof_licenses_issued_zip_month_stage_creation(options, mail_sender = fals
     table = JSON.parse(stage['story_table'])
     table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
 
-    export['headline'] = "#{count_num} professional #{license_header_str} issued in #{zip} during #{month}"
-    export['teaser'] = "There #{license_str} issued in #{zip} during #{month}, according to California’s Department of Consumer Affairs."
+    export['headline'] = "#{count_num} professional #{license_header_str} issued in zip code #{zip} during #{month}"
+    export['teaser'] = "There #{license_str} issued in zip code #{zip} during #{month}, according to California’s Department of Consumer Affairs."
 
     output = ''
-    output << "There #{license_str} issued in #{zip} during #{month}, according to <a href='https://search.dca.ca.gov/'>California’s Department of Consumer Affairs (DCA)</a>.\n\n"
+    output << "There #{license_str} issued in zip code #{zip} during #{month}, according to <a href='https://search.dca.ca.gov/'>California’s Department of Consumer Affairs (DCA)</a>.\n\n"
 
     output << "The DCA is composed of several agencies, bureaus and commissions that influence business growth and job creation through regulation. The agency has roots that date back to 1876 when California passed the Medical Practice Act of 1876. Today the agency issues more than 280 license types including certificates, registrations and permits.\n\n"
     output << "<div style=\"font-size:18px\"><strong>#{license_s} issued during #{month} in #{zip}</strong></div>"
