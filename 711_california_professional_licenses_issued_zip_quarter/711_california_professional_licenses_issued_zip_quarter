@@ -31,8 +31,8 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=6
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=635 --population_config_id=755 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Quarter)' -t
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=635 --population_config_id=755 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Quarter)' -t --where="stage.client_name LIKE 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=635 --population_config_id=755 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - Quarter)' -t --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=635 --population_config_id=755 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - Quarter)' -t --where="stage.client_name like 'MM - %'"
 
 
 STAGING: EXPORT STORIES
@@ -174,7 +174,6 @@ VALUES
 
 
 
-
 # Creator: Dmitry Suschinsky
 # Story type: California - Professional Licenses Issued (Zip - Quarter)
 # Template: https://docs.google.com/document/d/1MDXgVdwxnvQKjbqXOC2R-OcBBk5MU8CnRtdNNic5Mu0/edit
@@ -232,14 +231,16 @@ def titleize(str)
 end
 
 def get_count(data_route, zip, quarter, year)
-  root_query = "SELECT SUM(count) AS count FROM
-                (SELECT COUNT(params.name) AS count, params.name AS license_holder
-                    FROM california_professional_licensing_list AS main
-                    LEFT JOIN california_professional_licensing AS params
-                           ON params.list_id = main.id
-                    WHERE QUARTER(params.issuance_date) = #{quarter} AND YEAR(params.issuance_date) = #{year} AND
-                          main.license_number != '' AND main.zip = #{zip} AND state = 'California'
-                 GROUP BY license_holder) as clh;"
+  root_query = "SELECT COUNT(l.name) AS count
+                FROM california_professional_licensing l
+                     JOIN california_professional_licensing_list ll ON l.list_id=ll.id
+                     INNER JOIN (SELECT license_number, MAX(list_id) AS max_list_id
+                                 FROM california_professional_licensing
+                                 GROUP BY license_number) l_max
+                     ON ll.license_number = l_max.license_number AND
+                        ll.id = l_max.max_list_id
+                WHERE QUARTER(l.issuance_date) = #{quarter} AND YEAR(l.issuance_date) = #{year} AND
+                      ll.zip = #{zip} AND state = 'California';"
   data_route.client.query(root_query).to_a
 end
 
@@ -255,15 +256,19 @@ end
 
 def get_table_records(data_route, zip, quarter, year)
   # 'license_holder' 'license_type' 'lapse_date' 'issued_date'
-  root_query = "SELECT params.name AS license_holder, main.license_number,
-                       main.license_type AS license_type, params.issuance_date AS issued_date,
-                       main.expiration_date AS lapse_date, MAX(params.expiration_date) AS expiration_date
-                FROM california_professional_licensing_list AS main
-                LEFT JOIN california_professional_licensing AS params
-                       ON params.list_id = main.id
-                WHERE QUARTER(params.issuance_date) = #{quarter} AND YEAR(params.issuance_date) = #{year} AND
-                      main.license_number != '' AND main.zip = '#{zip}' AND state = 'California'
-                GROUP BY license_holder;"
+  root_query = "SELECT l.name AS license_holder, ll.license_number,
+                       ll.license_type AS license_type, l.issuance_date AS issued_date,
+                       ll.expiration_date AS lapse_date
+                FROM california_professional_licensing l
+                     JOIN california_professional_licensing_list ll ON l.list_id=ll.id
+                     INNER JOIN (SELECT license_number, MAX(list_id) AS max_list_id
+                                 FROM california_professional_licensing
+                                 GROUP BY license_number) l_max
+                     ON ll.license_number = l_max.license_number AND
+                        ll.id = l_max.max_list_id
+                WHERE QUARTER(l.issuance_date) = #{quarter} AND
+                      YEAR(l.issuance_date) = #{year} AND ll.zip = '#{zip}' AND state = 'California'
+                ORDER BY issued_date;"
   data_route.client.query(root_query).to_a
 end
 
