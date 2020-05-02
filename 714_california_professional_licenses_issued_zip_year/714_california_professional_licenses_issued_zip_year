@@ -16,7 +16,7 @@ population_config_id: #760
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=760 -t --year='2019' --threads_count=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=760 -t --year='2020' --threads_count=1
 
 
 STORY CREATOR CONFIGURATION:
@@ -31,9 +31,8 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=6
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Year)' -t
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Year)' -t --where="stage.client_name LIKE 'MM - %'"
-
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - Year)' -t --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - Year)' -t --where="stage.client_name like 'MM - %'"
 
 STAGING: EXPORT STORIES
 bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='315210-315219'
@@ -46,7 +45,7 @@ irb ->
 load 'Loki.rb'
 Hle::Story::Feedback.stories_feedback('511701546,511701553,511701552')
 
-bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511701546,511701553,511701552
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511707202,511707105,511707179
 
 
 !!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
