@@ -64,8 +64,8 @@ desc: California - Professional Licenses Issued (Zip - Quarter)
 
 config_id - population_config_id
 
-Up to 5 stories per day, per publication, for up to 50 days, starting January 20
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=755 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
+Up to 3 stories per day, per publication, for up to 90 days, starting May 10
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=755 --limit=3 --start_date='2020-05-10' --total_days_till_end_date=90
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -110,7 +110,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='ca_prof_licenses_issued_zip_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=216480 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='ca_prof_licenses_issued_zip_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=326284 --limit=1
 
 _____
 IF OK
@@ -118,7 +118,7 @@ _____
 
 --threads_count=7 | 13140961 | 13140960
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='...'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='326284,326300,326290,326288,326287,326293,326297,326286,326285,326295,326292,326296,326294,326291,326299,326289,326301,326298,'
 ___________________________
 
 
@@ -143,9 +143,9 @@ JOIN data_entry_leads AS l
   ON l.id = s.lead_id
 JOIN job_items AS ji
   ON l.job_item_id=ji.id
-WHERE published_at >= '2020-01-07' AND
+WHERE published_at >= '2020-05-09' AND
       deleted = 0 AND
-      l.job_item_id IN (...)
+      l.job_item_id IN (194335,194336,194339,194345,194338,194340,194341,194344,194350,194352,194342,194351,194349,194337,194343,194346,194347,194348)
 ORDER BY c.name;
 
 
@@ -166,9 +166,9 @@ VALUES
     (
         'California - Professional Licenses Issued (Zip - Quarter)', 'ca_prof_licenses_issued_zip_q_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-        'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
-        '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
-         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
+        'quarter', 1, 1, 'quarterly', 'The Dataset located on db01.usa_raw.california_professional_licensing_list',
+        '2020-05-09', 0, 0, 0, 20000, 'quarterly', 0,
+         1, 'db01','usa_raw', 'select date(max(postedTime)) date from usa_raw.california_professional_licensing_list;'
     );
 
 
