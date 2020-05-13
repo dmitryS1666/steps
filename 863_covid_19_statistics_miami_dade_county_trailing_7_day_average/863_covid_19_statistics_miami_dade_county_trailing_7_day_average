@@ -1,8 +1,8 @@
-California - Professional Licenses Issued (Zip - Year)
+Covid-19 Statistics - Trailing 7 day average
 https://docs.google.com/document/d/1Wg9IgufP1kuMcgA2Hvomfd7lj0QeT4IaSLPHzL6hNr8/edit
 
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'ca_prof_licenses_issued_zip_year_staging','{"zip":"VARCHAR(128)","count":"int(10)","year":"int(4)","story_table":"LONGTEXT"}';
+insert into stage_definition_configurations (tbl, definition) select 'covid_19_statistics_miami_dade_county_trailing_7_day_average_staging','{"zip":"VARCHAR(128)","count":"int(10)","year":"int(4)","story_table":"LONGTEXT"}';
 
 #646
 
@@ -10,7 +10,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=646 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'California - Professional Licenses Issued (Zip - Year)', 'ca_prof_licenses_issued_zip_year_staging', '{"known_entities":{"project_name":"California - Professional Licenses Issued (Zip - Year)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"ca_prof_licenses_issued_zip_year_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'Covid-19 Statistics - Trailing 7 day average', 'covid_19_statistics_miami_dade_county_trailing_7_day_average_staging', '{"known_entities":{"project_name":"Covid-19 Statistics - Trailing 7 day average"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"covid_19_statistics_miami_dade_county_trailing_7_day_average_population","arguments":{}}}}';
 
 population_config_id: #760
 
@@ -20,7 +20,7 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id
 
 
 STORY CREATOR CONFIGURATION:
-insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'ca_prof_licenses_issued_zip_year_staging', 'ca_prof_licenses_issued_zip_year_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'covid_19_statistics_miami_dade_county_trailing_7_day_average_staging', 'covid_19_statistics_miami_dade_county_trailing_7_day_average_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
 creation_config_id: #640
 
@@ -31,8 +31,8 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=6
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - Year)' -t --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - Year)' -t --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 7 day average' -t --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 7 day average' -t --where="stage.client_name like 'MM - %'"
 
 STAGING: EXPORT STORIES
 bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='315210-315219'
@@ -56,8 +56,8 @@ __________
 population_config_id: #760
 creation_config_id: #640
 
-tbl: ca_prof_licenses_issued_zip_year_staging
-desc: California - Professional Licenses Issued (Zip - Year)
+tbl: covid_19_statistics_miami_dade_county_trailing_7_day_average_staging
+desc: Covid-19 Statistics - Trailing 7 day average
 
 config_id - population_config_id
 
@@ -67,7 +67,7 @@ bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=760 --limit=2 --start
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
-select publication_name, min(publish_on), max(publish_on), count(*) from 'ca_prof_licenses_issued_zip_year_staging' group by publication_name;
+select publication_name, min(publish_on), max(publish_on), count(*) from 'covid_19_statistics_miami_dade_county_trailing_7_day_average_staging' group by publication_name;
 
 ______________________________________
 PRODUCTION: STORY EXPORT CONFIGURATION
@@ -78,29 +78,29 @@ ______________________________________
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - Year)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - Year)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 7 day average' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 7 day average' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
-select * from story_export_configurations_v2 where tbl = 'ca_prof_licenses_issued_zip_year_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'covid_19_statistics_miami_dade_county_trailing_7_day_average_staging' and export_name like '%production%' order by id DESC;
 
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - Year)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - Year)' -t --prod --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 7 day average' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 7 day average' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
 
-select * from story_export_configurations_v2 where tbl = 'ca_prof_licenses_issued_zip_year_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'covid_19_statistics_miami_dade_county_trailing_7_day_average_staging' and export_name like '%production%' order by id DESC;
 
 
 ______________________
 для построения таблицы
 ______________________
 
-select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from ca_prof_licenses_issued_zip_year_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='ca_prof_licenses_issued_zip_year_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from covid_19_statistics_miami_dade_county_trailing_7_day_average_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='covid_19_statistics_miami_dade_county_trailing_7_day_average_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
 
 
 __________________________
@@ -124,7 +124,7 @@ ___________________________
 
 SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
 FROM story_export_configurations_v2
-WHERE tbl = "ca_prof_licenses_issued_zip_year_staging" AND
+WHERE tbl = "covid_19_statistics_miami_dade_county_trailing_7_day_average_staging" AND
       export_name LIKE '%production%';
 
 # pipeline-core-replica2.jnswire_prod query:
@@ -161,7 +161,7 @@ INSERT INTO loki_storycreator.hle_reminders
     )
 VALUES
     (
-        'California - Professional Licenses Issued (Zip - Year)', 'ca_prof_licenses_issued_zip_year_staging',
+        'Covid-19 Statistics - Trailing 7 day average', 'covid_19_statistics_miami_dade_county_trailing_7_day_average_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
         'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
         '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
@@ -173,13 +173,13 @@ VALUES
 
 
 # Creator: Dmitry Suschinsky
-# Story type: California - Professional Licenses Issued (Zip - Year)
+# Story type: Covid-19 Statistics - Trailing 7 day average
 # Template: https://docs.google.com/document/d/1MDXgVdwxnvQKjbqXOC2R-OcBBk5MU8CnRtdNNic5Mu0/edit
 # Created: April 2020
 
-# tbl: ca_prof_licenses_issued_zip_year_staging
+# tbl: covid_19_statistics_miami_dade_county_trailing_7_day_average_staging
 # db01.usa_raw.california_professional_licensing_list
-# branch: ca_prof_licenses_issued_zip_year_d_sushi
+# branch: covid_19_statistics_miami_dade_county_trailing_7_day_average_d_sushi
 # ca_prof_licenses_issued_zip_year.rb
 
 def get_zips(data_route)
@@ -307,7 +307,7 @@ def growth_type_table(curr, prev)
   end
 end
 
-def ca_prof_licenses_issued_zip_year_stage_population(line, argument)
+def covid_19_statistics_miami_dade_county_trailing_7_day_average_stage_population(line, argument)
   require 'bigdecimal'
   require 'bigdecimal/util'
   require 'date'
@@ -450,7 +450,7 @@ def ca_prof_licenses_issued_zip_year_stage_population(line, argument)
   'INVALID'
 end
 
-def ca_prof_licenses_issued_zip_year_stage_creation(options, mail_sender = false)
+def covid_19_statistics_miami_dade_county_trailing_7_day_average_stage_creation(options, mail_sender = false)
   i = 0
   count = @stage_selection.count
   @stage_selection.each do |stage|
