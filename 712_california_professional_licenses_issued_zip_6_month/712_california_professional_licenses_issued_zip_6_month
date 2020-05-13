@@ -61,8 +61,8 @@ desc: California - Professional Licenses Issued (Zip - 6 Months)
 
 config_id - population_config_id
 
-Up to 5 stories per day, per publication, for up to 50 days, starting January 20
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=759 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
+Up to 10 stories per day, per publication, for up to 180 days
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=759 --limit=10 --start_date='2020-06-01' --total_days_till_end_date=180
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -77,11 +77,8 @@ ______________________________________
 --where="client_name like 'MM - %'"
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=639 --population_config_id=759 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - 6 Months)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=639 --population_config_id=759 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - 6 Months)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
-
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=639 --population_config_id=759 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - 6 Months)' -t --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=639 --population_config_id=759 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - 6 Months)' -t --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=639 --population_config_id=759 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - 6 Months)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=639 --population_config_id=759 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - 6 Months)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
@@ -90,8 +87,8 @@ select * from story_export_configurations_v2 where tbl = 'ca_prof_licenses_issue
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=639 --population_config_id=759 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - 6 Months)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=639 --population_config_id=759 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - 6 Months)' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=639 --population_config_id=759 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - 6 Months)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=639 --population_config_id=759 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - 6 Months)' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
 
@@ -109,7 +106,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='ca_prof_licenses_issued_zip_6_months_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=216480 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='ca_prof_licenses_issued_zip_6_months_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=327952 --limit=1
 
 _____
 IF OK
@@ -117,7 +114,7 @@ _____
 
 --threads_count=7 | 13140961 | 13140960
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='...'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='327952,327966,327977,327960,327956,327961,327962,327969,327965,327971,327974,327967,327978,327976,327953,327954,327955,327958,327970,327972,327975,327973,327964,327963,327957,327968,327959'
 ___________________________
 
 
@@ -144,7 +141,7 @@ JOIN job_items AS ji
   ON l.job_item_id=ji.id
 WHERE published_at >= '2020-01-07' AND
       deleted = 0 AND
-      l.job_item_id IN (...)
+      l.job_item_id IN (195725,195727,195729,195734,195746,195735,195730,195750,195733,195738,195744,195743,195748,195736,195741,195742,195737,195749,195751,195747,195739,195732,195726,195731,195728,195745,195740)
 ORDER BY c.name;
 
 
@@ -165,9 +162,9 @@ VALUES
     (
         'California - Professional Licenses Issued (Zip - 6 Months)', 'ca_prof_licenses_issued_zip_6_months_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-        'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
-        '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
-         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
+        'month', 1, 1, 'monthly', 'The Dataset located on db01.usa_raw.california_professional_licensing_list',
+        '2020-05-12', 0, 0, 0, 20000, 'monthly', 0,
+         1, 'db01','usa_raw', 'select date(max(postedTime)) date from usa_raw.california_professional_licensing_list;'
     );
 
 
