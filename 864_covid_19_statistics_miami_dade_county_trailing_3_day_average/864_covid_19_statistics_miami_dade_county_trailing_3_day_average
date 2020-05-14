@@ -2,7 +2,7 @@ Covid-19 Statistics - Trailing 3 day average
 https://docs.google.com/document/d/1Wg9IgufP1kuMcgA2Hvomfd7lj0QeT4IaSLPHzL6hNr8/edit
 
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'covid_19_statistics_miami_dade_county_trailing_3_day_average_staging','{"zip":"VARCHAR(128)","count":"int(10)","year":"int(4)","story_table":"LONGTEXT"}';
+insert into stage_definition_configurations (tbl, definition) select 'covid_19_statistics_miami_dade_county_trailing_7_day_average_staging','{"county":"VARCHAR(128)","count":"int(10)","date":"VARCHAR(128)","story_table":"LONGTEXT"}';
 
 #646
 
