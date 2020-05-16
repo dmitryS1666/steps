@@ -2,37 +2,37 @@ Covid-19 Statistics - Trailing 3 day average
 https://docs.google.com/document/d/1Wg9IgufP1kuMcgA2Hvomfd7lj0QeT4IaSLPHzL6hNr8/edit
 
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'covid_19_statistics_miami_dade_county_trailing_7_day_average_staging','{"county":"VARCHAR(128)","count":"int(10)","date":"VARCHAR(128)","story_table":"LONGTEXT"}';
+insert into stage_definition_configurations (tbl, definition) select 'covid_19_stat_miami_dade_county_trailing_3_day_avg_staging','{"county":"VARCHAR(128)","count":"int(10)","date":"VARCHAR(128)","story_table":"LONGTEXT"}';
 
-#646
+#672
 
 STAGE TABLE CREATION
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=646 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=672 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'Covid-19 Statistics - Trailing 3 day average', 'covid_19_statistics_miami_dade_county_trailing_3_day_average_staging', '{"known_entities":{"project_name":"Covid-19 Statistics - Trailing 3 day average"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"covid_19_statistics_miami_dade_county_trailing_3_day_average_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'Covid-19 Statistics - Trailing 3 day average', 'covid_19_stat_miami_dade_county_trailing_3_day_avg_staging', '{"known_entities":{"project_name":"Covid-19 Statistics - Trailing 3 day average"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"covid_19_statistics_miami_dade_county_trailing_3_day_average_population","arguments":{}}}}';
 
-population_config_id: #760
+population_config_id: #781
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=760 -t --year='2020' --threads_count=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=781 -t --date='2020-05-09' --threads_count=1
 
 
 STORY CREATOR CONFIGURATION:
-insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'covid_19_statistics_miami_dade_county_trailing_3_day_average_staging', 'covid_19_statistics_miami_dade_county_trailing_3_day_average_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'covid_19_stat_miami_dade_county_trailing_3_day_avg_staging', 'covid_19_statistics_miami_dade_county_trailing_3_day_average_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
-creation_config_id: #640
+creation_config_id: #664
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=640 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=664 -t
 
 
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 3 day average' -t --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 3 day average' -t --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=664 --population_config_id=781 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 3 day average' -t --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=664 --population_config_id=781 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 3 day average' -t --where="stage.client_name like 'MM - %'"
 
 STAGING: EXPORT STORIES
 bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='315210-315219'
@@ -53,21 +53,21 @@ ________________________________________________________________________________
 
 SCHEDULER:
 __________
-population_config_id: #760
-creation_config_id: #640
+population_config_id: #781
+creation_config_id: #664
 
-tbl: covid_19_statistics_miami_dade_county_trailing_3_day_average_staging
+tbl: covid_19_stat_miami_dade_county_trailing_3_day_avg_staging
 desc: Covid-19 Statistics - Trailing 3 day average
 
 config_id - population_config_id
 
 Up to 2 stories per day, per pub, for up to 180 days
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=760 --limit=2 --start_date='2020-06-01' --total_days_till_end_date=180
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=781 --limit=2 --start_date='2020-06-01' --total_days_till_end_date=180
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
-select publication_name, min(publish_on), max(publish_on), count(*) from 'covid_19_statistics_miami_dade_county_trailing_3_day_average_staging' group by publication_name;
+select publication_name, min(publish_on), max(publish_on), count(*) from 'covid_19_stat_miami_dade_county_trailing_3_day_avg_staging' group by publication_name;
 
 ______________________________________
 PRODUCTION: STORY EXPORT CONFIGURATION
@@ -78,29 +78,29 @@ ______________________________________
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 3 day average' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 3 day average' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=664 --population_config_id=781 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 3 day average' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=664 --population_config_id=781 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 3 day average' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
-select * from story_export_configurations_v2 where tbl = 'covid_19_statistics_miami_dade_county_trailing_3_day_average_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'covid_19_stat_miami_dade_county_trailing_3_day_avg_staging' and export_name like '%production%' order by id DESC;
 
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 3 day average' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=640 --population_config_id=760 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 3 day average' -t --prod --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=664 --population_config_id=781 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 3 day average' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=664 --population_config_id=781 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 3 day average' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
 
-select * from story_export_configurations_v2 where tbl = 'covid_19_statistics_miami_dade_county_trailing_3_day_average_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'covid_19_stat_miami_dade_county_trailing_3_day_avg_staging' and export_name like '%production%' order by id DESC;
 
 
 ______________________
 для построения таблицы
 ______________________
 
-select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from covid_19_statistics_miami_dade_county_trailing_3_day_average_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='covid_19_statistics_miami_dade_county_trailing_3_day_average_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from covid_19_stat_miami_dade_county_trailing_3_day_avg_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='covid_19_stat_miami_dade_county_trailing_3_day_avg_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
 
 
 __________________________
@@ -124,7 +124,7 @@ ___________________________
 
 SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
 FROM story_export_configurations_v2
-WHERE tbl = "covid_19_statistics_miami_dade_county_trailing_3_day_average_staging" AND
+WHERE tbl = "covid_19_stat_miami_dade_county_trailing_3_day_avg_staging" AND
       export_name LIKE '%production%';
 
 # pipeline-core-replica2.jnswire_prod query:
@@ -142,7 +142,7 @@ JOIN job_items AS ji
   ON l.job_item_id=ji.id
 WHERE published_at >= '2020-05-12' AND
       deleted = 0 AND
-      l.job_item_id IN (195752,195753,195756,195763,195757,195755,195758,195769,195762,195766,195771,195772,195760,195768,195761,195770,195754,195759,195764,195765,195767)
+      l.job_item_id IN (195752,195753,195756,195763,195757,195755,195758,195769,195762,195766,195771,195772,195781,195768,195761,195770,195754,195759,195764,195765,195767)
 ORDER BY c.name;
 
 
@@ -161,7 +161,7 @@ INSERT INTO loki_storycreator.hle_reminders
     )
 VALUES
     (
-        'Covid-19 Statistics - Trailing 3 day average', 'covid_19_statistics_miami_dade_county_trailing_3_day_average_staging',
+        'Covid-19 Statistics - Trailing 3 day average', 'covid_19_stat_miami_dade_county_trailing_3_day_avg_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
         'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
         '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
@@ -171,46 +171,23 @@ VALUES
 
 
 
-
 # Creator: Dmitry Suschinsky
 # Story type: Covid-19 Statistics - Trailing 3 day average
-# Template: https://docs.google.com/document/d/1zL21sYRjNEsmGoAibrDc_43zXS5oEmFjMhj4pEU3xOo/edit
+# Template: https://docs.google.com/document/d/1zL21sYRjNEsmGoAibrDc_43zXS5oEmFjMhj4pEU3xOo/edit#
 # Created: May 2020
 
-# tbl: covid_19_statistics_miami_dade_county_trailing_3_day_average_staging
-# db01.usa_raw.california_professional_licensing_list
+# tbl: covid_19_stat_miami_dade_county_trailing_3_day_avg_staging
+# db01.usa_raw.miami_dade_county_covid_death
 # branch: covid_19_statistics_miami_dade_county_trailing_3_day_average_d_sushi
-# ca_prof_licenses_issued_zip_year.rb
-
-def get_zips(data_route)
-  root_query = "SELECT DISTINCT (zip) FROM california_professional_licensing_list WHERE state = 'California' AND zip != 'N/A';"
-  data_route.client.query(root_query).to_a
-end
-
-def growth_type_head_line(curr, prev, zip_population_diff)
-  # increases by #, decreases by #, or unchanged
-  return "increases by #{separate_comma(zip_population_diff)} people" if curr > prev
-  return "decreases by #{separate_comma(zip_population_diff)} people" if curr < prev
-  'unchanged' if (curr == prev)
-end
+# covid_19_statistics_miami_dade_county_trailing_3_day_average.rb.rb
 
 def table_from_data(records)
   table = []
-  det = Determiner.new
-
   records.each do |rec|
-    if rec['lapse_date'] != '0000-00-00'
-      lapse_date = DateTime.strptime(rec['lapse_date'], '%Y-%m-%d').strftime('%m-%d-%Y')
-    else
-      lapse_date = 'N/A'
-    end
-    issued_date = DateTime.strptime(rec['issued_date'], '%Y-%m-%d')
-
+    puts 'rec: ', rec
     table << {
-        "License Holder" => det.determine(rec['license_holder']) == "Organization" ?  Cleaner.org_clean(rec['license_holder']) : Cleaner.person_clean(rec['license_holder']),
-        "License Type" => rec['license_type'],
-        "Lapse Date" => lapse_date,
-        "Issued Date" => issued_date.strftime('%m-%d-%Y')
+        "Date" => rec['death_date'].strftime("%m/%d/%Y"),
+        "COVID-19 related deaths" => rec['deaths_count']
     }
   end
   table
@@ -228,36 +205,22 @@ def titleize(str)
   str.split.each(&:capitalize!).join(' ')
 end
 
-def get_count(data_route, zip, quarter, year)
-  root_query = "SELECT COUNT(main.license_number) AS count
-                FROM california_professional_licensing_list AS main
-                LEFT JOIN california_professional_licensing AS params
-                       ON params.list_id = main.id AND params.name = main.name
-                WHERE QUARTER(params.issuance_date) = #{quarter} AND YEAR(params.issuance_date) = #{year} AND
-                      main.zip = #{zip} AND state = 'California';"
+def get_table_records(data_route, date_start, date_finish)
+  root_query = "SELECT death_date, COUNT(id) AS deaths_count FROM miami_dade_county_covid_death
+                WHERE death_date BETWEEN '#{date_start}' AND '#{date_finish}'
+                GROUP BY death_date
+                ORDER BY death_date DESC"
   data_route.client.query(root_query).to_a
 end
 
-def get_org_id_by_zip_and_state(data_route, zip, state)
-  root_query = "SELECT pl_production_org_id AS org_id
-                FROM usa_raw.usa_administrative_division_counties_places_matching
-                WHERE short_name = (SELECT primary_city FROM zipcode_data WHERE zip = '#{zip}' AND state = 'CA') AND
-                      kind = 'city' AND
-                      bad_matching IS NULL AND
-                      state_name = '#{state}';"
+def get_count(data_route, date_start, date_finish)
+  root_query = "SELECT COUNT(id) AS count FROM miami_dade_county_covid_death WHERE death_date BETWEEN '#{date_start}' AND '#{date_finish}';"
   data_route.client.query(root_query).to_a
 end
 
-def get_table_records(data_route, zip, quarter, year)
-  # 'license_holder' 'license_type' 'lapse_date' 'issued_date'
-  root_query = "SELECT main.name AS license_holder, main.license_number,
-                       main.license_type AS license_type, params.issuance_date AS issued_date,
-                       main.expiration_date AS lapse_date
-                FROM california_professional_licensing_list AS main
-                LEFT JOIN california_professional_licensing AS params
-                       ON params.list_id = main.id AND params.name = main.name
-                WHERE QUARTER(params.issuance_date) = #{quarter} AND YEAR(params.issuance_date) = #{year} AND
-                      main.license_number != '' AND main.zip = '#{zip}' AND state = 'California'"
+def get_org_ids(data_route)
+  root_query = "SELECT DISTINCT(pl_production_org_id) AS org_id FROM usa_administrative_division_counties_places_matching
+                WHERE county_name = 'Miami-Dade County';"
   data_route.client.query(root_query).to_a
 end
 
@@ -269,18 +232,6 @@ def get_percentage_diff(data1, data2)
   end
 end
 
-def growth_type(curr, prev)
-  if curr.to_f == prev.to_f
-    'unchanged from'
-  elsif prev == 0
-    "an increase of #{Numbers.num_to_words(curr.to_i)} over"
-  elsif curr.to_f > prev.to_f
-    'a ' + get_percentage_diff(curr.to_f, prev.to_f).to_s + '-percent increase over'
-  else
-    'a ' + get_percentage_diff(curr.to_f, prev.to_f).to_s + '-percent decrease from'
-  end
-end
-
 def prepare_count(val)
   if val.to_i < 10
     Numbers.num_to_words(val)
@@ -289,41 +240,30 @@ def prepare_count(val)
   end
 end
 
-def was_were(val)
-  if val.to_i > 0 && val.to_i == 1
-    'license'
-  elsif val.to_i > 0 && val.to_i > 1
-    'licenses'
-  end
-end
-
-def growth_type_table(curr, prev)
-  if curr.to_f == prev.to_f
-    '0'
-  elsif curr.to_f > prev.to_f
-    get_percentage_diff(curr.to_f, prev.to_f).to_s
-  else
-    '-' + get_percentage_diff(curr.to_f, prev.to_f).to_s
-  end
-end
-
 def covid_19_statistics_miami_dade_county_trailing_3_day_average_stage_population(line, argument)
   require 'bigdecimal'
   require 'bigdecimal/util'
   require 'date'
 
-  puts("\n!!!\nParameter required 'quarter' \n!!!\n") unless (@options['quarter'])
-  return 'INVALID' unless @options['quarter']
-  quarter = @options['quarter']
+  county = 'Miami-Dade County'
 
-  puts("\n!!!\nParameter required 'year' \n!!!\n") unless (@options['year'])
-  return 'INVALID' unless @options['year']
-  year = @options['year']
+  puts("\n!!!\nParameter year required 'date' \n!!!\n") unless (@options['date'])
+  return 'INVALID' unless @options['date']
+  date = @options['date']
+  return 'INVALID' unless date.to_s.match(/^\d{4}-\d{1,2}-\d{1,2}$/)
+
+  date = Date.parse(date)
+  date_start = date - 2
+  date_start_two_weeks = date - 13
+  date_start_str = "#{date.strftime("%b")} #{date.strftime("%d")}"
 
   threads_count = @options['threads_count'].to_i || 3
 
-  puts 'quarter: ', quarter
-  puts 'year: ', year
+  puts 'date_start: ', date_start
+  puts 'date_start_str: ', date_start_str
+  puts 'date_start_two_weeks: ', date_start_two_weeks
+  date_finish = date
+  puts 'date_finish: ', date_finish
 
   route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
   route.client.query("use #{route.stage_db}")
@@ -331,35 +271,11 @@ def covid_19_statistics_miami_dade_county_trailing_3_day_average_stage_populatio
   data_state = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
   data_state.client.query("use #{data_state.stage_db}")
 
-  zips = get_zips(route)
+  count = get_count(route, date_start, date_finish)[0]['count']
+  org_ids = get_org_ids(route)
 
-  records = []
-  zips.each do |zip|
-    count = get_count(route, zip['zip'], quarter, year)[0]['count'].to_i
-    puts 'COUNT: ', count if count != 0
-    puts 'ZIP: ', zip if count != 0
-
-    if count.to_i == 0
-      next
-    end
-
-    pl_org_id = get_org_id_by_zip_and_state(route, zip['zip'], 'California')[0]
-    org_id = pl_org_id['org_id'] if pl_org_id.class != NilClass
-
-    if org_id == 0 || org_id == nil && count != 0
-      org_id = '645047731' # 645047731 for California state
-    elsif org_id == 0 || org_id == nil
-      next
-    end
-
-    puts 'org_id', org_id
-    puts '*----------------------------*'
-
-    records << {quarter: quarter, year: year, zip: zip['zip'], count: count, org_id: org_id}
-  end
-
-  puts 'records: ', records
-  puts 'records count: ', records.count
+  puts 'count: ', count
+  puts 'org_ids: ', org_ids
 
   @semaphore = Mutex.new
   threads = Array.new(threads_count) do
@@ -377,32 +293,31 @@ def covid_19_statistics_miami_dade_county_trailing_3_day_average_stage_populatio
       loop do
         rec = nil
         @semaphore.synchronize {
-          rec = records.pop
+          rec = org_ids.pop
         }
         break if rec.class == NilClass
 
         puts 'rec: ', rec
-        puts 'rec[:zip]: ', rec[:zip]
 
-        unless rec[:org_id]
-          reasons[:publications] << rec[:zip]
+        unless rec['org_id']
+          reasons[:publications] << rec['org_id']
           next
         end
 
         # Metro Business Network
         # MM-California
         publications = []
-        publications << Hle::Publications.mm_pubs_excluding_states(rec[:org_id], 'production', 'California')
-        publications << get_journal_from_org_id(rec[:org_id], 'production', 120) rescue nil
+        publications << Hle::Publications.mm_pubs_excluding_states(rec['org_id'], 'production', 'Florida')
+        publications << get_journal_from_org_id(rec['org_id'], 'production', 120) rescue nil
 
         publications.flatten!.uniq!
 
         if publications.count.zero?
-          reasons[:publications] << rec[:zip]
+          reasons[:publications] << rec['org_id']
           next
         end
 
-        table_records = get_table_records(data_state_01, rec[:zip], rec[:quarter], rec[:year])
+        table_records = get_table_records(data_state_01, date_start_two_weeks, date_finish)
         table = table_from_data(table_records)
 
         publications.each do |publication|
@@ -419,12 +334,11 @@ def covid_19_statistics_miami_dade_county_trailing_3_day_average_stage_populatio
           hash['client_id'] = publication['client_id']
           hash['publication_id'] = publication['id'].to_i
           hash['source_table_id'] = 20483
-          hash['organization_id'] = rec[:org_id]
+          hash['organization_id'] = rec['org_id']
 
-          hash['zip'] = rec[:zip]
-          hash['count'] = rec[:count]
-          hash['quarter'] = rec[:quarter]
-          hash['year'] = rec[:year]
+          hash['county'] = county
+          hash['count'] = count
+          hash['date'] = date_start_str
 
           hash['story_table'] = table.to_json
 
@@ -458,32 +372,21 @@ def covid_19_statistics_miami_dade_county_trailing_3_day_average_stage_creation(
     p "#{i}/#{count}: "
     export = {}
 
-    zip = titleize(stage['zip'])
+    county = stage['county']
+    date = stage['date']
     count_num = stage['count'].to_i
     count = Numbers.num_to_words(count_num)
-    # header: Q2 of 2019
-    # body_and_teaser: the second quarter of 2019
-    quarter_header = "Q#{stage['quarter']} of #{stage['year']}"
-    quarter_body = "the #{Numbers.nthification(stage['quarter'].to_i)} quarter of #{stage['year']}"
-    quarter_title_table = "Q#{stage['quarter']}"
-    license_header_str = "license" if count_num == 1
-    license_header_str = "licenses" if count_num > 1
-    license_str = "was #{count} professional license" if count_num == 1
-    license_str = "were #{count} professional licenses" if count_num > 1
-    license_s = "License" if count_num == 1
-    license_s = "Licenses" if count_num > 1
 
     table = JSON.parse(stage['story_table'])
     table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
 
-    export['headline'] = "#{count_num} professional #{license_header_str} issued in #{zip} during #{quarter_header}"
-    export['teaser'] = "There #{license_str} issued in #{zip} during #{quarter_body}, according to California’s Department of Consumer Affairs."
+    export['headline'] = "#{date} - COVID-19 kills #{count_num / 3} #{county} residents per day over 3 day period"
+    export['teaser'] = "On average, over the past three days, #{Numbers.num_to_words(count_num / 3)} #{county} residents died daily as a result of complications related to a COVID-19 infection, according to the Miami-Dade County Government."
 
     output = ''
-    output << "There #{license_str} issued in #{zip} during #{quarter_body}, according to <a href='https://search.dca.ca.gov/'>California’s Department of Consumer Affairs (DCA)</a>.\n\n"
+    output << "On average, over the past three days, #{Numbers.num_to_words(count_num / 3)} #{county} residents died daily as a result of complications related to a COVID-19 infection, according to the <a href='https://www.miamidade.gov/global/medicalexaminer/home.page'>Miami-Dade County Government</a>.\n\n"
 
-    output << "The DCA is composed of several agencies, bureaus and commissions that influence business growth and job creation through regulation. The agency has roots that date back to 1876 when California passed the Medical Practice Act of 1876. Today the agency issues more than 280 license types including certificates, registrations and permits.\n\n"
-    output << "<div style=\"font-size:18px\"><strong>#{license_s} issued during #{quarter_title_table} in #{zip}</strong></div>"
+    output << "<div style=\"font-size:18px\"><strong>COVID-19 deaths in #{county} over previous 2 weeks</strong></div>"
     output << table
 
     export = prepare_output(stage, output, export, options)

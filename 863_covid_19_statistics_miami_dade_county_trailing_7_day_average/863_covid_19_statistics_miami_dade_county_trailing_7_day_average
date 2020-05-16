@@ -45,7 +45,7 @@ irb ->
 load 'Loki.rb'
 Hle::Story::Feedback.stories_feedback('511701546,511701553,511701552')
 
-bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511707202,511707105,511707179
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511711626,511711623
 
 
 !!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
@@ -167,7 +167,6 @@ VALUES
         '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
          1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
     );
-
 
 
 
@@ -378,7 +377,7 @@ def covid_19_statistics_miami_dade_county_trailing_7_day_average_stage_creation(
     count_num = stage['count'].to_i
     count = Numbers.num_to_words(count_num)
 
-    resident = count_num == 1 ? 'resident' : 'residents'
+    resident = (count_num / 7) == 1 ? 'resident' : 'residents'
 
     table = JSON.parse(stage['story_table'])
     table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
