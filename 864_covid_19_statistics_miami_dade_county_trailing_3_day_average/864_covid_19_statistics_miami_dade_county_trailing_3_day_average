@@ -45,7 +45,7 @@ irb ->
 load 'Loki.rb'
 Hle::Story::Feedback.stories_feedback('511701546,511701553,511701552')
 
-bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511707202,511707105,511707179
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511711632,511711627,511711628
 
 
 !!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
@@ -377,14 +377,16 @@ def covid_19_statistics_miami_dade_county_trailing_3_day_average_stage_creation(
     count_num = stage['count'].to_i
     count = Numbers.num_to_words(count_num)
 
+    resident = (count_num / 3) == 1 ? 'resident' : 'residents'
+
     table = JSON.parse(stage['story_table'])
     table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
 
-    export['headline'] = "#{date} - COVID-19 kills #{count_num / 3} #{county} residents per day over 3 day period"
-    export['teaser'] = "On average, over the past three days, #{Numbers.num_to_words(count_num / 3)} #{county} residents died daily as a result of complications related to a COVID-19 infection, according to the Miami-Dade County Government."
+    export['headline'] = "#{date} - COVID-19 kills #{count_num / 3} #{county} #{resident} per day over 3 day period"
+    export['teaser'] = "On average, over the past three days, #{Numbers.num_to_words(count_num / 3)} #{county} #{resident} died daily as a result of complications related to a COVID-19 infection, according to the Miami-Dade County Government."
 
     output = ''
-    output << "On average, over the past three days, #{Numbers.num_to_words(count_num / 3)} #{county} residents died daily as a result of complications related to a COVID-19 infection, according to the <a href='https://www.miamidade.gov/global/medicalexaminer/home.page'>Miami-Dade County Government</a>.\n\n"
+    output << "On average, over the past three days, #{Numbers.num_to_words(count_num / 3)} #{county} #{resident} died daily as a result of complications related to a COVID-19 infection, according to the <a href='https://www.miamidade.gov/global/medicalexaminer/home.page'>Miami-Dade County Government</a>.\n\n"
 
     output << "<div style=\"font-size:18px\"><strong>COVID-19 deaths in #{county} over previous 2 weeks</strong></div>"
     output << table
