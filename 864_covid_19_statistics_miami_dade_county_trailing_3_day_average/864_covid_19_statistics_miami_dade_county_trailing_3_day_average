@@ -253,16 +253,16 @@ def covid_19_statistics_miami_dade_county_trailing_3_day_average_stage_populatio
   return 'INVALID' unless date.to_s.match(/^\d{4}-\d{1,2}-\d{1,2}$/)
 
   date = Date.parse(date)
-  date_start = date - 2
-  date_start_two_weeks = date - 13
-  date_start_str = "#{date.strftime("%b")} #{date.strftime("%d")}"
+  date_start = date - 3
+  date_finish = date - 1
+  date_start_two_weeks = date - 14
+  date_start_str = "#{date_finish.strftime("%b")} #{date_finish.strftime("%d")}"
 
   threads_count = @options['threads_count'].to_i || 3
 
   puts 'date_start: ', date_start
   puts 'date_start_str: ', date_start_str
   puts 'date_start_two_weeks: ', date_start_two_weeks
-  date_finish = date
   puts 'date_finish: ', date_finish
 
   route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
@@ -374,19 +374,26 @@ def covid_19_statistics_miami_dade_county_trailing_3_day_average_stage_creation(
 
     county = stage['county']
     date = stage['date']
-    count_num = stage['count'].to_i
-    count = Numbers.num_to_words(count_num)
-
-    resident = (count_num / 3) == 1 ? 'resident' : 'residents'
+    start_date = Date.parse(date) - 3
+    start_date_str = "#{start_date.strftime("%b")} #{start_date.strftime("%d")}"
+    count_num = stage['count'].to_f
 
     table = JSON.parse(stage['story_table'])
     table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
 
-    export['headline'] = "#{date} - COVID-19 kills #{count_num / 3} #{county} #{resident} per day over 3 day period"
-    export['teaser'] = "On average, over the past three days, #{Numbers.num_to_words(count_num / 3)} #{county} #{resident} died daily as a result of complications related to a COVID-19 infection, according to the Miami-Dade County Government."
+    if count_num == 1
+      export['headline'] = "#{date} - COVID-19 kills linked to 1 #{county} resident per day over during 3 day period starting #{start_date_str}"
+      export['teaser'] = "On average, over the past three days, one One person died as a result of complications related to a COVID-19 infection in #{county} resident died daily as a result of complications related to a COVID-19 infection during the three-day period that began on #{start_date_str}, according to the Miami-Dade County Government."
 
-    output = ''
-    output << "On average, over the past three days, #{Numbers.num_to_words(count_num / 3)} #{county} #{resident} died daily as a result of complications related to a COVID-19 infection, according to the <a href='https://www.miamidade.gov/global/medicalexaminer/home.page'>Miami-Dade County Government</a>.\n\n"
+      output = ''
+      output << "On average, over the past three days, one person died as a result of complications related to a COVID-19 infection in #{county} resident died daily as a result of complications related to a COVID-19 infection during the three-day period that began on #{start_date_str}, according to the <a href='https://www.miamidade.gov/global/medicalexaminer/home.page'>Miami-Dade County Government</a>.\n\n"
+    else
+      export['headline'] = "#{date} - COVID-19 kills linked to #{separate_comma(count_num / 3)} #{county} resident deaths per day over during 3 day period starting #{start_date_str}"
+      export['teaser'] = "On average, over the past three days, #{Numbers.num_to_words(separate_comma(count_num / 3))} people died as a result of complications related to COVID-19 infections in #{county} resident died daily as a result of complications related to a COVID-19 infection during the three-day period that began on #{start_date_str}, according to the Miami-Dade County Government."
+
+      output = ''
+      output << "On average, over the past three days, #{Numbers.num_to_words(separate_comma(count_num / 3))} people died as a result of complications related to COVID-19 infections in #{county} resident died daily as a result of complications related to a COVID-19 infection during the three-day period that began on #{start_date_str}, according to the <a href='https://www.miamidade.gov/global/medicalexaminer/home.page'>Miami-Dade County Government</a>.\n\n"
+    end
 
     output << "<div style=\"font-size:18px\"><strong>COVID-19 deaths in #{county} over previous 2 weeks</strong></div>"
     output << table
