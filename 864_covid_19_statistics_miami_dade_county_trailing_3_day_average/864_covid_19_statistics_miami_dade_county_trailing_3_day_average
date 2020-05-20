@@ -374,25 +374,30 @@ def covid_19_statistics_miami_dade_county_trailing_3_day_average_stage_creation(
 
     county = stage['county']
     date = stage['date']
-    start_date = Date.parse(date) - 3
-    start_date_str = "#{start_date.strftime("%b")} #{start_date.strftime("%d")}"
+    date_ = Date.parse(date) + 1
+    date_str = "#{date_.strftime("%B")} #{date_.strftime("%d")}"
+
+    start_date = Date.parse(stage['date']) - 2
+    start_date_str = start_date.strftime("%b") == 'May' ? "#{start_date.strftime("%b")} #{start_date.strftime("%d")}" : "#{start_date.strftime("%b")}. #{start_date.strftime("%d")}"
+
     count_num = stage['count'].to_f
+    count = Numbers.num_to_words(separate_comma(count_num / 3)).class == String ? Numbers.num_to_words(separate_comma(count_num / 3)).capitalize : Numbers.num_to_words(separate_comma(count_num / 3))
 
     table = JSON.parse(stage['story_table'])
     table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
 
     if count_num == 1
-      export['headline'] = "#{date} - COVID-19 kills linked to 1 #{county} resident per day over during 3 day period starting #{start_date_str}"
-      export['teaser'] = "On average, over the past three days, one One person died as a result of complications related to a COVID-19 infection in #{county} resident died daily as a result of complications related to a COVID-19 infection during the three-day period that began on #{start_date_str}, according to the Miami-Dade County Government."
+      export['headline'] = "#{date_str} - COVID-19 linked to 1 #{county} death during 3 day period starting #{start_date_str}"
+      export['teaser'] = "One person died as a result of complications related to a COVID-19 infection in #{county} during the three-day period that began on #{start_date_str}, according to the Miami-Dade County Government."
 
       output = ''
-      output << "On average, over the past three days, one person died as a result of complications related to a COVID-19 infection in #{county} resident died daily as a result of complications related to a COVID-19 infection during the three-day period that began on #{start_date_str}, according to the <a href='https://www.miamidade.gov/global/medicalexaminer/home.page'>Miami-Dade County Government</a>.\n\n"
+      output << "One person died as a result of complications related to a COVID-19 infection in #{county} during the three-day period that began on #{start_date_str}, according to the <a href='https://www.miamidade.gov/global/medicalexaminer/home.page'>Miami-Dade County Government</a>.\n\n"
     else
-      export['headline'] = "#{date} - COVID-19 kills linked to #{separate_comma(count_num / 3)} #{county} resident deaths per day over during 3 day period starting #{start_date_str}"
-      export['teaser'] = "On average, over the past three days, #{Numbers.num_to_words(separate_comma(count_num / 3))} people died as a result of complications related to COVID-19 infections in #{county} resident died daily as a result of complications related to a COVID-19 infection during the three-day period that began on #{start_date_str}, according to the Miami-Dade County Government."
+      export['headline'] = "#{date_str} - COVID-19 linked to #{separate_comma(count_num / 3)} #{county} deaths during 3 day period starting #{start_date_str}"
+      export['teaser'] = "#{count} people died as a result of complications related to COVID-19 infections in #{county} during the three-day period that began on #{start_date_str}, according to the Miami-Dade County Government."
 
       output = ''
-      output << "On average, over the past three days, #{Numbers.num_to_words(separate_comma(count_num / 3))} people died as a result of complications related to COVID-19 infections in #{county} resident died daily as a result of complications related to a COVID-19 infection during the three-day period that began on #{start_date_str}, according to the <a href='https://www.miamidade.gov/global/medicalexaminer/home.page'>Miami-Dade County Government</a>.\n\n"
+      output << "#{count} people died as a result of complications related to COVID-19 infections in #{county} during the three-day period that began on #{start_date_str}, according to the <a href='https://www.miamidade.gov/global/medicalexaminer/home.page'>Miami-Dade County Government</a>.\n\n"
     end
 
     output << "<div style=\"font-size:18px\"><strong>COVID-19 deaths in #{county} over previous 2 weeks</strong></div>"
