@@ -35,7 +35,7 @@ bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=664 --popul
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=664 --population_config_id=781 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Covid-19 Statistics - Trailing 3 day average' -t --where="stage.client_name like 'MM - %'"
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='315210-315219'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=331895
 
 
 
