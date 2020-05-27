@@ -1,6 +1,18 @@
 Covid-19 Statistics - Trailing 7 day average
 https://docs.google.com/document/d/1Wg9IgufP1kuMcgA2Hvomfd7lj0QeT4IaSLPHzL6hNr8/edit
 
+@john.putz
+Dev Name: Dmitry S
+Story type Name: #863 Covid-19 Statistics - Trailing 7 day average
+FCD: https://docs.google.com/document/d/1xUYM8b-3t7RCVWsYuIFsPzgq_NMCQ_7m4CS_31e-M-o/edit#
+Period: March 30 - May  6
+Total Count: 74
+Max Project Count by client:
+MB - 37
+MM-Florida - 37
+Notes: Data requested by FOIA. When new data will be unknown
+_____________________________________________________
+
 STAGE TABLE DEFINITION
 insert into stage_definition_configurations (tbl, definition) select 'covid_19_stat_miami_dade_county_trailing_7_day_avg_staging','{"county":"VARCHAR(128)","count":"int(10)","date":"VARCHAR(128)","story_table":"LONGTEXT"}';
 
