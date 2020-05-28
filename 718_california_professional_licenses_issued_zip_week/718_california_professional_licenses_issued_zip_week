@@ -179,12 +179,12 @@ VALUES
 
 # Creator: Dmitry Suschinsky
 # Story type: California - Professional Licenses Issued (Zip - Week)
-# Template: https://docs.google.com/document/d/1MDXgVdwxnvQKjbqXOC2R-OcBBk5MU8CnRtdNNic5Mu0/edit
-# Created: April 2020
+# Template:
+# Created: May 2020
 
 # tbl: ca_prof_licenses_issued_zip_week_staging
 # db01.usa_raw.california_professional_licensing_list
-# branch: ca_prof_licenses_issued_zip_week_d_sushi
+# branch: california_professional_licenses_issued_zip_week_d_sushi
 # ca_prof_licenses_issued_zip_year.rb
 
 def get_zips(data_route)
@@ -204,6 +204,7 @@ def table_from_data(records)
   det = Determiner.new
 
   records.each do |rec|
+    puts 'rec: ', rec
     if rec['lapse_date'] != '0000-00-00'
       lapse_date = DateTime.strptime(rec['lapse_date'], '%Y-%m-%d').strftime('%m-%d-%Y')
     else
@@ -233,36 +234,42 @@ def titleize(str)
   str.split.each(&:capitalize!).join(' ')
 end
 
-def get_count(data_route, zip, quarter, year)
-  root_query = "SELECT COUNT(main.license_number) AS count
-                FROM california_professional_licensing_list AS main
-                LEFT JOIN california_professional_licensing AS params
-                       ON params.list_id = main.id AND params.name = main.name
-                WHERE QUARTER(params.issuance_date) = #{quarter} AND YEAR(params.issuance_date) = #{year} AND
-                      main.zip = #{zip} AND state = 'California';"
+def get_count(data_route, zip, start_week, finish_week)
+  root_query = "SELECT COUNT(l.name) AS count
+                FROM california_professional_licensing l
+                     JOIN california_professional_licensing_list ll ON l.list_id=ll.id
+                     INNER JOIN (SELECT license_number, license_type, MAX(list_id) AS max_list_id
+                                 FROM california_professional_licensing
+                                 GROUP BY license_number, license_type) l_max
+                     ON ll.license_number = l_max.license_number AND
+                        ll.id = l_max.max_list_id AND ll.license_type = l.license_type
+                WHERE STR_TO_DATE(l.issuance_date, '%Y-%m-%d') BETWEEN '#{start_week}' AND '#{finish_week}' AND ll.zip = #{zip} AND state = 'California';"
   data_route.client.query(root_query).to_a
 end
 
 def get_org_id_by_zip_and_state(data_route, zip, state)
   root_query = "SELECT pl_production_org_id AS org_id
                 FROM usa_raw.usa_administrative_division_counties_places_matching
-                WHERE short_name = (SELECT primary_city FROM zipcode_data WHERE zip = '#{zip}' AND state = 'CA') AND
-                      kind = 'city' AND
-                      bad_matching IS NULL AND
+                WHERE short_name = (SELECT primary_city FROM zipcode_data WHERE zip_char = '#{zip}' AND state = 'CA') AND
+                      kind = 'city' AND bad_matching IS NULL AND
                       state_name = '#{state}';"
   data_route.client.query(root_query).to_a
 end
 
-def get_table_records(data_route, zip, quarter, year)
+def get_table_records(data_route, zip, start_week, finish_week)
   # 'license_holder' 'license_type' 'lapse_date' 'issued_date'
-  root_query = "SELECT main.name AS license_holder, main.license_number,
-                       main.license_type AS license_type, params.issuance_date AS issued_date,
-                       main.expiration_date AS lapse_date
-                FROM california_professional_licensing_list AS main
-                LEFT JOIN california_professional_licensing AS params
-                       ON params.list_id = main.id AND params.name = main.name
-                WHERE QUARTER(params.issuance_date) = #{quarter} AND YEAR(params.issuance_date) = #{year} AND
-                      main.license_number != '' AND main.zip = '#{zip}' AND state = 'California'"
+  root_query = "SELECT l.name AS license_holder, ll.license_number,
+                       ll.license_type AS license_type, l.issuance_date AS issued_date,
+                       ll.expiration_date AS lapse_date
+                FROM california_professional_licensing l
+                     JOIN california_professional_licensing_list ll ON l.list_id=ll.id
+                     INNER JOIN (SELECT license_number, license_type, MAX(list_id) AS max_list_id
+                                 FROM california_professional_licensing
+                                 GROUP BY license_number, license_type) l_max
+                     ON ll.license_number = l_max.license_number AND
+                        ll.id = l_max.max_list_id AND ll.license_type = l.license_type
+                WHERE  STR_TO_DATE(l.issuance_date, '%Y-%m-%d') BETWEEN '#{start_week}' AND '#{finish_week}' AND ll.zip = '#{zip}' AND state = 'California'
+                ORDER BY issued_date;"
   data_route.client.query(root_query).to_a
 end
 
@@ -312,22 +319,38 @@ def growth_type_table(curr, prev)
   end
 end
 
+def week_start(date, offset_from_sunday = 0)
+  date - (date.wday - offset_from_sunday)%7
+end
+
 def ca_prof_licenses_issued_zip_week_stage_population(line, argument)
   require 'bigdecimal'
   require 'bigdecimal/util'
   require 'date'
 
-  puts("\n!!!\nParameter required 'quarter' \n!!!\n") unless (@options['quarter'])
-  return 'INVALID' unless @options['quarter']
-  quarter = @options['quarter']
+  puts("\n!!!\nParameter year required 'date' \n!!!\n") unless (@options['date'])
+  return 'INVALID' unless @options['date']
+  date = @options['date']
+  return 'INVALID' unless date.to_s.match(/^\d{4}-\d{1,2}-\d{1,2}$/)
 
-  puts("\n!!!\nParameter required 'year' \n!!!\n") unless (@options['year'])
-  return 'INVALID' unless @options['year']
-  year = @options['year']
+  date = Date.parse(date)
+
+  next_sunday = week_start(date,0).strftime('%Y-%m-%d')
+  next_saturday = Date.parse(next_sunday) + 6
+
+  week_str = "#{next_sunday.to_s} - #{next_saturday.to_s}"
+  month_str = "#{next_saturday.strftime("%b")}. #{next_saturday.strftime("%d")}"
+  next_week_period = []
+
+  next_week_period << next_sunday.to_s
+  next_week_period << next_saturday.to_s
 
   threads_count = @options['threads_count'].to_i || 3
-
-  puts 'quarter: ', quarter
+  year = date.year
+  puts 'week_str: ', week_str
+  puts 'month_str: ', month_str
+  puts 'next_week_period: ', next_week_period
+  puts 'date: ', date
   puts 'year: ', year
 
   route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
@@ -340,7 +363,7 @@ def ca_prof_licenses_issued_zip_week_stage_population(line, argument)
 
   records = []
   zips.each do |zip|
-    count = get_count(route, zip['zip'], quarter, year)[0]['count'].to_i
+    count = get_count(route, zip['zip'], next_week_period[0], next_week_period[1])[0]['count'].to_i
     puts 'COUNT: ', count if count != 0
     puts 'ZIP: ', zip if count != 0
 
@@ -360,7 +383,7 @@ def ca_prof_licenses_issued_zip_week_stage_population(line, argument)
     puts 'org_id', org_id
     puts '*----------------------------*'
 
-    records << {quarter: quarter, year: year, zip: zip['zip'], count: count, org_id: org_id}
+    records << {month_str: month_str, week_str: week_str, year: year, zip: zip['zip'], count: count, org_id: org_id}
   end
 
   puts 'records: ', records
@@ -407,7 +430,7 @@ def ca_prof_licenses_issued_zip_week_stage_population(line, argument)
           next
         end
 
-        table_records = get_table_records(data_state_01, rec[:zip], rec[:quarter], rec[:year])
+        table_records = get_table_records(data_state_01, rec[:zip], next_week_period[0], next_week_period[1])
         table = table_from_data(table_records)
 
         publications.each do |publication|
@@ -428,7 +451,8 @@ def ca_prof_licenses_issued_zip_week_stage_population(line, argument)
 
           hash['zip'] = rec[:zip]
           hash['count'] = rec[:count]
-          hash['quarter'] = rec[:quarter]
+          hash['week'] = week_str
+          hash['month'] = month_str
           hash['year'] = rec[:year]
 
           hash['story_table'] = table.to_json
@@ -466,11 +490,7 @@ def ca_prof_licenses_issued_zip_week_stage_creation(options, mail_sender = false
     zip = titleize(stage['zip'])
     count_num = stage['count'].to_i
     count = Numbers.num_to_words(count_num)
-    # header: Q2 of 2019
-    # body_and_teaser: the second quarter of 2019
-    quarter_header = "Q#{stage['quarter']} of #{stage['year']}"
-    quarter_body = "the #{Numbers.nthification(stage['quarter'].to_i)} quarter of #{stage['year']}"
-    quarter_title_table = "Q#{stage['quarter']}"
+    month = stage['month']
     license_header_str = "license" if count_num == 1
     license_header_str = "licenses" if count_num > 1
     license_str = "was #{count} professional license" if count_num == 1
@@ -481,14 +501,14 @@ def ca_prof_licenses_issued_zip_week_stage_creation(options, mail_sender = false
     table = JSON.parse(stage['story_table'])
     table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
 
-    export['headline'] = "#{count_num} professional #{license_header_str} issued in #{zip} during #{quarter_header}"
-    export['teaser'] = "There #{license_str} issued in #{zip} during #{quarter_body}, according to California’s Department of Consumer Affairs."
+    export['headline'] = "#{count_num} professional #{license_header_str} issued in zip code #{zip} during week ending #{month}"
+    export['teaser'] = "There #{license_str} issued in zip code #{zip} during the week ending #{month}, according to California’s Department of Consumer Affairs."
 
     output = ''
-    output << "There #{license_str} issued in #{zip} during #{quarter_body}, according to <a href='https://search.dca.ca.gov/'>California’s Department of Consumer Affairs (DCA)</a>.\n\n"
+    output << "There #{license_str} issued in zip code #{zip} during the week ending #{month}, according to <a href='https://search.dca.ca.gov/'>California’s Department of Consumer Affairs (DCA)</a>.\n\n"
 
-    output << "The DCA is composed of several agencies, bureaus and commissions that influence business growth and job creation through regulation. The agency has roots that date back to 1876 when California passed the Medical Practice Act of 1876. Today the agency issues more than 280 license types including certificates, registrations and permits.\n\n"
-    output << "<div style=\"font-size:18px\"><strong>#{license_s} issued during #{quarter_title_table} in #{zip}</strong></div>"
+    output << "The DCA is composed of several agencies, bureaus, and commissions that influence business growth and job creation through regulation. The agency has roots that date back to 1876 when California passed the Medical Practice Act of 1876. Today the agency issues more than 280 license types including certificates, registrations, and permits.\n\n"
+    output << "<div style=\"font-size:18px\"><strong>#{license_s} issued during week ending #{month} in zip code #{zip}</strong></div>"
     output << table
 
     export = prepare_output(stage, output, export, options)
