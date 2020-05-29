@@ -1,6 +1,19 @@
 California - Professional Licenses Issued (Zip - Week)
 https://docs.google.com/document/d/1Wg9IgufP1kuMcgA2Hvomfd7lj0QeT4IaSLPHzL6hNr8/edit
 
+@john.putz
+Dev Name: Dmitry S
+Story type Name: #718 California - Professional Licenses Issued (Zip - Week)
+FCD: https://docs.google.com/document/d/18qbDPf4ANKgbCle6sTue2zfgUu8QCVQK_4Gtx3UyM94/edit#
+Sample story: https://pipeline-staging.locallabs.com/stories/511714468
+Period: February 29 - April 4
+Total Count: 247
+Max Project Count by client:
+MB - 30
+MM-California - 175
+Notes: -
+_____________________________________________________
+
 STAGE TABLE DEFINITION
 insert into stage_definition_configurations (tbl, definition) select 'ca_prof_licenses_issued_zip_week_staging','{"zip":"VARCHAR(128)","count":"int(10)","year":"int(4)","week":"varchar(255)","month":"varchar(255)","story_table":"LONGTEXT"}';
 
