@@ -15,7 +15,7 @@ Notes: Data requested by FOIA. When new data will be unknown
 _____________________________________________________
 
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'campaign_finance_donations_iowa_committee_contr_w_staging','{"committee_name":"VARCHAR(128)","amount":"int(10)","year":"int(4)","week":"varchar(255)","month":"varchar(255)","story_table":"LONGTEXT"}';
+insert into stage_definition_configurations (tbl, definition) select 'campaign_finance_donations_iowa_committee_contr_w_staging','{"committee_name":"VARCHAR(128)","amount":"varchar(255)","year":"int(4)","week":"varchar(255)","month":"varchar(255)","story_table":"LONGTEXT"}';
 
 #690
 
@@ -33,7 +33,7 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id
 
 
 STORY CREATOR CONFIGURATION:
-insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'campaign_finance_donations_iowa_committee_contr_w_staging', 'campaign_finance_donations_iowa_committee_contr_w_stage_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'campaign_finance_donations_iowa_committee_contr_w_staging', 'campaign_finance_donations_iowa_committee_contr_w_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
 creation_config_id: #679
 
@@ -58,7 +58,7 @@ irb ->
 load 'Loki.rb'
 Hle::Story::Feedback.stories_feedback('511701546,511701553,511701552')
 
-bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511711632,511711627,511711628
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511715440,511715414,511715467
 
 
 !!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
