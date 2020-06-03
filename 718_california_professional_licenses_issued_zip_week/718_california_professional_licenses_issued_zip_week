@@ -29,7 +29,7 @@ population_config_id: #769
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=769 -t --date='2020-04-01' --threads_count=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=769 -t --date='2020-04-01' --threads_count=10
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=769 -t --date='2020-04-08' --threads_count=1
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=769 -t --date='2020-04-15' --threads_count=1
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=769 -t --date='2020-04-22' --threads_count=1
@@ -80,13 +80,13 @@ desc: California - Professional Licenses Issued (Zip - Week)
 
 config_id - population_config_id
 
-Up to 5 stories per day, per publication, for up to 50 days, starting January 20
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=769 --limit=5 --start_date='2020-01-20' --total_days_till_end_date=50
+Up to 10 per day, per pub, for up to 20 days, starting June 4
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=769 --limit=10 --start_date='2020-06-04' --total_days_till_end_date=20
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
-select publication_name, min(publish_on), max(publish_on), count(*) from 'ca_prof_licenses_issued_zip_week_staging' group by publication_name;
+select publication_name, min(publish_on), max(publish_on), count(*) from ca_prof_licenses_issued_zip_week_staging group by publication_name;
 
 ______________________________________
 PRODUCTION: STORY EXPORT CONFIGURATION
@@ -96,8 +96,8 @@ ______________________________________
 --where="client_name like 'MM - %'"
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=652 --population_config_id=769 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Week)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=652 --population_config_id=769 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Week)' -t --prod --limit_config=1 --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=652 --population_config_id=769 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - Week)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=652 --population_config_id=769 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - Week)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
@@ -106,8 +106,8 @@ select * from story_export_configurations_v2 where tbl = 'ca_prof_licenses_issue
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=652 --population_config_id=769 --story_section_ids=2 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Week)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=652 --population_config_id=769 --story_section_ids=16 --story_tag_ids=171 --photobuckets='health care' --job_item_name_description='California - Professional Licenses Issued (Zip - Week)' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=652 --population_config_id=769 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - Week)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=652 --population_config_id=769 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='California - Professional Licenses Issued (Zip - Week)' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
 
@@ -125,7 +125,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='ca_prof_licenses_issued_zip_week_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=216480 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='ca_prof_licenses_issued_zip_week_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=337629 --limit=1
 
 _____
 IF OK
@@ -133,7 +133,7 @@ _____
 
 --threads_count=7 | 13140961 | 13140960
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='...'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='337629,337644,337642,337641,337645,337637,337632,337633,337631,337630,337646,337636,337635,337639,337640,337634,337638,337643'
 ___________________________
 
 
@@ -158,9 +158,9 @@ JOIN data_entry_leads AS l
   ON l.id = s.lead_id
 JOIN job_items AS ji
   ON l.job_item_id=ji.id
-WHERE published_at >= '2020-01-07' AND
+WHERE published_at >= '2020-06-01' AND
       deleted = 0 AND
-      l.job_item_id IN (...)
+      l.job_item_id IN (199331,199332,199343,199342,199347,199340,199344,199339,199337,199336,199345,199335,199346,199333,199338,199348,199341,199334)
 ORDER BY c.name;
 
 
@@ -171,7 +171,7 @@ ___________________________
 
 INSERT INTO loki_storycreator.hle_reminders
     (
-        story_type_name, story_type_stage_table,
+        hle_assignments_number, story_type_name, story_type_stage_table,
         dev_name, slack_handle, dev_email,
         story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
         last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
@@ -179,11 +179,11 @@ INSERT INTO loki_storycreator.hle_reminders
     )
 VALUES
     (
-        'California - Professional Licenses Issued (Zip - Week)', 'ca_prof_licenses_issued_zip_week_staging',
+        718, 'California - Professional Licenses Issued (Zip - Week)', 'ca_prof_licenses_issued_zip_week_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-        'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
-        '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
-         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
+        'week', 1, 1, 'weekly', 'The Dataset located on db01.usa_raw.california_professional_licensing_%',
+        '2020-06-02', 0, 0, 0, 20000, 'quarterly', 0,
+         1, 'db01','usa_raw', 'select date(max(postedTime)) date from usa_raw.california_professional_licensing;'
     );
 
 
