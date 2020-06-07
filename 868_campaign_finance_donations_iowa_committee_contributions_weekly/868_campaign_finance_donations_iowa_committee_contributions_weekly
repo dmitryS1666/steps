@@ -44,7 +44,7 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=6
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=679 --population_config_id=796 --story_section_ids=2 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='Campaign Finance Donations - Iowa - Committee contributions weekly' -t --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=679 --population_config_id=796 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='Campaign Finance Donations - Iowa - Committee contributions weekly' -t --where="client_id = 120"
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=679 --population_config_id=796 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='Campaign Finance Donations - Iowa - Committee contributions weekly' -t --where="stage.client_name like 'MM - %'"
 
 STAGING: EXPORT STORIES
@@ -183,24 +183,23 @@ VALUES
 
 
 
-
 # Creator: Dmitry Suschinsky
 # Story type: Campaign Finance Donations - Iowa - Committee contributions weekly
 # Template: https://docs.google.com/document/d/1zL21sYRjNEsmGoAibrDc_43zXS5oEmFjMhj4pEU3xOo/edit#
 # Created: May 2020
 
 # tbl: campaign_finance_donations_iowa_committee_contr_w_staging
-#
+# db01.usa_raw.IECDB_iowa_campaign_disclosures_%
 # branch: campaign_finance_donations_iowa_committee_contr_w_d_sushi
 # campaign_finance_donations_iowa_committee_contr_w.rb.rb
 
 def table_from_data(records)
   table = []
   records.each do |rec|
-    puts 'rec: ', rec
     table << {
-        "Date" => rec['death_date'].strftime("%m/%d/%Y"),
-        "COVID-19 related deaths" => rec['deaths_count']
+        "Date" => Date.parse(rec['date']).strftime("%m/%d/%Y"),
+        "Contributor" => rec['contributor'],
+        "Amount" => Numbers.money(rec['amount'])
     }
   end
   table
@@ -218,31 +217,32 @@ def titleize(str)
   str.split.each(&:capitalize!).join(' ')
 end
 
-def get_table_records(data_route, date_start, date_finish)
-  root_query = "SELECT death_date, COUNT(id) AS deaths_count FROM miami_dade_county_covid_death
-                WHERE death_date BETWEEN '#{date_start}' AND '#{date_finish}'
-                GROUP BY death_date
-                ORDER BY death_date DESC"
+def get_table_records(data_route, date_start, date_finish, committee_name)
+  root_query = "SELECT t2.contributor_name AS contributor, t2.amount, t2.date
+                FROM IECDB_iowa_campaign_disclosures_committees t1
+                  JOIN (
+                    SELECT amount, committee_id, date, contributor_name
+                    FROM IECDB_iowa_campaign_disclosures_contributions
+                    WHERE date BETWEEN '#{date_start}' AND '#{date_finish}'
+                  ) t2 ON t1.id = t2.committee_id
+                WHERE cast(amount as unsigned) > 0 AND t1.committee_name = '#{committee_name}'
+                ORDER BY cast(amount as unsigned) DESC
+                LIMIT 100"
   data_route.client.query(root_query).to_a
 end
 
-def get_count(data_route, date_start, date_finish)
-  root_query = "SELECT COUNT(id) AS count FROM miami_dade_county_covid_death WHERE death_date BETWEEN '#{date_start}' AND '#{date_finish}';"
+def get_records(data_route, date_start, date_finish)
+  root_query = "SELECT t1.id, ifnull(t1.committee_name_cleaned_manually, t1.committee_name) as committee_name,
+                       t2.total_amount, t1.pl_production_org_id AS org_id
+                FROM IECDB_iowa_campaign_disclosures_committees t1
+                     JOIN (
+                        SELECT sum(cast(amount as unsigned)) as total_amount, committee_id
+                        FROM IECDB_iowa_campaign_disclosures_contributions
+                        WHERE date BETWEEN '#{date_start}' AND '#{date_finish}'
+                        GROUP BY committee_id
+                    ) t2 ON t1.id = t2.committee_id
+                WHERE total_amount > 0 ORDER BY total_amount desc;"
   data_route.client.query(root_query).to_a
-end
-
-def get_org_ids(data_route)
-  root_query = "SELECT DISTINCT(pl_production_org_id) AS org_id FROM usa_administrative_division_counties_places_matching
-                WHERE county_name = 'Miami-Dade County';"
-  data_route.client.query(root_query).to_a
-end
-
-def get_percentage_diff(data1, data2)
-  if data2 != 0
-    ((data1 - data2) / data2 * 100).abs.round(1).to_i
-  else
-    100.to_i
-  end
 end
 
 def prepare_count(val)
@@ -253,12 +253,14 @@ def prepare_count(val)
   end
 end
 
+def week_start(date, offset_from_sunday = 0)
+  date - (date.wday - offset_from_sunday)%7
+end
+
 def campaign_finance_donations_iowa_committee_contr_w_stage_population(line, argument)
   require 'bigdecimal'
   require 'bigdecimal/util'
   require 'date'
-
-  county = 'Miami-Dade County'
 
   puts("\n!!!\nParameter year required 'date' \n!!!\n") unless (@options['date'])
   return 'INVALID' unless @options['date']
@@ -266,17 +268,24 @@ def campaign_finance_donations_iowa_committee_contr_w_stage_population(line, arg
   return 'INVALID' unless date.to_s.match(/^\d{4}-\d{1,2}-\d{1,2}$/)
 
   date = Date.parse(date)
-  date_start = date - 3
-  date_finish = date - 1
-  date_start_two_weeks = date - 14
-  date_start_str = "#{date_finish.strftime("%b")} #{date_finish.strftime("%d")}"
+
+  next_sunday = week_start(date,0).strftime('%Y-%m-%d')
+  next_saturday = Date.parse(next_sunday) + 6
+
+  week_str = "#{next_sunday.to_s} - #{next_saturday.to_s}"
+  month_str = "#{next_saturday.strftime("%B")} #{next_saturday.strftime("%-d")}"
+  week_period = []
+
+  week_period << next_sunday.to_s
+  week_period << next_saturday.to_s
 
   threads_count = @options['threads_count'].to_i || 3
-
-  puts 'date_start: ', date_start
-  puts 'date_start_str: ', date_start_str
-  puts 'date_start_two_weeks: ', date_start_two_weeks
-  puts 'date_finish: ', date_finish
+  year = date.year
+  puts 'week_str: ', week_str
+  puts 'month_str: ', month_str
+  puts 'week_period: ', week_period
+  puts 'date: ', date
+  puts 'year: ', year
 
   route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
   route.client.query("use #{route.stage_db}")
@@ -284,12 +293,7 @@ def campaign_finance_donations_iowa_committee_contr_w_stage_population(line, arg
   data_state = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
   data_state.client.query("use #{data_state.stage_db}")
 
-  count = get_count(route, date_start, date_finish)[0]['count']
-  org_ids = get_org_ids(route)
-
-  puts 'count: ', count
-  puts 'org_ids: ', org_ids
-
+  records = get_records(route, week_period[0], week_period[1])
   @semaphore = Mutex.new
   threads = Array.new(threads_count) do
     Thread.new do
@@ -306,7 +310,7 @@ def campaign_finance_donations_iowa_committee_contr_w_stage_population(line, arg
       loop do
         rec = nil
         @semaphore.synchronize {
-          rec = org_ids.pop
+          rec = records.pop
         }
         break if rec.class == NilClass
 
@@ -318,9 +322,9 @@ def campaign_finance_donations_iowa_committee_contr_w_stage_population(line, arg
         end
 
         # Metro Business Network
-        # MM-California
+        # MM-Iowa
         publications = []
-        publications << Hle::Publications.mm_pubs_excluding_states(rec['org_id'], 'production', 'Florida')
+        publications << Hle::Publications.mm_pubs_excluding_states(rec['org_id'], 'production', 'Iowa')
         publications << get_journal_from_org_id(rec['org_id'], 'production', 120) rescue nil
 
         publications.flatten!.uniq!
@@ -330,8 +334,13 @@ def campaign_finance_donations_iowa_committee_contr_w_stage_population(line, arg
           next
         end
 
-        table_records = get_table_records(data_state_01, date_start_two_weeks, date_finish)
+        table_records = get_table_records(data_state_01, week_period[0], week_period[1], rec['committee_name'])
         table = table_from_data(table_records)
+
+        if table.count.zero?
+          reasons[:publications] << rec['org_id']
+          next
+        end
 
         publications.each do |publication|
           hash = {}
@@ -346,12 +355,14 @@ def campaign_finance_donations_iowa_committee_contr_w_stage_population(line, arg
           hash['client_name'] = publication['client_name']
           hash['client_id'] = publication['client_id']
           hash['publication_id'] = publication['id'].to_i
-          hash['source_table_id'] = 20483
+          hash['source_table_id'] = 21017
           hash['organization_id'] = rec['org_id']
 
-          hash['county'] = county
-          hash['count'] = count
-          hash['date'] = date_start_str
+          hash['week'] = week_str
+          hash['month'] = month_str
+          hash['year'] = year
+          hash['committee_name'] = rec['committee_name']
+          hash['amount'] = rec['total_amount']
 
           hash['story_table'] = table.to_json
 
@@ -385,237 +396,34 @@ def campaign_finance_donations_iowa_committee_contr_w_stage_creation(options, ma
     p "#{i}/#{count}: "
     export = {}
 
-    county = stage['county']
-    date = stage['date']
-    date_ = Date.parse(date) + 1
-    date_str = "#{date_.strftime("%B")} #{date_.strftime("%d")}"
+    committee_name = stage['committee_name']
+    month = stage['month']
+    amount = stage['amount']
 
-    start_date = Date.parse(stage['date']) - 2
-    start_date_str = start_date.strftime("%b") == 'May' ? "#{start_date.strftime("%b")} #{start_date.strftime("%d")}" : "#{start_date.strftime("%b")}. #{start_date.strftime("%d")}"
-
-    count_num = stage['count'].to_f
-    count = Numbers.num_to_words(separate_comma(count_num / 3)).class == String ? Numbers.num_to_words(separate_comma(count_num / 3)).capitalize : Numbers.num_to_words(separate_comma(count_num / 3))
-
-    table = JSON.parse(stage['story_table'])
-    table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
-
-    if count_num == 1
-      export['headline'] = "#{date_str} - COVID-19 linked to 1 #{county} death during 3 day period starting #{start_date_str}"
-      export['teaser'] = "One person died as a result of complications related to a COVID-19 infection in #{county} during the three-day period that began on #{start_date_str}, according to the Miami-Dade County Government."
-
-      output = ''
-      output << "One person died as a result of complications related to a COVID-19 infection in #{county} during the three-day period that began on #{start_date_str}, according to the <a href='https://www.miamidade.gov/global/medicalexaminer/home.page'>Miami-Dade County Government</a>.\n\n"
+    if committee_name.include? "PAC"
+      committee_name_str = "#{committee_name}, a political action committee"
+    elsif committee_name.include?("Friends of") || committee_name.include?("friends of") || committee_name.include?("Vote for") || committee_name.include?("vote for")
+      committee_name_str = "#{committee_name}, a campaign committee"
     else
-      export['headline'] = "#{date_str} - COVID-19 linked to #{separate_comma(count_num / 3)} #{county} deaths during 3 day period starting #{start_date_str}"
-      export['teaser'] = "#{count} people died as a result of complications related to COVID-19 infections in #{county} during the three-day period that began on #{start_date_str}, according to the Miami-Dade County Government."
-
-      output = ''
-      output << "#{count} people died as a result of complications related to COVID-19 infections in #{county} during the three-day period that began on #{start_date_str}, according to the <a href='https://www.miamidade.gov/global/medicalexaminer/home.page'>Miami-Dade County Government</a>.\n\n"
+      committee_name_str = "#{committee_name}"
     end
 
-    output << "<div style=\"font-size:18px\"><strong>COVID-19 deaths in #{county} over previous 2 weeks</strong></div>"
+
+    table = JSON.parse(stage['story_table'])
+    count = table.count
+    str = "Here is the #{Numbers.num_to_words(count)} largest contribution" if count == 1
+    str = "Here are the #{Numbers.num_to_words(count)} largest contributions" if count > 1
+    table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
+
+    export['headline'] = "Who contributed to #{committee_name} during week ending #{month}"
+    export['teaser'] = "#{committee_name_str}, received #{Numbers.money(amount)} during the week ending #{month}."
+
+    output = ''
+    output << "#{committee_name_str}, received #{Numbers.money(amount)} during the week ending #{month}.\n\n"
+    output << "#{str} that #{committee_name} received during the week ending #{month}, according to Iowa Ethics and Campaign Disclosure Board.\n\n"
+
     output << table
 
     export = prepare_output(stage, output, export, options)
   end
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Creator: Andrey Tereshchenko
-# Story type: #883
-# Template: https://docs.google.com/document/d/18AnT-1usGhwXoeITqtihav-pKs8XBQa8V-8pUpJyEtA/edit
-# Created: May 2020
-
-def schedule_stories(period, thursday)
-  hle__hle_scheduler(config_id: 639,
-                     limit: 1,
-                     start_date: thursday.to_s,
-                     total_days_till_end_date: 1,
-                     date: "date = '#{period}'"
-  )
-  end
-
-def fill_table(rows)
-  table = []
-  rows.each do |row|
-    break if table.size >= 100
-    table << {
-        'Date': row['date'].strftime("%Y/%m/%d"),
-        'Amount': (row['amount'] >= 1) ? "$#{Numbers.numbers_add_commas(row['amount'].round)}" : "$#{amount.to_s.to_f}"
-    }
-  end
-  table
-end
-
-def s883_cfe_iowa_committee_exp_weekly_stage_population(line, args)
-  begin
-    db01 = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
-    db01.client.query("use #{db01.stage_db}")
-    db05 = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
-    db05.client.query("use #{db05.stage_db}")
-
-
-    year = (@options['year']).to_i
-    month = (@options['month']).to_i
-    week_end = Date.parse(@options['week_end'])
-
-    report_date = week_end
-    raise "Restart with input parameters #{week_end} or #{year}" if week_end.nil? && year.nil?
-
-
-    if week_end.nil?
-      start_day = ( month.nil? ? Date.new(year,1,1) : Date.new(year,month,1))
-      month = (start_day.strftime("%m")).to_i
-      start_date = start_day - start_day.wday
-      end_day = db01.client.query("select date from IECDB_iowa_campaign_disclosures_expenditures order by date desc;").to_a[0]['date']
-      end_date = end_day - end_day.wday - 1
-      dates = []
-      while start_date <= end_date do
-        dates << start_date
-        start_date = (start_date + 7)
-      end
-
-
-    else
-      month = (week_end.strftime("%m")).to_i
-      year = (week_end.strftime("%Y")).to_i
-      week_start = week_end - 6
-      unless week_start.wday == 0
-
-        raise "Wrong week_start value (#{week_start}), it should be Sunday!"
-      end
-    end
-
-    # month = (week_end.strftime("%m")).to_i
-    #
-    prev_week_start = (week_start - 7).to_s
-    prev_week_end = (week_end - 7).to_s
-    week_start = week_start.to_s
-    week_end = week_end.to_s
-
-
-
-    rows = db01.client.query("select t2.id, ifnull(t2.committee_name_cleaned_manually, t2.committee_name) as committee_name, t1.amount, t1.date from (select committee_id, (correct_amount + 0) as amount, date from IECDB_iowa_campaign_disclosures_expenditures where date between '#{week_start}' and '#{week_end}') t1 join IECDB_iowa_campaign_disclosures_committees t2 on t1.committee_id = t2.id where amount > 0 order by amount desc;").to_a
-    committees = db01.client.query("select t1.id, ifnull(t1.committee_name_cleaned_manually, t1.committee_name) as committee_name, t2.total_amount, t3.prev_week_total_amount, t1.pl_production_org_id from IECDB_iowa_campaign_disclosures_committees t1 join (select sum(correct_amount) as total_amount, committee_id from IECDB_iowa_campaign_disclosures_expenditures where date BETWEEN '#{week_start}' AND '#{week_end}' group by committee_id) t2 on t1.id = t2.committee_id left outer join (select sum(correct_amount) as prev_week_total_amount, committee_id from IECDB_iowa_campaign_disclosures_expenditures where date BETWEEN '#{prev_week_start}' and '#{prev_week_end}' group by committee_id) t3 on t1.id = t3.committee_id where total_amount > 0 order by total_amount desc;").to_a
-
-
-    #committees.sort_by! {|c| -c['total_amount']}
-
-    #table = fill_table(rows)
-    #table_size = table.size
-    #table = table.to_json
-
-    reasons = {org_id: [], data: [], pub: []}
-    committees.each do |committee|
-
-      if committee['pl_production_org_id'].nil?
-        reasons[:org_id] << committee['committee_name']
-        next
-      end
-
-      if committee['committee_name'].nil? || committee['total_amount'].nil?
-        reasons[:data] << committee['committee_name']
-        next
-      end
-
-      expenditures = rows.select {|c| committee['id'] == c['id']}
-      table = fill_table(expenditures)
-      table_size = table.size
-      table = table.to_json
-
-if !committee['prev_week_total_amount'].nill?
-  percent = ((committee['total_amount'] - committee['prev_week_total_amount'])/committee['prev_week_total_amount'])*100
-end
-
-
-
-      mb_publications = get_journal_from_org_id(committee['pl_production_org_id'], 'production', 120)
-      mm_publications = Hle::Publications.mm_pubs_excluding_states(committee['pl_production_org_id'], 'production', 'Iowa')
-
-      publications = mb_publications + mm_publications
-
-      p "publications: #{publications}"
-
-      if publications.empty?
-        reasons[:pub] << committee['committee_name']
-        next
-      end
-
-
-      publications.each do |publication|
-        h = {}
-        h['source_table_id']  = 21017
-        h['organization_id']  = committee['pl_production_org_id']
-        h['client_id']        = publication['client_id']
-        h['publication_id']   = publication['id'].to_i
-        h['publication_name'] = publication['publication_name']
-        h['client_name']      = publication['client_name']
-        h['year'] = year
-        h['month'] = month
-        h['committee_name'] = committee['committee_name']
-        h['total_amount'] = committee['total_amount']
-        h['percent'] = percent if percent
-        h['table_size'] = table_size
-        h['report_date'] = report_date.to_s
-        h['table_data']  = table if table
-
-        rules = insert_rules(h.escaped)
-        query = "insert into #{@config['target_table']}#{rules}"
-        p query
-        db05.client.query(query)
-      end
-      end
-
-      p reasons
-
-    rescue => e
-      msg = "Campaign Finance Expenditures - Iowa - Committee expenditures weekly\nError: #{e.message}\nBacktrace:#{e.backtrace}"
-      p msg
-
-    ensure
-      db05.client.close if db05
-      db01.client.close if db01
-    end
-    'INVALID'
-  end
-
-  def  s883_cfe_iowa_committee_exp_weekly_stage_creation(options)
-    count = @stage_selection.count
-
-    @stage_selection.each_with_index do |stage, i|
-      p "\r#{i + 1}/#{count}: \n"
-
-      export = {}
-      committee_name = stage['committee_name']
-      #year = stage['year']
-      #month = stage['month']
-      total_amount = stage['total_amount']
-      report_date = stage['report_date']
-      table_size = stage['table_size']
-      table = graph_from_json(JSON.parse(stage['table_data']).to_json)
-
-      export['headline'] = "What committees spent the most during week ending #{Dates.form_date(report_date)}"
-      export['teaser'] = "#{committee_name} spent $#{(total_amount >= 1) ? Numbers.numbers_add_commas(total_amount.round) : "#{total_amount.to_s.to_f}"} during week ending #{Dates.form_date(report_date)}."
-
-      output = "#{committee_name} spent $#{(total_amount >= 1) ? Numbers.numbers_add_commas(total_amount.round) : "#{total_amount.to_s.to_f}"} during week ending #{Dates.form_date(report_date)}, according to <a href=\"https://webapp.iecdb.iowa.gov/publicview/NewContributionSearch.aspx/\">IECDB State/Local Campaign Disclosure Reports</a>.\n\n"
-
-        output << table
-
-      export = prepare_output(stage, output, export, options)
-    end
-  end
