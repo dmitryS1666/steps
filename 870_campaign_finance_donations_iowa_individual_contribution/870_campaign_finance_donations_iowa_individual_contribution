@@ -1,0 +1,493 @@
+Campaign Finance Donations - Iowa - Individual Contribution
+https://docs.google.com/document/d/178nS7ZLaR6xd3D8f7MylWSfDKKpx-gXhzPn88gkMNBM/edit
+
+@john.putz
+Dev Name: Dmitry S
+Story type Name: #863 Covid-19 Statistics - Trailing 3 day average
+FCD: https://docs.google.com/document/d/1C3mB0uFY_sMxfYqoEETR_NWgfTPxbZ2VhU5L_echX_Q/edit
+Sample story:
+Period: March 26 - May  6
+Total Count: 84
+Max Project Count by client:
+MB - 42
+MM - 42
+Notes: Data requested by FOIA. When new data will be unknown
+_____________________________________________________
+
+STAGE TABLE DEFINITION
+insert into stage_definition_configurations (tbl, definition) select 'campaign_finance_donations_iowa_individual_contr_staging','{"committee_name":"VARCHAR(128)","amount":"varchar(255)","year":"int(4)","week":"varchar(255)","month":"varchar(255)","story_table":"LONGTEXT"}';
+
+#690
+
+STAGE TABLE CREATION
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=690 -t
+
+STAGE POPULATION CONFIGURATION
+insert into stage_population_configurations(project_name, tbl, definition) select 'Campaign Finance Donations - Iowa - Individual Contribution', 'campaign_finance_donations_iowa_individual_contr_staging', '{"known_entities":{"project_name":"Campaign Finance Donations - Iowa - Individual Contribution"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"campaign_finance_donations_iowa_individual_contr_population","arguments":{}}}}';
+
+population_config_id: #796
+
+STAGE POPULATION:
+$ cd ~/Loki/procedures
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=796 -t --date='2020-05-09' --threads_count=1
+
+
+STORY CREATOR CONFIGURATION:
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'campaign_finance_donations_iowa_individual_contr_staging', 'campaign_finance_donations_iowa_individual_contr_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+
+creation_config_id: #679
+
+STORY CREATION COMMAND:
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=679 -t
+
+
+STAGING: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=679 --population_config_id=796 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='Campaign Finance Donations - Iowa - Individual Contribution' -t --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=679 --population_config_id=796 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='Campaign Finance Donations - Iowa - Individual Contribution' -t --where="stage.client_name like 'MM - %'"
+
+STAGING: EXPORT STORIES
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=331895
+
+
+
+FIRST FEEDBACK
+________________________________________
+irb ->
+load 'Loki.rb'
+Hle::Story::Feedback.stories_feedback('511701546,511701553,511701552')
+
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511715440,511715414,511715467
+
+
+!!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
+________________________________________________________________________________________________________________________________________
+
+SCHEDULER:
+__________
+population_config_id: #796
+creation_config_id: #679
+
+tbl: campaign_finance_donations_iowa_individual_contr_staging
+desc: Campaign Finance Donations - Iowa - Individual Contribution
+
+config_id - population_config_id
+
+Up to 2 stories per day, per pub, for up to 180 days
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=796 --limit=2 --start_date='2020-06-01' --total_days_till_end_date=180
+
+__________________________________________________
+чтоб проверить шедулер, что он "окейно" отработал:
+
+select publication_name, min(publish_on), max(publish_on), count(*) from 'campaign_finance_donations_iowa_individual_contr_staging' group by publication_name;
+
+______________________________________
+PRODUCTION: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+______________________________________
+
+--where="client_name like 'MM - %'"
+
+РАЗБИВКА ПО КЛИНЕТАМ!!!
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=679 --population_config_id=796 --story_section_ids=2 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='Campaign Finance Donations - Iowa - Individual Contribution' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=679 --population_config_id=796 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='Campaign Finance Donations - Iowa - Individual Contribution' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+
+______________________________________
+
+select * from story_export_configurations_v2 where tbl = 'campaign_finance_donations_iowa_individual_contr_staging' and export_name like '%production%' order by id DESC;
+
+______________________________________
+если все ок, то выполняем без --limit_config=1
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=679 --population_config_id=796 --story_section_ids=2 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='Campaign Finance Donations - Iowa - Individual Contribution' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=679 --population_config_id=796 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='Campaign Finance Donations - Iowa - Individual Contribution' -t --prod --where="stage.client_name like 'MM - %'"
+_________
+повторяем
+
+select * from story_export_configurations_v2 where tbl = 'campaign_finance_donations_iowa_individual_contr_staging' and export_name like '%production%' order by id DESC;
+
+
+______________________
+для построения таблицы
+______________________
+
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from campaign_finance_donations_iowa_individual_contr_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='campaign_finance_donations_iowa_individual_contr_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+
+
+__________________________
+PRODUCTION: EXPORT STORIES
+__________________________
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='327979'
+
+_____
+IF OK
+_____
+
+--threads_count=7 | 13140961 | 13140960
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='327979,327988,327985,327983,327984,327996,327989,327994,327995,327981,327980,327991,327986,327993,327992,327990,327987,327998,327982,327999,327997'
+___________________________
+
+
+ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
+___________________________
+
+SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
+FROM story_export_configurations_v2
+WHERE tbl = "campaign_finance_donations_iowa_individual_contr_staging" AND
+      export_name LIKE '%production%';
+
+# pipeline-core-replica2.jnswire_prod query:
+
+SELECT headline, c.name AS publication, concat('https://pipeline.locallabs.com/stories/', s.id) AS url,
+       published_at, ji.name AS job_item, cc.name AS client
+FROM stories AS s
+JOIN communities AS c
+  ON s.community_id = c.id
+JOIN client_companies AS cc
+  ON c.client_company_id = cc.id
+JOIN data_entry_leads AS l
+  ON l.id = s.lead_id
+JOIN job_items AS ji
+  ON l.job_item_id=ji.id
+WHERE published_at >= '2020-05-12' AND
+      deleted = 0 AND
+      l.job_item_id IN (195752,195753,195756,195763,195757,195755,195758,195769,195762,195766,195771,195772,195781,195768,195761,195770,195754,195759,195764,195765,195767)
+ORDER BY c.name;
+
+
+
+
+REMINDER TOOL
+___________________________
+
+INSERT INTO loki_storycreator.hle_reminders
+    (
+        story_type_name, story_type_stage_table,
+        dev_name, slack_handle, dev_email,
+        story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
+        last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
+        data_source_checker_on, data_source_host, data_source_db, data_source_update_query
+    )
+VALUES
+    (
+        'Campaign Finance Donations - Iowa - Individual Contribution', 'campaign_finance_donations_iowa_individual_contr_staging',
+        'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
+        'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
+        '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
+         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
+    );
+
+
+
+
+# Creator: Dmitry Suschinsky
+# Story type: Campaign Finance Donations - Iowa - Individual Contribution
+# Template: https://docs.google.com/document/d/1zL21sYRjNEsmGoAibrDc_43zXS5oEmFjMhj4pEU3xOo/edit#
+# Created: June 2020
+
+# tbl: campaign_finance_donations_iowa_individual_contr_staging
+# db01.usa_raw.IECDB_iowa_campaign_disclosures_%
+# branch: campaign_finance_donations_iowa_individual_contr_d_sushi
+# campaign_finance_donations_iowa_committee_contr_w.rb.rb
+
+DAYS_BACK = 149
+# DAYS_BACK = 180
+PUBS_BACK = 28
+
+def get_percentage_diff(data1, data2)
+  (((data1 - data2) / data1) * 100).abs.round(1)
+end
+
+def get_percentage_change(value1, value2)
+  return 'error' if value1.to_f.zero?
+
+  change = ((value2.to_f - value1.to_f) / value1.to_f.abs) * 100
+  return 0 if change.abs < 0.1
+
+  return change.round(1)
+end
+
+def get_percent(value, total)
+  if ((value.to_f * 100) / total.to_f).round(1) > 0.0
+    format_percentage(((value.to_f * 100) / total.to_f).round(1))
+  else
+    'less than 0.1'
+  end
+end
+
+def format_percentage(value, symbol = false)
+  value = "#{('%.1f' % value.to_f).to_s.sub(/\.0$/, '')}#{symbol ? '%' : ''}"
+  value = '-' if value.match(/NaN/)
+  value
+end
+
+def separate_comma(number)
+  whole, decimal = number.to_s.split(".")
+  whole_with_commas = whole.chars.to_a.reverse.each_slice(3).map(&:join).join(",").reverse
+  [whole_with_commas, decimal].compact.join(".")
+end
+
+def number_to_money(value, words=false)
+  value = value.to_f
+  sign = value < 0 ? '-' : ''
+  value = value.abs
+  if words
+    if value >= 1_000_000_000_000
+      "#{sign}#{Numbers.money((value / 1_000_000_000_000.0).round(1)).sub(/(\.0+$|(?<=\.\d)0$)/, '')} trillion"
+    elsif value >= 1_000_000_000
+      "#{sign}#{Numbers.money((value / 1_000_000_000.0).round(1)).sub(/(\.0+$|(?<=\.\d)0$)/, '')} billion"
+    elsif value >= 1_000_000
+      "#{sign}#{Numbers.money((value / 1_000_000.0).round(1)).sub(/(\.0+$|(?<=\.\d)0$)/, '')} million"
+    else
+      "#{sign}#{Numbers.money(value.round(1)).sub(/(\.0+$|(?<=\.\d)0$)/, '')}"
+    end
+  else
+    "#{sign}#{Numbers.money(value.round(1)).sub(/(\.0+$|(?<=\.\d)0$)/, '')}"
+  end
+end
+
+def normalize_to_positive_percentage(value)
+  value = value.to_f * -1 if value.to_f < 0
+  value = "#{('%.1f' % value.to_f).to_s.sub(/\.0$/, '')}"
+end
+
+def escape(str)
+  str = str.to_s.strip.squeeze(' ')
+  return if str == ''
+
+  str.gsub("'","\\\\'").gsub('"',"\\\\\"")
+end
+
+# def insert(db, tab, h, log = false)
+#   query = "insert into #{tab} (#{h.keys.map{|e| "`#{e}`"}.join(', ')}) "\
+#     "values (#{h.values.map{|e|"'#{escape(e)}'"}.join(', ')})"
+#   p query if log
+#   db.client.query(query)
+# end
+
+def insert(db, tab, h, ignore = false, log=false)
+  query = "insert #{ignore ? 'ignore ' : ''}into #{tab} (#{h.keys.map{|e| "`#{e}`"}.join(', ')}) values (#{h.values.map{|e|"'#{escape(e)}'"}.join(', ')})"
+  p query if log
+  db.client.query(query)
+end
+
+def get_committee_list(start_date, end_date)
+  route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+  route.client.query("use #{route.stage_db}")
+  query = <<~SQL
+    SELECT t1.committee_name AS raw_name, count(*) AS n,
+      dc.committee_name AS clean_name,
+      contact_city AS city,
+      contact_county AS county,
+      pl_production_org_id
+    FROM (
+          SELECT DISTINCT committee_name
+          FROM fl_campaign_contributors c
+            JOIN fl_campaign_contributions don ON c.id=don.contributor_id
+          WHERE c.created_at BETWEEN '#{start_date}' AND '#{end_date}'
+            AND date BETWEEN '#{Date.today - DAYS_BACK}' AND '#{Date.today}'
+            AND amount>=5
+          GROUP BY committee_name
+          ORDER BY committee_name) t1
+      LEFT JOIN fl_campaign_detailed_committee dc ON dc.committee_name LIKE CONCAT(t1.committee_name, '%')
+      JOIN usa_administrative_division_counties_places_matching ON short_name=contact_city
+                                                                AND state_name='Florida'
+                                                                AND kind<>'CDP'
+                                                                AND pl_production_org_id IS NOT NULL
+    WHERE dc.committee_name IS NOT NULL AND contact_state='FL'
+    GROUP BY t1.committee_name
+    HAVING count(*)=1;
+  SQL
+  puts query
+  result = route.client.query(query).to_a
+  route.client.close
+  result
+end
+
+def get_contribution_list(committee, start_date, end_date, route)
+  query = <<~SQL
+    SELECT date,
+      c.name AS raw_name,
+      cn.name_cleaned AS clean_name,
+      SUM(amount) AS amount
+    FROM fl_campaign_contributors c
+      JOIN fl_campaign_contributors__clean_names cn ON c.name=cn.name
+      JOIN fl_campaign_contributions don ON c.id=don.contributor_id
+    WHERE c.created_at BETWEEN '#{start_date}' AND '#{end_date}'
+      AND date BETWEEN '#{Date.today - DAYS_BACK}' AND '#{Date.today}'
+      AND type<>'REF' AND amount>=5
+      AND skip_it<>1
+      AND committee_name='#{escape(committee['raw_name'])}'
+    GROUP BY contributor_id, date
+    ORDER BY date;
+  SQL
+  puts query
+  route.client.query(query).to_a
+end
+
+def add_the(committee_name)
+  if (committee_name.match?(/^brotherhood\b/i) ||
+      committee_name.match?(/\b(association|committee|friends)\b/i) ||
+      committee_name.match?(/\b(democrats|republicans|caucus)$/i) ||
+      committee_name.match?(/PAC\b/)) &&
+      # filer_name_hl.match?(/\b(campaign|fund|club|||society|commerce)\b/i)) &&
+      committee_name.downcase.start_with?('the ') == false
+    "the " + committee_name
+  else
+    committee_name
+  end
+end
+
+def campaign_finance_donations_iowa_committee_contr_w_stage_population(line, argument)
+  begin
+    end_date = @options['end_date'].nil? ? Date.today: Date.parse(@options['end_date'])
+    start_date = @options['start_date'].nil? ? end_date - 1 : Date.parse(@options['start_date'])
+    threads_count = @options['threads_count'].nil? ? 15 : @options['threads_count'].to_i
+
+
+    committee_list = get_committee_list(start_date, end_date)
+
+    reasons = {
+        not_all_data: [],
+        publications: [],
+    }
+
+    require 'bigdecimal'
+    require 'bigdecimal/util'
+
+    @semaphore = Mutex.new
+    threads = Array.new(threads_count) do
+      Thread.new do
+        delivery = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
+        delivery.client.query("use #{delivery.stage_db}")
+        thread_route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+        thread_route.client.query("use #{thread_route.stage_db}")
+        loop do
+          committee = nil
+          @semaphore.synchronize {
+            committee = committee_list.pop
+          }
+          break if committee.nil? && committee_list.count.zero?
+
+          puts "~~~~~ Processing committee #{committee['clean_name']} (#{committee_list.count} left) ~~~~~".yellow.on_blue
+          publications_mb = get_journal_from_org_id(committee['pl_production_org_id'], 'production', 120)
+          publications_mm = Hle::Publications.mm_pubs_excluding_states(committee['pl_production_org_id'], 'production')
+          publications = publications_mb + publications_mm
+          next if publications.empty?
+          contribution_list = get_contribution_list(committee, start_date, end_date, thread_route)
+          next if contribution_list.empty?
+          puts JSON.pretty_generate(contribution_list).green
+
+          contribution_list.each_with_index do |contribution, index|
+            puts "~~~~~ Processing record #{index + 1} of #{contribution_list.count}".green
+
+            publications.each do |publication|
+              hash = {}
+              hash['publication_name'] = publication['publication_name']
+              if hash['publication_name'].empty?
+                reasons[:publications] << "Committee: #{committee['clean_name']} (org_id: #{committee['pl_production_org_id']}): Publication name is empty"
+                next
+              end
+              hash['publication_id'] = publication['id'].to_i
+              hash['source_table_id'] = 20841
+
+              hash['organization_id'] = committee['pl_production_org_id']
+              hash['client_id'] = publication['client_id']
+              hash['client_name'] = publication['client_name']
+
+              hash['committee_name'] = committee['clean_name'].sub('TREEPAC PC, Inc.', 'TreePAC')
+
+              hash['contributor_name'] = contribution['clean_name']
+              hash['contribution_date'] = contribution['date']
+              hash['contribution_amount'] = contribution['amount']
+
+              if Date.today - contribution['date'] > PUBS_BACK
+                hash['publish_on'] = (contribution['date'] + 1).to_s
+              else
+                # hash['publish_on'] = '0000-00-00'
+                hash['publish_on'] = (Date.today + 1).to_s
+              end
+
+              puts ' HASH'.red.on_cyan
+              puts JSON.pretty_generate(hash).cyan
+              insert(delivery, @config['target_table'], hash, true)
+            end
+          end
+        end
+        delivery.client.close
+        thread_route.client.close
+      end
+    end
+    threads.each(&:join)
+  rescue => e
+    print "#{e} ~> #{e.backtrace.join("\n")}\n"
+      # Slack.chat_postMessage(channel: 'UKLB1JGDN', text: "Dayily story #856 ERROR: #{e} ~> #{e.backtrace.join('\n')}\n", as_user: true)
+  ensure
+    p 'Final statistics:', reasons
+  end
+  'INVALID'
+end
+
+def campaign_finance_donations_iowa_individual_contr_stage_creation(options, mail_sender = false)
+  total = @stage_selection.count
+
+  @stage_selection.each_with_index do |stage, index|
+    p "\r#{index + 1}/#{total}: \n"
+    export = {}
+
+    committee_name_hl = stage['committee_name']
+    contributor_name = stage['contributor_name']
+    contribution_date = stage['contribution_date'].strftime('%B %e')
+    contribution_amount = number_to_money(stage['contribution_amount'].round)
+
+    committee_name = add_the(committee_name_hl)
+
+    committee_description = case
+                            when committee_name =~ /PAC\b/ && committee_name !~ /\bpolitical action committee\b/i
+                              ', a political action committee,'
+                            when committee_name =~ /\b(campaign|friends)\b/i && committee_name !~ /\b(Republican|Democrat)/
+                              ', a campaign committee,'
+                            else
+                              ''
+                            end
+
+    headline = <<~HEADLINE.chomp
+      #{committee_name_hl} receives #{contribution_amount} on #{contribution_date}
+    HEADLINE
+
+    teaser = <<~TEASER.chomp
+      #{contributor_name} contributed #{contribution_amount} to #{committee_name}\
+      #{committee_description} on #{contribution_date}
+    TEASER
+
+    export['headline'] = headline.squeeze(' ').strip
+
+    export['teaser'] = "#{teaser}.".squeeze(' ')
+
+    output = <<~HEREDOC
+      #{teaser}, according to data from the \
+      <a href="https://dos.elections.myflorida.com/campaign-finance/contributions/">Florida Department of State</a>.\n
+    HEREDOC
+
+    # output << <<~HEREDOC
+    #   Since the beginning of the year, #{'the ' unless committee_name.match(/the /i)}#{committee_name} has received \
+    #   #{number_to_money(year_city_amount)} from contributors in #{contributor_city}. This counts for a total of \
+    #   #{get_percent(year_city_amount, year_total_amount)} percent of the #{number_to_money(year_total_amount)} the \
+    #   committee raised.\n
+    #   In Florida, it is required by law that all committees and candidates submit details of any contributions \
+    #   received and expenditures made. All candidates running for a non-federal multi-county office must disclose this \
+    #   information. Committees must disclose this information if either their expenditures, or donations exceed $500 in \
+    #   a calendar year to support, or oppose a candidate, party, or issue.
+    # HEREDOC
+    # output << <<~TITLE.chomp.to_table_title
+    #   #{table_rows == 100 ? 'The 100 largest': 'Other'} donations made to \
+    #   #{'the ' unless committee_name.match(/the /i)}#{committee_name}
+    # TITLE
+    # output << table + "\n"
+    export = prepare_output(stage, output.squeeze(' '), export, options)
+  end
+end
