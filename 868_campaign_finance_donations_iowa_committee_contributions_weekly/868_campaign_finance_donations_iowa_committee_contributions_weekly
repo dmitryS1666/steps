@@ -81,8 +81,8 @@ desc: Campaign Finance Donations - Iowa - Committee contributions weekly
 
 config_id - population_config_id
 
-Up to 2 stories per day, per pub, for up to 180 days
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=796 --limit=2 --start_date='2020-06-01' --total_days_till_end_date=180
+Up to 25 per day, per pub, for up to 7 days, starting June 11. Backdate all prior stories to the June 1, 2020.
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=796 --limit=25 --start_date='2020-06-11'
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -98,7 +98,7 @@ ______________________________________
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=679 --population_config_id=796 --story_section_ids=2 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='Campaign Finance Donations - Iowa - Committee contributions weekly' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=679 --population_config_id=796 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='Campaign Finance Donations - Iowa - Committee contributions weekly' -t --prod --limit_config=1 --where="client_id = 120"
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=679 --population_config_id=796 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='Campaign Finance Donations - Iowa - Committee contributions weekly' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
@@ -108,7 +108,7 @@ select * from story_export_configurations_v2 where tbl = 'campaign_finance_donat
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=679 --population_config_id=796 --story_section_ids=2 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='Campaign Finance Donations - Iowa - Committee contributions weekly' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=679 --population_config_id=796 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='Campaign Finance Donations - Iowa - Committee contributions weekly' -t --prod --where="client_id = 120"
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=679 --population_config_id=796 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='Campaign Finance Donations - Iowa - Committee contributions weekly' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
@@ -127,7 +127,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='327979'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='340165'
 
 _____
 IF OK
@@ -135,7 +135,7 @@ _____
 
 --threads_count=7 | 13140961 | 13140960
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='327979,327988,327985,327983,327984,327996,327989,327994,327995,327981,327980,327991,327986,327993,327992,327990,327987,327998,327982,327999,327997'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='340165,340157,340156,340150,340161,340154,340148,340153,340166,340155,340163,340152,340158,340160,340159,340149,340151,340164,340162' --threads_count=7
 ___________________________
 
 
@@ -160,9 +160,9 @@ JOIN data_entry_leads AS l
   ON l.id = s.lead_id
 JOIN job_items AS ji
   ON l.job_item_id=ji.id
-WHERE published_at >= '2020-05-12' AND
+WHERE published_at >= '2020-06-10' AND
       deleted = 0 AND
-      l.job_item_id IN (195752,195753,195756,195763,195757,195755,195758,195769,195762,195766,195771,195772,195781,195768,195761,195770,195754,195759,195764,195765,195767)
+      l.job_item_id IN (199839,199856,199848,199850,199841,199845,199852,199855,199844,199847,199857,199853,199846,199854,199843,199851,199849,199840,199842)
 ORDER BY c.name;
 
 
