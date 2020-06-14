@@ -4,13 +4,13 @@ https://docs.google.com/document/d/178nS7ZLaR6xd3D8f7MylWSfDKKpx-gXhzPn88gkMNBM/
 @john.putz
 Dev Name: Dmitry S
 Story type Name: #870 Campaign Finance Donations - Iowa - Individual Contribution
-FCD:
-Sample story:
-Period:
-Total Count:
+FCD: https://docs.google.com/document/d/1wX9RJzHpbJ7Fo2EYAnIED_plaDsBeecRre5V__x-Bjs/edit#
+Sample story: https://pipeline-staging.locallabs.com/stories/511718437
+Period: 2020-01-01 - 2020-05-27
+Total Count: 68943
 Max Project Count by client:
-MB -
-MM -
+MB - 39474
+MM - 7442
 Notes:
 _____________________________________________________
 
@@ -183,7 +183,6 @@ VALUES
 
 
 
-
 # Creator: Dmitry Suschinsky
 # Story type: Campaign Finance Donations - Iowa - Individual Contribution
 # Template: https://docs.google.com/document/d/1zL21sYRjNEsmGoAibrDc_43zXS5oEmFjMhj4pEU3xOo/edit#
@@ -193,10 +192,6 @@ VALUES
 # db01.usa_raw.IECDB_iowa_campaign_disclosures_%
 # branch: campaign_finance_donations_iowa_individual_contr_d_sushi
 # campaign_finance_donations_iowa_committee_contr_w.rb.rb
-
-DAYS_BACK = 149
-# DAYS_BACK = 180
-PUBS_BACK = 28
 
 def get_percentage_diff(data1, data2)
   (((data1 - data2) / data1) * 100).abs.round(1)
@@ -311,7 +306,7 @@ def add_the(committee_name)
   end
 end
 
-def campaign_finance_donations_iowa_committee_contr_w_stage_population(line, argument)
+def campaign_finance_donations_iowa_individual_contr_stage_population(line, argument)
   begin
     records = get_record_list
 
@@ -337,8 +332,10 @@ def campaign_finance_donations_iowa_committee_contr_w_stage_population(line, arg
           @semaphore.synchronize {
             rec = records.pop
           }
-          break if rec.nil? && records.count.zero?
+          break if rec.class == NilClass
 
+          puts 'rec: ', rec
+          next if rec['org_id'] == nil
           # Metro Business Network
           # MM-Iowa
           publications = []
@@ -348,98 +345,82 @@ def campaign_finance_donations_iowa_committee_contr_w_stage_population(line, arg
           next if publications.empty?
           publications.each do |publication|
             hash = {}
-            hash['publication_name'] = publication['publication_name']
-            if hash['publication_name'].empty?
+
+            if publication.empty? || publication[0].empty? || publication[0]['publication_name'].empty?
               reasons[:publications] << "Committee: #{rec['clean_name']} (org_id: #{rec['org_id']}): Publication name is empty"
               next
             end
-            hash['publication_id'] = publication['id'].to_i
+            hash['publication_name'] = publication[0]['publication_name']
+
+            hash['publication_id'] = publication[0]['id'].to_i
             hash['source_table_id'] = 21017
 
             hash['organization_id'] = rec['org_id']
-            hash['client_id'] = publication['client_id']
-            hash['client_name'] = publication['client_name']
+            hash['client_id'] = publication[0]['client_id']
+            hash['client_name'] = publication[0]['client_name']
 
             hash['date'] = rec['date']
             hash['committee_name'] = rec['committee_name']
             hash['amount'] = rec['amount']
-            hash['contributor_name'] = rec['contributor_name_clean']
+            hash['contributor_name_clean'] = rec['contributor_name_clean']
 
             puts ' HASH'.red.on_cyan
             puts JSON.pretty_generate(hash).cyan
             insert(delivery, @config['target_table'], hash, true)
           end
         end
+      rescue => e
+        print "#{e.to_s} ~> #{e.backtrace.join("\n")}\n"
+      ensure
         delivery.client.close
         thread_route.client.close
       end
-      threads.each(&:join)
-    rescue => e
-      print "#{e} ~> #{e.backtrace.join("\n")}\n"
-        # Slack.chat_postMessage(channel: 'UKLB1JGDN', text: "Dayily story #856 ERROR: #{e} ~> #{e.backtrace.join('\n')}\n", as_user: true)
-    ensure
-      p 'Final statistics:', reasons
     end
+    threads.each(&:join)
     'INVALID'
   end
 end
 
-def campaign_finance_donations_iowa_individual_contr_stage_creation(options, mail_sender = false)
-  total = @stage_selection.count
+  def campaign_finance_donations_iowa_individual_contr_stage_creation(options, mail_sender = false)
+    total = @stage_selection.count
 
-  @stage_selection.each_with_index do |stage, index|
-    p "\r#{index + 1}/#{total}: \n"
-    export = {}
+    @stage_selection.each_with_index do |stage, index|
+      p "\r#{index + 1}/#{total}: \n"
+      export = {}
 
-    committee_name_hl = stage['committee_name']
-    contributor_name = stage['contributor_name']
-    contribution_date = stage['contribution_date'].strftime('%B %e')
-    contribution_amount = number_to_money(stage['contribution_amount'].round)
+      committee_name_hl = stage['committee_name']
+      contributor_name = stage['contributor_name_clean']
+      contribution_date = Date.parse(stage['date']).strftime('%B %e')
+      contribution_amount = number_to_money(stage['amount'].to_f.round)
 
-    committee_name = add_the(committee_name_hl)
+      committee_name = add_the(committee_name_hl)
 
-    committee_description = case
-                            when committee_name =~ /PAC\b/ && committee_name !~ /\bpolitical action committee\b/i
-                              ', a political action committee,'
-                            when committee_name =~ /\b(campaign|friends)\b/i && committee_name !~ /\b(Republican|Democrat)/
-                              ', a campaign committee,'
-                            else
-                              ''
-                            end
+      committee_description = case
+                              when committee_name =~ /PAC\b/ && committee_name !~ /\bpolitical action committee\b/i
+                                ', a political action committee,'
+                              when committee_name =~ /\b(campaign|friends)\b/i && committee_name !~ /\b(Republican|Democrat)/
+                                ', a campaign committee,'
+                              else
+                                ''
+                              end
 
-    headline = <<~HEADLINE.chomp
+      headline = <<~HEADLINE.chomp
       #{committee_name_hl} receives #{contribution_amount} on #{contribution_date}
-    HEADLINE
+      HEADLINE
 
-    teaser = <<~TEASER.chomp
+      teaser = <<~TEASER.chomp
       #{contributor_name} contributed #{contribution_amount} to #{committee_name}\
       #{committee_description} on #{contribution_date}
-    TEASER
+      TEASER
 
-    export['headline'] = headline.squeeze(' ').strip
+      export['headline'] = headline.squeeze(' ').strip
 
-    export['teaser'] = "#{teaser}.".squeeze(' ')
+      export['teaser'] = "#{teaser}.".squeeze(' ')
 
-    output = <<~HEREDOC
-      #{teaser}, according to data from the \
-      <a href="https://dos.elections.myflorida.com/campaign-finance/contributions/">Florida Department of State</a>.\n
-    HEREDOC
+      output = <<~HEREDOC
+      #{teaser}, according to data from Iowa Ethics and Campaign Disclosure Board.\n
+      HEREDOC
 
-    # output << <<~HEREDOC
-    #   Since the beginning of the year, #{'the ' unless committee_name.match(/the /i)}#{committee_name} has received \
-    #   #{number_to_money(year_city_amount)} from contributors in #{contributor_city}. This counts for a total of \
-    #   #{get_percent(year_city_amount, year_total_amount)} percent of the #{number_to_money(year_total_amount)} the \
-    #   committee raised.\n
-    #   In Florida, it is required by law that all committees and candidates submit details of any contributions \
-    #   received and expenditures made. All candidates running for a non-federal multi-county office must disclose this \
-    #   information. Committees must disclose this information if either their expenditures, or donations exceed $500 in \
-    #   a calendar year to support, or oppose a candidate, party, or issue.
-    # HEREDOC
-    # output << <<~TITLE.chomp.to_table_title
-    #   #{table_rows == 100 ? 'The 100 largest': 'Other'} donations made to \
-    #   #{'the ' unless committee_name.match(/the /i)}#{committee_name}
-    # TITLE
-    # output << table + "\n"
-    export = prepare_output(stage, output.squeeze(' '), export, options)
+      export = prepare_output(stage, output.squeeze(' '), export, options)
+    end
   end
-end
