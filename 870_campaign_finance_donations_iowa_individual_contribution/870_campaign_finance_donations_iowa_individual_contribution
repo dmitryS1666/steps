@@ -48,7 +48,7 @@ bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=692 --popul
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=692 --population_config_id=810 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='Campaign Finance Donations - Iowa - Individual Contribution' -t --where="stage.client_name like 'MM - %'"
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=340174
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=340619
 
 
 
