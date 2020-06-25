@@ -132,7 +132,10 @@ _____
 
 --threads_count=7 | 13140961 | 13140960
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='341425,341422,341418,341417,341415,341419,341411,341414,341428,341421,341429,341413,341416,341427,341424,341420,341423,341426,341412' --threads_count=10
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='341425,341422,341418,341417,341415' --threads_count=15
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='341420,341423,341426,341412' --threads_count=15
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='341419,341411,341414,341428,341421' --threads_count=15
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='341429,341413,341416,341427,341424' --threads_count=15
 ___________________________
 
 
