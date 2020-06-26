@@ -1,0 +1,425 @@
+MA Public Employee Compensation (Yearly)
+https://docs.google.com/document/d/1SWHB7e1dK6GW7FftfUyOXI80PLcEamTrxOVMDzVIsUE/edit#heading=h.gjdgxs
+
+@john.putz
+Dev Name: Dmitry S.
+Story type Name: #909 MA Public Employee Compensation (Yearly)
+FCD:
+Sample story:
+Period:
+Total Count:
+Max Project Count by client:
+Notes:
+_____________________________________________________
+
+STAGE TABLE DEFINITION
+insert into stage_definition_configurations (tbl, definition) select 'ma_public_employee_compensation_yearly_staging','{"department_division":"VARCHAR(256)","more_than_100k":"int(5)","total":"int(5)","count_10_25":"int(5)","count_25_50":"int(5)","count_50_75":"int(5)","count_75_100":"int(5)","count_less_10":"int(5)","year":"int(4)","max_amount":"VARCHAR(256)","max_department":"VARCHAR(256)","story_table":"LONGTEXT"}';
+
+
+#728
+
+STAGE TABLE CREATION
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=728 -t
+
+STAGE POPULATION CONFIGURATION
+insert into stage_population_configurations(project_name, tbl, definition) select 'MA Public Employee Compensation (Yearly)', 'ma_public_employee_compensation_yearly_staging', '{"known_entities":{"project_name":"MA Public Employee Compensation (Yearly)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"ma_public_employee_compensation_yearly_population","arguments":{}}}}';
+
+population_config_id: #832
+
+STAGE POPULATION:
+$ cd ~/Loki/procedures
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=832 -t --threads_count=1 --year=2019
+
+
+STORY CREATOR CONFIGURATION:
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'ma_public_employee_compensation_yearly_staging', 'ma_public_employee_compensation_yearly_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+
+creation_config_id: #714
+
+STORY CREATION COMMAND:
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=714 -t
+
+
+STAGING: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=714 --population_config_id=832 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation (Yearly)' -t --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=714 --population_config_id=832 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation (Yearly)' -t --where="stage.client_name like 'MM - %'"
+
+STAGING: EXPORT STORIES
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=340619
+
+
+
+FIRST FEEDBACK
+________________________________________
+irb ->
+load 'Loki.rb'
+Hle::Story::Feedback.stories_feedback('511701546,511701553,511701552')
+
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511724288,511724287,511724286
+
+
+!!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
+________________________________________________________________________________________________________________________________________
+
+SCHEDULER:
+__________
+population_config_id: #832
+creation_config_id: #714
+
+tbl: ma_public_employee_compensation_yearly_staging
+desc: MA Public Employee Compensation (Yearly)
+
+config_id - population_config_id
+
+Up to 2 stories per day, per pub, for up to 180 days
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=832 --limit=2 --start_date='2020-06-01' --total_days_till_end_date=180
+
+__________________________________________________
+чтоб проверить шедулер, что он "окейно" отработал:
+
+select publication_name, min(publish_on), max(publish_on), count(*) from 'ma_public_employee_compensation_yearly_staging' group by publication_name;
+
+______________________________________
+PRODUCTION: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+______________________________________
+
+--where="client_name like 'MM - %'"
+
+РАЗБИВКА ПО КЛИНЕТАМ!!!
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=714 --population_config_id=832 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation (Yearly)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=714 --population_config_id=832 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation (Yearly)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+
+______________________________________
+
+select * from story_export_configurations_v2 where tbl = 'ma_public_employee_compensation_yearly_staging' and export_name like '%production%' order by id DESC;
+
+______________________________________
+если все ок, то выполняем без --limit_config=1
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=714 --population_config_id=832 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation (Yearly)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=714 --population_config_id=832 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation (Yearly)' -t --prod --where="stage.client_name like 'MM - %'"
+_________
+повторяем
+
+select * from story_export_configurations_v2 where tbl = 'ma_public_employee_compensation_yearly_staging' and export_name like '%production%' order by id DESC;
+
+
+______________________
+для построения таблицы
+______________________
+
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from ma_public_employee_compensation_yearly_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='ma_public_employee_compensation_yearly_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+
+
+__________________________
+PRODUCTION: EXPORT STORIES
+__________________________
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='327979'
+
+_____
+IF OK
+_____
+
+--threads_count=7 | 13140961 | 13140960
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='327979,327988,327985,327983,327984,327996,327989,327994,327995,327981,327980,327991,327986,327993,327992,327990,327987,327998,327982,327999,327997'
+___________________________
+
+
+ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
+___________________________
+
+SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
+FROM story_export_configurations_v2
+WHERE tbl = "ma_public_employee_compensation_yearly_staging" AND
+      export_name LIKE '%production%';
+
+# pipeline-core-replica2.jnswire_prod query:
+
+SELECT headline, c.name AS publication, concat('https://pipeline.locallabs.com/stories/', s.id) AS url,
+       published_at, ji.name AS job_item, cc.name AS client
+FROM stories AS s
+JOIN communities AS c
+  ON s.community_id = c.id
+JOIN client_companies AS cc
+  ON c.client_company_id = cc.id
+JOIN data_entry_leads AS l
+  ON l.id = s.lead_id
+JOIN job_items AS ji
+  ON l.job_item_id=ji.id
+WHERE published_at >= '2020-05-12' AND
+      deleted = 0 AND
+      l.job_item_id IN (195752,195753,195756,195763,195757,195755,195758,195769,195762,195766,195771,195772,195781,195768,195761,195770,195754,195759,195764,195765,195767)
+ORDER BY c.name;
+
+
+
+
+REMINDER TOOL
+___________________________
+
+INSERT INTO loki_storycreator.hle_reminders
+    (
+        story_type_name, story_type_stage_table,
+        dev_name, slack_handle, dev_email,
+        story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
+        last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
+        data_source_checker_on, data_source_host, data_source_db, data_source_update_query
+    )
+VALUES
+    (
+        'MA Public Employee Compensation (Yearly)', 'ma_public_employee_compensation_yearly_staging',
+        'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
+        'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
+        '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
+         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
+    );
+
+
+
+# Creator: Dmitry Suschinsky
+# Story type: MA Public Employee Compensation (Yearly)
+# Template: https://docs.google.com/document/d/1zL21sYRjNEsmGoAibrDc_43zXS5oEmFjMhj4pEU3xOo/edit#
+# Created: June 2020
+
+# tbl: ma_public_employee_compensation_yearly_staging
+# db01.usa_raw.IECDB_iowa_campaign_disclosures_%
+# branch: ma_public_employee_compensation_yearly_d_sushi
+# campaign_finance_donations_iowa_committee_contr_w.rb.rb
+
+def get_percentage_diff(data1, data2)
+  (((data1 - data2) / data1) * 100).abs.round(1)
+end
+
+def get_percentage_change(value1, value2)
+  return 'error' if value1.to_f.zero?
+
+  change = ((value2.to_f - value1.to_f) / value1.to_f.abs) * 100
+  return 0 if change.abs < 0.1
+
+  return change.round(1)
+end
+
+def get_percent(value, total)
+  if ((value.to_f * 100) / total.to_f).round(1) > 0.0
+    format_percentage(((value.to_f * 100) / total.to_f).round(1))
+  else
+    'less than 0.1'
+  end
+end
+
+def format_percentage(value, symbol = false)
+  value = "#{('%.1f' % value.to_f).to_s.sub(/\.0$/, '')}#{symbol ? '%' : ''}"
+  value = '-' if value.match(/NaN/)
+  value
+end
+
+def separate_comma(number)
+  whole, decimal = number.to_s.split(".")
+  whole_with_commas = whole.chars.to_a.reverse.each_slice(3).map(&:join).join(",").reverse
+  [whole_with_commas, decimal].compact.join(".")
+end
+
+def number_to_money(value, words=false)
+  value = value.to_f
+  sign = value < 0 ? '-' : ''
+  value = value.abs
+  if words
+    if value >= 1_000_000_000_000
+      "#{sign}#{Numbers.money((value / 1_000_000_000_000.0).round(1)).sub(/(\.0+$|(?<=\.\d)0$)/, '')} trillion"
+    elsif value >= 1_000_000_000
+      "#{sign}#{Numbers.money((value / 1_000_000_000.0).round(1)).sub(/(\.0+$|(?<=\.\d)0$)/, '')} billion"
+    elsif value >= 1_000_000
+      "#{sign}#{Numbers.money((value / 1_000_000.0).round(1)).sub(/(\.0+$|(?<=\.\d)0$)/, '')} million"
+    else
+      "#{sign}#{Numbers.money(value.round(1)).sub(/(\.0+$|(?<=\.\d)0$)/, '')}"
+    end
+  else
+    "#{sign}#{Numbers.money(value.round(1)).sub(/(\.0+$|(?<=\.\d)0$)/, '')}"
+  end
+end
+
+def normalize_to_positive_percentage(value)
+  value = value.to_f * -1 if value.to_f < 0
+  value = "#{('%.1f' % value.to_f).to_s.sub(/\.0$/, '')}"
+end
+
+def escape(str)
+  str = str.to_s.strip.squeeze(' ')
+  return if str == ''
+
+  str.gsub("'","\\\\'").gsub('"',"\\\\\"")
+end
+
+# def insert(db, tab, h, log = false)
+#   query = "insert into #{tab} (#{h.keys.map{|e| "`#{e}`"}.join(', ')}) "\
+#     "values (#{h.values.map{|e|"'#{escape(e)}'"}.join(', ')})"
+#   p query if log
+#   db.client.query(query)
+# end
+
+def insert(db, tab, h, ignore = false, log=false)
+  query = "insert #{ignore ? 'ignore ' : ''}into #{tab} (#{h.keys.map{|e| "`#{e}`"}.join(', ')}) values (#{h.values.map{|e|"'#{escape(e)}'"}.join(', ')})"
+  p query if log
+  db.client.query(query)
+end
+
+def get_record_list
+  route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+  route.client.query("use #{route.stage_db}")
+  query = <<~SQL
+    SELECT IFNULL(t1.committee_name_cleaned_manually, t1.committee_name) as committee_name,
+           t2.amount, t2.date, t2.contributor_name_clean, t1.pl_production_org_id AS org_id
+    FROM IECDB_iowa_campaign_disclosures_committees t1
+         JOIN (
+            SELECT SUM(cast(amount as unsigned)) as amount, committee_id, date, contributor_name, contributor_name_clean
+            FROM IECDB_iowa_campaign_disclosures_contributions
+            WHERE YEAR(date) = '2020'
+            GROUP BY committee_id, date, contributor_name, amount
+            HAVING COUNT(*) = 1
+        ) t2 ON t1.id = t2.committee_id
+    WHERE amount > 0
+    ORDER BY date;
+  SQL
+  puts query
+  result = route.client.query(query).to_a
+  route.client.close
+  result
+end
+
+def add_the(committee_name)
+  if (committee_name.match?(/^brotherhood\b/i) ||
+      committee_name.match?(/\b(association|committee|friends)\b/i) ||
+      committee_name.match?(/\b(democrats|republicans|caucus)$/i) ||
+      committee_name.match?(/PAC\b/)) &&
+      # filer_name_hl.match?(/\b(campaign|fund|club|||society|commerce)\b/i)) &&
+      committee_name.downcase.start_with?('the ') == false
+    "the " + committee_name
+  else
+    committee_name
+  end
+end
+
+def ma_public_employee_compensation_yearly_stage_population(line, argument)
+  begin
+    records = get_record_list
+
+    reasons = {
+        not_all_data: [],
+        publications: [],
+    }
+
+    require 'bigdecimal'
+    require 'bigdecimal/util'
+
+    threads_count = @options['threads_count'].to_i || 3
+
+    @semaphore = Mutex.new
+    threads = Array.new(threads_count) do
+      Thread.new do
+        delivery = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
+        delivery.client.query("use #{delivery.stage_db}")
+        thread_route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+        thread_route.client.query("use #{thread_route.stage_db}")
+        loop do
+          rec = nil
+          @semaphore.synchronize {
+            rec = records.pop
+          }
+          break if rec.class == NilClass
+
+          puts 'rec: ', rec
+          next if rec['org_id'] == nil
+          # Metro Business Network
+          # MM-Iowa
+          publications = []
+          publications << Hle::Publications.mm_pubs_excluding_states(rec['org_id'], 'production', 'Iowa')
+          publications << get_journal_from_org_id(rec['org_id'], 'production', 120) rescue nil
+
+          next if publications.empty?
+          publications.each do |publication|
+            hash = {}
+
+            if publication.empty? || publication[0].empty? || publication[0]['publication_name'].empty?
+              reasons[:publications] << "Committee: #{rec['clean_name']} (org_id: #{rec['org_id']}): Publication name is empty"
+              next
+            end
+            hash['publication_name'] = publication[0]['publication_name']
+
+            hash['publication_id'] = publication[0]['id'].to_i
+            hash['source_table_id'] = 21017
+
+            hash['organization_id'] = rec['org_id']
+            hash['client_id'] = publication[0]['client_id']
+            hash['client_name'] = publication[0]['client_name']
+
+            hash['date'] = rec['date']
+            hash['committee_name'] = rec['committee_name']
+            hash['amount'] = rec['amount']
+            hash['contributor_name_clean'] = rec['contributor_name_clean']
+
+            puts ' HASH'.red.on_cyan
+            puts JSON.pretty_generate(hash).cyan
+            insert(delivery, @config['target_table'], hash, true)
+          end
+        end
+      rescue => e
+        print "#{e.to_s} ~> #{e.backtrace.join("\n")}\n"
+      ensure
+        delivery.client.close
+        thread_route.client.close
+      end
+    end
+    threads.each(&:join)
+    'INVALID'
+  end
+end
+
+  def ma_public_employee_compensation_yearly_stage_creation(options, mail_sender = false)
+    total = @stage_selection.count
+
+    @stage_selection.each_with_index do |stage, index|
+      p "\r#{index + 1}/#{total}: \n"
+      export = {}
+
+      committee_name_hl = stage['committee_name']
+      contributor_name = stage['contributor_name_clean']
+      contribution_date = Date.parse(stage['date']).strftime('%B %e')
+      contribution_amount = number_to_money(stage['amount'].to_f.round)
+
+      committee_name = add_the(committee_name_hl)
+
+      committee_description = case
+                              when committee_name =~ /PAC\b/ && committee_name !~ /\bpolitical action committee\b/i
+                                ', a political action committee,'
+                              when committee_name =~ /\b(campaign|friends)\b/i && committee_name !~ /\b(Republican|Democrat)/
+                                ', a campaign committee,'
+                              else
+                                ''
+                              end
+
+      headline = <<~HEADLINE.chomp
+      #{committee_name_hl} receives #{contribution_amount} on #{contribution_date}
+      HEADLINE
+
+      teaser = <<~TEASER.chomp
+      #{contributor_name} contributed #{contribution_amount} to #{committee_name}\
+      #{committee_description} on #{contribution_date}
+      TEASER
+
+      export['headline'] = headline.squeeze(' ').strip
+
+      export['teaser'] = "#{teaser}.".squeeze(' ')
+
+      output = <<~HEREDOC
+      #{teaser}, according to data from Iowa Ethics and Campaign Disclosure Board.\n
+      HEREDOC
+
+      export = prepare_output(stage, output.squeeze(' '), export, options)
+    end
+  end
