@@ -188,9 +188,9 @@ VALUES
 # Created: June 2020
 
 # tbl: ma_public_employee_compensation_yearly_staging
-# db01.usa_raw.IECDB_iowa_campaign_disclosures_%
+# db01.usa_raw.ma_public_employee_salaries
 # branch: ma_public_employee_compensation_yearly_d_sushi
-# campaign_finance_donations_iowa_committee_contr_w.rb.rb
+# ma_public_employee_compensation_yearly.rb
 
 def get_percentage_diff(data1, data2)
   (((data1 - data2) / data1) * 100).abs.round(1)
@@ -225,25 +225,6 @@ def separate_comma(number)
   [whole_with_commas, decimal].compact.join(".")
 end
 
-def number_to_money(value, words=false)
-  value = value.to_f
-  sign = value < 0 ? '-' : ''
-  value = value.abs
-  if words
-    if value >= 1_000_000_000_000
-      "#{sign}#{Numbers.money((value / 1_000_000_000_000.0).round(1)).sub(/(\.0+$|(?<=\.\d)0$)/, '')} trillion"
-    elsif value >= 1_000_000_000
-      "#{sign}#{Numbers.money((value / 1_000_000_000.0).round(1)).sub(/(\.0+$|(?<=\.\d)0$)/, '')} billion"
-    elsif value >= 1_000_000
-      "#{sign}#{Numbers.money((value / 1_000_000.0).round(1)).sub(/(\.0+$|(?<=\.\d)0$)/, '')} million"
-    else
-      "#{sign}#{Numbers.money(value.round(1)).sub(/(\.0+$|(?<=\.\d)0$)/, '')}"
-    end
-  else
-    "#{sign}#{Numbers.money(value.round(1)).sub(/(\.0+$|(?<=\.\d)0$)/, '')}"
-  end
-end
-
 def normalize_to_positive_percentage(value)
   value = value.to_f * -1 if value.to_f < 0
   value = "#{('%.1f' % value.to_f).to_s.sub(/\.0$/, '')}"
@@ -256,35 +237,55 @@ def escape(str)
   str.gsub("'","\\\\'").gsub('"',"\\\\\"")
 end
 
-# def insert(db, tab, h, log = false)
-#   query = "insert into #{tab} (#{h.keys.map{|e| "`#{e}`"}.join(', ')}) "\
-#     "values (#{h.values.map{|e|"'#{escape(e)}'"}.join(', ')})"
-#   p query if log
-#   db.client.query(query)
-# end
-
 def insert(db, tab, h, ignore = false, log=false)
   query = "insert #{ignore ? 'ignore ' : ''}into #{tab} (#{h.keys.map{|e| "`#{e}`"}.join(', ')}) values (#{h.values.map{|e|"'#{escape(e)}'"}.join(', ')})"
   p query if log
   db.client.query(query)
 end
 
-def get_record_list
+def get_record_list(year)
   route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
   route.client.query("use #{route.stage_db}")
   query = <<~SQL
-    SELECT IFNULL(t1.committee_name_cleaned_manually, t1.committee_name) as committee_name,
-           t2.amount, t2.date, t2.contributor_name_clean, t1.pl_production_org_id AS org_id
-    FROM IECDB_iowa_campaign_disclosures_committees t1
-         JOIN (
-            SELECT SUM(cast(amount as unsigned)) as amount, committee_id, date, contributor_name, contributor_name_clean
-            FROM IECDB_iowa_campaign_disclosures_contributions
-            WHERE YEAR(date) = '2020'
-            GROUP BY committee_id, date, contributor_name, amount
-            HAVING COUNT(*) = 1
-        ) t2 ON t1.id = t2.committee_id
-    WHERE amount > 0
-    ORDER BY date;
+    SELECT COUNT(DISTINCT last_name) AS more_than_100k, ma_total.total, ma_beetween_10_25.count_10_25,
+           ma_beetween_25_50.count_25_50, ma_beetween_50_75.count_50_75, ma_beetween_75_100.count_75_100,
+           ma_less_10.count_less_10, ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division, ma_clean.pl_production_org_id AS org_id
+    FROM ma_public_employee_salaries ma
+    LEFT JOIN ma_public_employee_salaries_department_division_clean ma_clean
+           ON ma_clean.DEPARTMENT_DIVISION = ma.department_division
+    LEFT JOIN (SELECT COUNT(DISTINCT last_name) AS total, department_division
+               FROM ma_public_employee_salaries
+               WHERE year = #{year} GROUP BY department_division
+               ) ma_total
+           ON ma_total.department_division = ma.department_division
+    LEFT JOIN (SELECT COUNT(DISTINCT last_name) AS count_10_25, department_division
+               FROM ma_public_employee_salaries
+               WHERE year = #{year} AND pay_total_actual BETWEEN 10000 AND 25000 GROUP BY department_division
+              ) ma_beetween_10_25
+           ON ma_beetween_10_25.department_division = ma.department_division
+    LEFT JOIN (SELECT COUNT(DISTINCT last_name) AS count_25_50, department_division
+               FROM ma_public_employee_salaries
+               WHERE year = #{year} AND pay_total_actual BETWEEN 25000 AND 50000 GROUP BY department_division
+              ) ma_beetween_25_50
+           ON ma_beetween_25_50.department_division = ma.department_division
+    LEFT JOIN (SELECT COUNT(DISTINCT last_name) AS count_50_75, department_division
+               FROM ma_public_employee_salaries
+               WHERE year = #{year} AND pay_total_actual BETWEEN 50000 AND 75000 GROUP BY department_division
+              ) ma_beetween_50_75
+           ON ma_beetween_50_75.department_division = ma.department_division
+    LEFT JOIN (SELECT COUNT(DISTINCT last_name) AS count_75_100, department_division
+               FROM ma_public_employee_salaries
+               WHERE year = #{year} AND pay_total_actual BETWEEN 75000 AND 100000 GROUP BY department_division
+              ) ma_beetween_75_100
+           ON ma_beetween_75_100.department_division = ma.department_division
+    LEFT JOIN (SELECT COUNT(DISTINCT last_name) AS count_less_10, department_division
+               FROM ma_public_employee_salaries
+               WHERE year = #{year} AND pay_total_actual < 10000 GROUP BY department_division
+              ) ma_less_10
+           ON ma_less_10.department_division = ma.department_division
+    WHERE year = #{year} AND pay_total_actual > 100000
+    GROUP BY ma_clean.DEPARTMENT_DIVISION_CLEAN
+    ORDER BY ma_clean.DEPARTMENT_DIVISION_CLEAN ASC;
   SQL
   puts query
   result = route.client.query(query).to_a
@@ -292,23 +293,71 @@ def get_record_list
   result
 end
 
-def add_the(committee_name)
-  if (committee_name.match?(/^brotherhood\b/i) ||
-      committee_name.match?(/\b(association|committee|friends)\b/i) ||
-      committee_name.match?(/\b(democrats|republicans|caucus)$/i) ||
-      committee_name.match?(/PAC\b/)) &&
-      # filer_name_hl.match?(/\b(campaign|fund|club|||society|commerce)\b/i)) &&
-      committee_name.downcase.start_with?('the ') == false
-    "the " + committee_name
-  else
-    committee_name
+def get_table_records(year)
+  route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+  route.client.query("use #{route.stage_db}")
+  query = <<~SQL
+    SELECT ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division, ma_max.max_salary AS salary
+    FROM ma_public_employee_salaries_department_division_clean AS ma_clean
+    INNER JOIN (SELECT department_division, MAX(pay_total_actual) AS max_salary
+                FROM ma_public_employee_salaries WHERE year = #{year}
+                GROUP BY department_division
+              ) ma_max
+    ON ma_clean.DEPARTMENT_DIVISION = ma_max.department_division
+    ORDER BY max_salary DESC;
+  SQL
+  puts query
+  result = route.client.query(query).to_a
+  route.client.close
+  result
+end
+
+def get_max_record(year)
+  route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+  route.client.query("use #{route.stage_db}")
+  query = <<~SQL
+    SELECT ma_clean.DEPARTMENT_DIVISION_CLEAN AS department, MAX(pay_total_actual) AS salary
+    FROM ma_public_employee_salaries ma
+             LEFT JOIN ma_public_employee_salaries_department_division_clean ma_clean
+                       ON ma_clean.DEPARTMENT_DIVISION = ma.department_division
+    WHERE year = #{year};
+  SQL
+  puts query
+  result = route.client.query(query).to_a
+  route.client.close
+  result
+end
+
+def table_from_data(records)
+  table = []
+  records.each do |rec|
+    puts 'rec: ', rec
+    table << {
+        :Department => rec['department_division'],
+        :Salary => number_to_money(rec['salary'])
+    }
   end
+  table
+end
+
+def number_to_money(value)
+  "#{Numbers.money(value.to_f.round).to_s.sub(/\.00$/, '')}"
+end
+
+def get_max(hash)
+  hash.each { |k, v| return k, v if v == hash.values.max }
 end
 
 def ma_public_employee_compensation_yearly_stage_population(line, argument)
   begin
-    records = get_record_list
+    puts("\n!!!\nParameter year required \n!!!\n") unless (@options['year'])
+    return 'INVALID' unless @options['year']
+    year = @options['year']
+    return 'INVALID' unless year.to_s.match(/^\d{4}$/)
 
+    records = get_record_list(year)
+    table_records = get_table_records(year)
+    table = table_from_data(table_records)
     reasons = {
         not_all_data: [],
         publications: [],
@@ -336,9 +385,9 @@ def ma_public_employee_compensation_yearly_stage_population(line, argument)
           puts 'rec: ', rec
           next if rec['org_id'] == nil
           # Metro Business Network
-          # MM-Iowa
+          # MM-Massachusetts
           publications = []
-          publications << Hle::Publications.mm_pubs_excluding_states(rec['org_id'], 'production', 'Iowa')
+          publications << Hle::Publications.mm_pubs_excluding_states(rec['org_id'], 'production', 'Massachusetts')
           publications << get_journal_from_org_id(rec['org_id'], 'production', 120) rescue nil
 
           next if publications.empty?
@@ -346,22 +395,31 @@ def ma_public_employee_compensation_yearly_stage_population(line, argument)
             hash = {}
 
             if publication.empty? || publication[0].empty? || publication[0]['publication_name'].empty?
-              reasons[:publications] << "Committee: #{rec['clean_name']} (org_id: #{rec['org_id']}): Publication name is empty"
+              reasons[:publications] << "org_id: #{rec['org_id']} - Publication name is empty"
               next
             end
             hash['publication_name'] = publication[0]['publication_name']
 
             hash['publication_id'] = publication[0]['id'].to_i
-            hash['source_table_id'] = 21017
+            hash['source_table_id'] = 21418
 
             hash['organization_id'] = rec['org_id']
             hash['client_id'] = publication[0]['client_id']
             hash['client_name'] = publication[0]['client_name']
 
-            hash['date'] = rec['date']
-            hash['committee_name'] = rec['committee_name']
-            hash['amount'] = rec['amount']
-            hash['contributor_name_clean'] = rec['contributor_name_clean']
+            hash['department_division'] = rec['department_division']
+            hash['total'] = rec['total']
+            hash['more_than_100k'] = rec['more_than_100k']
+            hash['count_10_25'] = rec['count_10_25']
+            hash['count_25_50'] = rec['count_25_50']
+            hash['count_50_75'] = rec['count_50_75']
+            hash['count_75_100'] = rec['count_75_100']
+            hash['count_less_10'] = rec['count_less_10']
+            hash['max_department'] = table_records[0]['department_division']
+            hash['max_amount'] = table_records[0]['salary']
+            hash['year'] = year
+
+            hash['story_table'] = table.to_json
 
             puts ' HASH'.red.on_cyan
             puts JSON.pretty_generate(hash).cyan
@@ -380,46 +438,69 @@ def ma_public_employee_compensation_yearly_stage_population(line, argument)
   end
 end
 
-  def ma_public_employee_compensation_yearly_stage_creation(options, mail_sender = false)
-    total = @stage_selection.count
+def ma_public_employee_compensation_yearly_stage_creation(options, mail_sender = false)
+  total = @stage_selection.count
 
-    @stage_selection.each_with_index do |stage, index|
-      p "\r#{index + 1}/#{total}: \n"
-      export = {}
+  @stage_selection.each_with_index do |stage, index|
+    p "\r#{index + 1}/#{total}: \n"
+    export = {}
 
-      committee_name_hl = stage['committee_name']
-      contributor_name = stage['contributor_name_clean']
-      contribution_date = Date.parse(stage['date']).strftime('%B %e')
-      contribution_amount = number_to_money(stage['amount'].to_f.round)
+    table = JSON.parse(stage['story_table'])
+    table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
 
-      committee_name = add_the(committee_name_hl)
+    agency_name = stage['department_division']
+    year = stage['year']
+    max_amount = number_to_money(stage['max_amount'])
+    max_department = stage['max_department']
+    total = stage['total'].to_i
+    more_than_100k = stage['more_than_100k'].to_i
+    percent = more_than_100k * 100 / total
 
-      committee_description = case
-                              when committee_name =~ /PAC\b/ && committee_name !~ /\bpolitical action committee\b/i
-                                ', a political action committee,'
-                              when committee_name =~ /\b(campaign|friends)\b/i && committee_name !~ /\b(Republican|Democrat)/
-                                ', a campaign committee,'
-                              else
-                                ''
-                              end
+    count_10_25 = stage['count_10_25']
+    count_25_50 = stage['count_25_50']
+    count_50_75 = stage['count_50_75']
+    count_75_100 = stage['count_75_100']
+    count_less_10 = stage['count_less_10']
 
-      headline = <<~HEADLINE.chomp
-      #{committee_name_hl} receives #{contribution_amount} on #{contribution_date}
-      HEADLINE
+    hash = {count_10_25: count_10_25, count_25_50: count_25_50, count_50_75: count_50_75, count_75_100: count_75_100, count_less_10: count_less_10}
+    made_between = get_max(hash)
 
-      teaser = <<~TEASER.chomp
-      #{contributor_name} contributed #{contribution_amount} to #{committee_name}\
-      #{committee_description} on #{contribution_date}
-      TEASER
-
-      export['headline'] = headline.squeeze(' ').strip
-
-      export['teaser'] = "#{teaser}.".squeeze(' ')
-
-      output = <<~HEREDOC
-      #{teaser}, according to data from Iowa Ethics and Campaign Disclosure Board.\n
-      HEREDOC
-
-      export = prepare_output(stage, output.squeeze(' '), export, options)
+    case made_between[0]
+    when :count_10_25
+      made_between_str = "between $10,000-$25,000"
+    when :count_25_50
+      made_between_str = "between $25,000-$50,000"
+    when :count_50_75
+      made_between_str = "between $50,000-$75,000"
+    when :count_75_100
+      made_between_str = "between $75,000-$100,000"
+    when :count_less_10
+      made_between_str = "less than $10,000"
+    else
+      made_between_str = "---"
     end
+
+    headline = <<~HEADLINE.chomp
+      #{percent}% of employees at #{agency_name} made more than $100,000 in #{year}
+    HEADLINE
+
+    teaser = <<~TEASER.chomp
+      #{percent} percent of employees at #{agency_name} made more than $100,000 in #{year}
+    TEASER
+
+    export['headline'] = headline.squeeze(' ').strip
+
+    export['teaser'] = "#{teaser}.".squeeze(' ')
+
+    output = <<~HEREDOC
+      #{teaser}, according to the <a href='https://cthru.data.socrata.com/dataset/Commonwealth-Of-Massachusetts-Payrollv2/rxhc-k6iz'>Massachusetts Accountability Portal</a>. Most employees at #{agency_name} made #{made_between_str}.\n
+      The national median hourly wage is $19.14 according to the most recent data from the <a href='https://www.bls.gov/oes/current/oes_nat.htm#00-0000'>Bureau of Labor Statistics</a>. According to the <a href='https://data.oecd.org/earnwage/average-wages.htm#indicator-chart'>OECD</a>, the average yearly wage in the US is more than $60,000.\n
+      The agency with the highest salary among employees that year was #{max_department} at #{max_amount}.\n
+    HEREDOC
+
+    output << "<div style=\"font-size:18px\"><strong>Top Salaries By Department</strong></div>"
+    output << table
+
+    export = prepare_output(stage, output.squeeze(' '), export, options)
   end
+end
