@@ -184,7 +184,7 @@ VALUES
 
 # Creator: Dmitry Suschinsky
 # Story type: MA Public Employee Compensation 10-25 (Yearly)
-# Template: https://docs.google.com/document/d/1zL21sYRjNEsmGoAibrDc_43zXS5oEmFjMhj4pEU3xOo/edit#
+# Template: https://docs.google.com/document/d/1D9Zs9iR70EKNTV0iZoGX4rC9JNiK2oZZ-bA_0OkHyc4/edit
 # Created: June 2020
 
 # tbl: ma_public_employee_compensation_10_25_yearly_staging
@@ -196,14 +196,6 @@ def get_percentage_diff(data1, data2)
   (((data1 - data2) / data1) * 100).abs.round(1)
 end
 
-def get_percentage_change(value1, value2)
-  return 'error' if value1.to_f.zero?
-
-  change = ((value2.to_f - value1.to_f) / value1.to_f.abs) * 100
-  return 0 if change.abs < 0.1
-
-  return change.round(1)
-end
 
 def get_percent(value, total)
   if ((value.to_f * 100) / total.to_f).round(1) > 0.0
@@ -297,30 +289,15 @@ def get_table_records(year)
   route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
   route.client.query("use #{route.stage_db}")
   query = <<~SQL
-    SELECT ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division, ma_max.max_salary AS salary
+    SELECT CONCAT(ma_max.first_name, ' ', ma_max.last_name) AS individual, ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division, ma_max.max_salary AS salary
     FROM ma_public_employee_salaries_department_division_clean AS ma_clean
-    INNER JOIN (SELECT department_division, MAX(pay_total_actual) AS max_salary
-                FROM ma_public_employee_salaries WHERE year = #{year}
-                GROUP BY department_division
-              ) ma_max
-    ON ma_clean.DEPARTMENT_DIVISION = ma_max.department_division
-    ORDER BY max_salary DESC;
-  SQL
-  puts query
-  result = route.client.query(query).to_a
-  route.client.close
-  result
-end
-
-def get_max_record(year)
-  route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
-  route.client.query("use #{route.stage_db}")
-  query = <<~SQL
-    SELECT ma_clean.DEPARTMENT_DIVISION_CLEAN AS department, MAX(pay_total_actual) AS salary
-    FROM ma_public_employee_salaries ma
-             LEFT JOIN ma_public_employee_salaries_department_division_clean ma_clean
-                       ON ma_clean.DEPARTMENT_DIVISION = ma.department_division
-    WHERE year = #{year};
+        INNER JOIN (SELECT first_name, last_name, department_division, MAX(pay_total_actual) AS max_salary
+                    FROM ma_public_employee_salaries WHERE year = #{year}
+                    GROUP BY department_division, last_name
+        ) ma_max
+        ON ma_clean.DEPARTMENT_DIVISION = ma_max.department_division
+    ORDER BY max_salary DESC
+    LIMIT 100;
   SQL
   puts query
   result = route.client.query(query).to_a
@@ -333,6 +310,8 @@ def table_from_data(records)
   records.each do |rec|
     puts 'rec: ', rec
     table << {
+        :Rank => rec['rank'],
+        :Individual => rec['individual'],
         :Department => rec['department_division'],
         :Salary => number_to_money(rec['salary'])
     }
@@ -356,8 +335,10 @@ def ma_public_employee_compensation_10_25_yearly_stage_population(line, argument
     return 'INVALID' unless year.to_s.match(/^\d{4}$/)
 
     records = get_record_list(year)
+
     table_records = get_table_records(year)
-    table = table_from_data(table_records)
+    all_records = table_records.sort { |a, b| b['salary'] <=> a['salary'] }.each_with_index { |hs, i| hs['rank'] = i + 1 }
+    table = table_from_data(all_records)
     reasons = {
         not_all_data: [],
         publications: [],
@@ -415,8 +396,6 @@ def ma_public_employee_compensation_10_25_yearly_stage_population(line, argument
             hash['count_50_75'] = rec['count_50_75']
             hash['count_75_100'] = rec['count_75_100']
             hash['count_less_10'] = rec['count_less_10']
-            hash['max_department'] = table_records[0]['department_division']
-            hash['max_amount'] = table_records[0]['salary']
             hash['year'] = year
 
             hash['story_table'] = table.to_json
@@ -450,22 +429,23 @@ def ma_public_employee_compensation_10_25_yearly_stage_creation(options, mail_se
 
     agency_name = stage['department_division']
     year = stage['year']
-    max_amount = number_to_money(stage['max_amount'])
-    max_department = stage['max_department']
     total = stage['total'].to_i
-    more_than_100k = stage['more_than_100k'].to_i
-    percent = more_than_100k * 100 / total
+    count_10_25 = stage['count_10_25'].to_f
+    percent = (count_10_25 * 100 / total.to_f).abs.round(1)
 
+    more_than_100k = stage['more_than_100k']
     count_10_25 = stage['count_10_25']
     count_25_50 = stage['count_25_50']
     count_50_75 = stage['count_50_75']
     count_75_100 = stage['count_75_100']
     count_less_10 = stage['count_less_10']
 
-    hash = {count_10_25: count_10_25, count_25_50: count_25_50, count_50_75: count_50_75, count_75_100: count_75_100, count_less_10: count_less_10}
+    hash = {more_than_100k: more_than_100k, count_10_25: count_10_25, count_25_50: count_25_50, count_50_75: count_50_75, count_75_100: count_75_100, count_less_10: count_less_10}
     made_between = get_max(hash)
 
     case made_between[0]
+    when :more_than_100k
+      made_between_str = "more than $100,000"
     when :count_10_25
       made_between_str = "between $10,000-$25,000"
     when :count_25_50
@@ -481,11 +461,13 @@ def ma_public_employee_compensation_10_25_yearly_stage_creation(options, mail_se
     end
 
     headline = <<~HEADLINE.chomp
-      #{percent}% of employees at #{agency_name} made more than $100,000 in #{year}
+      #{percent}% of employees at #{agency_name} made between $10,000-$25,000 in #{year}
     HEADLINE
 
+    percent_str = Numbers.num_to_words(percent).class.name == 'String' ? Numbers.num_to_words(percent).capitalize : Numbers.num_to_words(percent)
+
     teaser = <<~TEASER.chomp
-      #{percent} percent of employees at #{agency_name} made more than $100,000 in #{year}
+      #{percent_str} percent of employees at #{agency_name} made between $10,000-$25,000 in #{year}
     TEASER
 
     export['headline'] = headline.squeeze(' ').strip
@@ -493,12 +475,11 @@ def ma_public_employee_compensation_10_25_yearly_stage_creation(options, mail_se
     export['teaser'] = "#{teaser}.".squeeze(' ')
 
     output = <<~HEREDOC
-      #{teaser}, according to the <a href='https://cthru.data.socrata.com/dataset/Commonwealth-Of-Massachusetts-Payrollv2/rxhc-k6iz'>Massachusetts Accountability Portal</a>. Most employees at #{agency_name} made #{made_between_str}.\n
+      #{teaser}, according to the <a href='https://cthru.data.socrata.com/dataset/Commonwealth-Of-Massachusetts-Payrollv2/rxhc-k6iz'>CTHRU</a>. Most employees at #{agency_name} made #{made_between_str}.\n
       The national median hourly wage is $19.14 according to the most recent data from the <a href='https://www.bls.gov/oes/current/oes_nat.htm#00-0000'>Bureau of Labor Statistics</a>. According to the <a href='https://data.oecd.org/earnwage/average-wages.htm#indicator-chart'>OECD</a>, the average yearly wage in the US is more than $60,000.\n
-      The agency with the highest salary among employees that year was #{max_department} at #{max_amount}.\n
     HEREDOC
 
-    output << "<div style=\"font-size:18px\"><strong>Top Salaries By Department</strong></div>"
+    output << "<div style=\"font-size:18px\"><strong>Top 100 Salaries</strong></div>"
     output << table
 
     export = prepare_output(stage, output.squeeze(' '), export, options)
