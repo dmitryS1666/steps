@@ -495,7 +495,7 @@ def ma_public_employee_compensation_yearly_stage_creation(options, mail_sender =
     export['teaser'] = "#{teaser}.".squeeze(' ')
 
     output = <<~HEREDOC
-      #{teaser}, according to the <a href='https://cthru.data.socrata.com/dataset/Commonwealth-Of-Massachusetts-Payrollv2/rxhc-k6iz'>CTHRU</a>. Most employees at #{agency_name} made #{made_between_str}.\n
+      #{teaser}, according to <a href='https://cthru.data.socrata.com/dataset/Commonwealth-Of-Massachusetts-Payrollv2/rxhc-k6iz'>CTHRU</a>. Most employees at #{agency_name} made #{made_between_str}.\n
       The national median hourly wage is $19.14 according to the most recent data from the <a href='https://www.bls.gov/oes/current/oes_nat.htm#00-0000'>Bureau of Labor Statistics</a>. According to the <a href='https://data.oecd.org/earnwage/average-wages.htm#indicator-chart'>OECD</a>, the average yearly wage in the US is more than $60,000.\n
       The agency with the highest salary among employees that year was #{max_department} at #{max_amount}.\n
     HEREDOC

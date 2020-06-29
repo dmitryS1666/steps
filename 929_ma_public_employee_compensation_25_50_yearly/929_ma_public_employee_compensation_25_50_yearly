@@ -1,9 +1,9 @@
-MA Public Employee Compensation 10-25 (Yearly)
-https://docs.google.com/document/d/1SWHB7e1dK6GW7FftfUyOXI80PLcEamTrxOVMDzVIsUE/edit#heading=h.gjdgxs
+MA Public Employee Compensation 25-50 (Yearly)
+https://docs.google.com/document/d/1tkhVs4wtrm3J02VB_u07uV3smy1SWNJpl_j3UNwbs8k/edit?usp=sharing
 
 @john.putz
 Dev Name: Dmitry S.
-Story type Name: #909 MA Public Employee Compensation 10-25 (Yearly)
+Story type Name: #909 MA Public Employee Compensation 25-50 (Yearly)
 FCD:
 Sample story:
 Period:
@@ -13,7 +13,7 @@ Notes:
 _____________________________________________________
 
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'ma_public_employee_compensation_10_25_yearly_staging','{"department_division":"VARCHAR(256)","more_than_100k":"int(5)","total":"int(5)","count_10_25":"int(5)","count_25_50":"int(5)","count_50_75":"int(5)","count_75_100":"int(5)","count_less_10":"int(5)","year":"int(4)","story_table":"LONGTEXT"}';
+insert into stage_definition_configurations (tbl, definition) select 'ma_public_employee_compensation_25_50_yearly_staging','{"department_division":"VARCHAR(256)","more_than_100k":"int(5)","total":"int(5)","count_10_25":"int(5)","count_25_50":"int(5)","count_50_75":"int(5)","count_75_100":"int(5)","count_less_10":"int(5)","year":"int(4)","story_table":"LONGTEXT"}';
 
 
 #741
@@ -22,7 +22,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=741 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'MA Public Employee Compensation 10-25 (Yearly)', 'ma_public_employee_compensation_10_25_yearly_staging', '{"known_entities":{"project_name":"MA Public Employee Compensation 10-25 (Yearly)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"ma_public_employee_compensation_10_25_yearly_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'MA Public Employee Compensation 25-50 (Yearly)', 'ma_public_employee_compensation_25_50_yearly_staging', '{"known_entities":{"project_name":"MA Public Employee Compensation 25-50 (Yearly)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"ma_public_employee_compensation_25_50_yearly_population","arguments":{}}}}';
 
 population_config_id: #841
 
@@ -32,7 +32,7 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id
 
 
 STORY CREATOR CONFIGURATION:
-insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'ma_public_employee_compensation_10_25_yearly_staging', 'ma_public_employee_compensation_10_25_yearly_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'ma_public_employee_compensation_25_50_yearly_staging', 'ma_public_employee_compensation_25_50_yearly_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
 creation_config_id: #722
 
@@ -43,8 +43,8 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=7
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 10-25 (Yearly)' -t --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 10-25 (Yearly)' -t --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 25-50 (Yearly)' -t --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 25-50 (Yearly)' -t --where="stage.client_name like 'MM - %'"
 
 STAGING: EXPORT STORIES
 bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=340619
@@ -68,8 +68,8 @@ __________
 population_config_id: #841
 creation_config_id: #722
 
-tbl: ma_public_employee_compensation_10_25_yearly_staging
-desc: MA Public Employee Compensation 10-25 (Yearly)
+tbl: ma_public_employee_compensation_25_50_yearly_staging
+desc: MA Public Employee Compensation 25-50 (Yearly)
 
 config_id - population_config_id
 
@@ -79,7 +79,7 @@ bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=841 --limit=2 --start
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
-select publication_name, min(publish_on), max(publish_on), count(*) from 'ma_public_employee_compensation_10_25_yearly_staging' group by publication_name;
+select publication_name, min(publish_on), max(publish_on), count(*) from 'ma_public_employee_compensation_25_50_yearly_staging' group by publication_name;
 
 ______________________________________
 PRODUCTION: STORY EXPORT CONFIGURATION
@@ -90,29 +90,29 @@ ______________________________________
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 10-25 (Yearly)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 10-25 (Yearly)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 25-50 (Yearly)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 25-50 (Yearly)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
-select * from story_export_configurations_v2 where tbl = 'ma_public_employee_compensation_10_25_yearly_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'ma_public_employee_compensation_25_50_yearly_staging' and export_name like '%production%' order by id DESC;
 
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 10-25 (Yearly)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 10-25 (Yearly)' -t --prod --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 25-50 (Yearly)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 25-50 (Yearly)' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
 
-select * from story_export_configurations_v2 where tbl = 'ma_public_employee_compensation_10_25_yearly_staging' and export_name like '%production%' order by id DESC;
+select * from story_export_configurations_v2 where tbl = 'ma_public_employee_compensation_25_50_yearly_staging' and export_name like '%production%' order by id DESC;
 
 
 ______________________
 для построения таблицы
 ______________________
 
-select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from ma_public_employee_compensation_10_25_yearly_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='ma_public_employee_compensation_10_25_yearly_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from ma_public_employee_compensation_25_50_yearly_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='ma_public_employee_compensation_25_50_yearly_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
 
 
 __________________________
@@ -136,7 +136,7 @@ ___________________________
 
 SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
 FROM story_export_configurations_v2
-WHERE tbl = "ma_public_employee_compensation_10_25_yearly_staging" AND
+WHERE tbl = "ma_public_employee_compensation_25_50_yearly_staging" AND
       export_name LIKE '%production%';
 
 # pipeline-core-replica2.jnswire_prod query:
@@ -173,7 +173,7 @@ INSERT INTO loki_storycreator.hle_reminders
     )
 VALUES
     (
-        'MA Public Employee Compensation 10-25 (Yearly)', 'ma_public_employee_compensation_10_25_yearly_staging',
+        'MA Public Employee Compensation 25-50 (Yearly)', 'ma_public_employee_compensation_25_50_yearly_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
         'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
         '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
@@ -183,14 +183,14 @@ VALUES
 
 
 # Creator: Dmitry Suschinsky
-# Story type: MA Public Employee Compensation 10-25 (Yearly)
+# Story type: MA Public Employee Compensation 25-50 (Yearly)
 # Template: https://docs.google.com/document/d/1D9Zs9iR70EKNTV0iZoGX4rC9JNiK2oZZ-bA_0OkHyc4/edit
 # Created: June 2020
 
-# tbl: ma_public_employee_compensation_10_25_yearly_staging
+# tbl: ma_public_employee_compensation_25_50_yearly_staging
 # db01.usa_raw.ma_public_employee_salaries
-# branch: ma_public_employee_compensation_10_25_yearly_d_sushi
-# ma_public_employee_compensation_10_25_yearly.rb
+# branch: ma_public_employee_compensation_25_50_yearly_d_sushi
+# ma_public_employee_compensation_25_50_yearly.rb
 
 def get_percentage_diff(data1, data2)
   (((data1 - data2) / data1) * 100).abs.round(1)
@@ -327,7 +327,7 @@ def get_max(hash)
   hash.each { |k, v| return k, v if v == hash.values.max }
 end
 
-def ma_public_employee_compensation_10_25_yearly_stage_population(line, argument)
+def ma_public_employee_compensation_25_50_yearly_stage_population(line, argument)
   begin
     puts("\n!!!\nParameter year required \n!!!\n") unless (@options['year'])
     return 'INVALID' unless @options['year']
@@ -417,7 +417,7 @@ def ma_public_employee_compensation_10_25_yearly_stage_population(line, argument
   end
 end
 
-def ma_public_employee_compensation_10_25_yearly_stage_creation(options, mail_sender = false)
+def ma_public_employee_compensation_25_50_yearly_stage_creation(options, mail_sender = false)
   total = @stage_selection.count
 
   @stage_selection.each_with_index do |stage, index|
