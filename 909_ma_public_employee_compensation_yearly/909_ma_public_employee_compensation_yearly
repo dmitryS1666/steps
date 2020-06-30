@@ -384,6 +384,7 @@ def ma_public_employee_compensation_yearly_stage_population(line, argument)
 
           puts 'rec: ', rec
           next if rec['org_id'] == nil
+          next if (rec['more_than_100k'] * 100 / rec['total'].to_f).abs.round(1) < 0.5
           # Metro Business Network
           # MM-Massachusetts
           publications = []
@@ -454,7 +455,8 @@ def ma_public_employee_compensation_yearly_stage_creation(options, mail_sender =
     max_department = stage['max_department']
     total = stage['total'].to_i
     more_than_100k = stage['more_than_100k'].to_i
-    percent = more_than_100k * 100 / total
+
+    percent = (more_than_100k * 100 / total.to_f).abs.round(1)
 
     count_10_25 = stage['count_10_25']
     count_25_50 = stage['count_25_50']
