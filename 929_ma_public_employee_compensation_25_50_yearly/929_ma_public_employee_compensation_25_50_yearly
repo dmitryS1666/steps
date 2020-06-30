@@ -1,5 +1,5 @@
 MA Public Employee Compensation 25-50 (Yearly)
-https://docs.google.com/document/d/1tkhVs4wtrm3J02VB_u07uV3smy1SWNJpl_j3UNwbs8k/edit?usp=sharing
+https://docs.google.com/document/d/1SWHB7e1dK6GW7FftfUyOXI80PLcEamTrxOVMDzVIsUE/edit#heading=h.gjdgxs
 
 @john.putz
 Dev Name: Dmitry S.
@@ -13,7 +13,7 @@ Notes:
 _____________________________________________________
 
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'ma_public_employee_compensation_25_50_yearly_staging','{"department_division":"VARCHAR(256)","more_than_100k":"int(5)","total":"int(5)","count_10_25":"int(5)","count_25_50":"int(5)","count_50_75":"int(5)","count_75_100":"int(5)","count_less_10":"int(5)","year":"int(4)","story_table":"LONGTEXT"}';
+insert into stage_definition_configurations (tbl, definition) select 'ma_public_employee_compensation_25_50_yearly_staging','{"department_division":"VARCHAR(256)","more_than_100k":"int(5)","total":"int(5)","count_25_50":"int(5)","count_25_50":"int(5)","count_50_75":"int(5)","count_75_100":"int(5)","count_less_10":"int(5)","year":"int(4)","story_table":"LONGTEXT"}';
 
 
 #741
@@ -57,7 +57,7 @@ irb ->
 load 'Loki.rb'
 Hle::Story::Feedback.stories_feedback('511701546,511701553,511701552')
 
-bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511724288,511724287,511724286
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511725175,511725192,511725184
 
 
 !!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
@@ -239,7 +239,7 @@ def get_record_list(year)
   route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
   route.client.query("use #{route.stage_db}")
   query = <<~SQL
-    SELECT COUNT(DISTINCT last_name) AS more_than_100k, ma_total.total, ma_beetween_10_25.count_10_25,
+    SELECT COUNT(DISTINCT last_name) AS more_than_100k, ma_total.total, ma_beetween_25_50.count_25_50,
            ma_beetween_25_50.count_25_50, ma_beetween_50_75.count_50_75, ma_beetween_75_100.count_75_100,
            ma_less_10.count_less_10, ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division, ma_clean.pl_production_org_id AS org_id
     FROM ma_public_employee_salaries ma
@@ -250,11 +250,11 @@ def get_record_list(year)
                WHERE year = #{year} GROUP BY department_division
                ) ma_total
            ON ma_total.department_division = ma.department_division
-    LEFT JOIN (SELECT COUNT(DISTINCT last_name) AS count_10_25, department_division
+    LEFT JOIN (SELECT COUNT(DISTINCT last_name) AS count_25_50, department_division
                FROM ma_public_employee_salaries
                WHERE year = #{year} AND pay_total_actual BETWEEN 10000 AND 25000 GROUP BY department_division
-              ) ma_beetween_10_25
-           ON ma_beetween_10_25.department_division = ma.department_division
+              ) ma_beetween_25_50
+           ON ma_beetween_25_50.department_division = ma.department_division
     LEFT JOIN (SELECT COUNT(DISTINCT last_name) AS count_25_50, department_division
                FROM ma_public_employee_salaries
                WHERE year = #{year} AND pay_total_actual BETWEEN 25000 AND 50000 GROUP BY department_division
@@ -365,6 +365,7 @@ def ma_public_employee_compensation_25_50_yearly_stage_population(line, argument
 
           puts 'rec: ', rec
           next if rec['org_id'] == nil
+          next if (rec['count_25_50'] * 100 / rec['total'].to_f).abs.round(1) < 0.5
           # Metro Business Network
           # MM-Massachusetts
           publications = []
@@ -391,7 +392,7 @@ def ma_public_employee_compensation_25_50_yearly_stage_population(line, argument
             hash['department_division'] = rec['department_division']
             hash['total'] = rec['total']
             hash['more_than_100k'] = rec['more_than_100k']
-            hash['count_10_25'] = rec['count_10_25']
+            hash['count_25_50'] = rec['count_25_50']
             hash['count_25_50'] = rec['count_25_50']
             hash['count_50_75'] = rec['count_50_75']
             hash['count_75_100'] = rec['count_75_100']
@@ -430,23 +431,23 @@ def ma_public_employee_compensation_25_50_yearly_stage_creation(options, mail_se
     agency_name = stage['department_division']
     year = stage['year']
     total = stage['total'].to_i
-    count_10_25 = stage['count_10_25'].to_f
-    percent = (count_10_25 * 100 / total.to_f).abs.round(1)
+    count_25_50 = stage['count_25_50'].to_f
+    percent = (count_25_50 * 100 / total.to_f).abs.round(1)
 
     more_than_100k = stage['more_than_100k']
-    count_10_25 = stage['count_10_25']
+    count_25_50 = stage['count_25_50']
     count_25_50 = stage['count_25_50']
     count_50_75 = stage['count_50_75']
     count_75_100 = stage['count_75_100']
     count_less_10 = stage['count_less_10']
 
-    hash = {more_than_100k: more_than_100k, count_10_25: count_10_25, count_25_50: count_25_50, count_50_75: count_50_75, count_75_100: count_75_100, count_less_10: count_less_10}
+    hash = {more_than_100k: more_than_100k, count_25_50: count_25_50, count_25_50: count_25_50, count_50_75: count_50_75, count_75_100: count_75_100, count_less_10: count_less_10}
     made_between = get_max(hash)
 
     case made_between[0]
     when :more_than_100k
       made_between_str = "more than $100,000"
-    when :count_10_25
+    when :count_25_50
       made_between_str = "between $10,000-$25,000"
     when :count_25_50
       made_between_str = "between $25,000-$50,000"
