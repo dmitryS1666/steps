@@ -239,18 +239,26 @@ def get_record_list(year)
   route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
   route.client.query("use #{route.stage_db}")
   query = <<~SQL
-    SELECT count(CASE WHEN pay_total_actual <= 10000 THEN 1 END) as count_less_10,
-      count(CASE WHEN pay_total_actual BETWEEN 10000.01 AND 25000 THEN 1 END) as count_10_25,
-      count(CASE WHEN pay_total_actual BETWEEN 25000.01 AND 50000 THEN 1 END) as count_25_50,
-      count(CASE WHEN pay_total_actual BETWEEN 50000.01 AND 75000 THEN 1 END) as count_50_75,
-      count(CASE WHEN pay_total_actual BETWEEN 75000.01 AND 100000 THEN 1 END) as count_75_100,
-      count(CASE WHEN pay_total_actual > 100000 THEN 1 END) as more_than_100k,
-      ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division, ma_clean.pl_production_org_id AS org_id
-    FROM ma_public_employee_salaries AS ma
-    LEFT JOIN ma_public_employee_salaries_department_division_clean ma_clean
-          ON ma_clean.DEPARTMENT_DIVISION = ma.department_division
-    WHERE year = #{year} AND ma.pay_total_actual > 0
-    GROUP BY ma_clean.DEPARTMENT_DIVISION_CLEAN;
+      SELECT count(CASE WHEN pay_total_actual <= 10000 THEN 1 END) as count_less_10,
+             count(CASE WHEN pay_total_actual BETWEEN 10000.01 AND 25000 THEN 1 END) as count_10_25,
+             count(CASE WHEN pay_total_actual BETWEEN 25000.01 AND 50000 THEN 1 END) as count_25_50,
+             count(CASE WHEN pay_total_actual BETWEEN 50000.01 AND 75000 THEN 1 END) as count_50_75,
+             count(CASE WHEN pay_total_actual BETWEEN 75000.01 AND 100000 THEN 1 END) as count_75_100,
+             count(CASE WHEN pay_total_actual > 100000 THEN 1 END) as more_than_100k,
+             ma_total.total, ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division,
+             ma_clean.pl_production_org_id AS org_id
+      FROM ma_public_employee_salaries AS ma
+      LEFT JOIN ma_public_employee_salaries_department_division_clean ma_clean
+             ON ma_clean.DEPARTMENT_DIVISION = ma.department_division
+      LEFT JOIN
+          (SELECT COUNT(DISTINCT last_name) AS total, department_division
+             FROM ma_public_employee_salaries
+             WHERE year = #{year} GROUP BY department_division
+          ) ma_total
+            ON ma_total.department_division = ma.department_division
+      WHERE year = #{year} AND ma.pay_total_actual > 0
+      GROUP BY ma_clean.DEPARTMENT_DIVISION_CLEAN
+      ORDER BY ma_clean.DEPARTMENT_DIVISION_CLEAN ASC;
   SQL
   puts query
   result = route.client.query(query).to_a
@@ -460,3 +468,4 @@ def ma_public_employee_compensation_25_50_yearly_stage_creation(options, mail_se
     export = prepare_output(stage, output.squeeze(' '), export, options)
   end
 end
+
