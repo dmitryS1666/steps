@@ -57,7 +57,7 @@ irb ->
 load 'Loki.rb'
 Hle::Story::Feedback.stories_feedback('511701546,511701553,511701552')
 
-bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511725175,511725192,511725184
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511725572,511725552,511725563
 
 
 !!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
@@ -239,45 +239,18 @@ def get_record_list(year)
   route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
   route.client.query("use #{route.stage_db}")
   query = <<~SQL
-    SELECT COUNT(DISTINCT last_name) AS more_than_100k, ma_total.total, ma_beetween_25_50.count_25_50,
-           ma_beetween_25_50.count_25_50, ma_beetween_50_75.count_50_75, ma_beetween_75_100.count_75_100,
-           ma_less_10.count_less_10, ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division, ma_clean.pl_production_org_id AS org_id
-    FROM ma_public_employee_salaries ma
+    SELECT count(CASE WHEN pay_total_actual <= 10000 THEN 1 END) as count_less_10,
+      count(CASE WHEN pay_total_actual BETWEEN 10000.01 AND 25000 THEN 1 END) as count_10_25,
+      count(CASE WHEN pay_total_actual BETWEEN 25000.01 AND 50000 THEN 1 END) as count_25_50,
+      count(CASE WHEN pay_total_actual BETWEEN 50000.01 AND 75000 THEN 1 END) as count_50_75,
+      count(CASE WHEN pay_total_actual BETWEEN 75000.01 AND 100000 THEN 1 END) as count_75_100,
+      count(CASE WHEN pay_total_actual > 100000 THEN 1 END) as more_than_100k,
+      ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division, ma_clean.pl_production_org_id AS org_id
+    FROM ma_public_employee_salaries AS ma
     LEFT JOIN ma_public_employee_salaries_department_division_clean ma_clean
-           ON ma_clean.DEPARTMENT_DIVISION = ma.department_division
-    LEFT JOIN (SELECT COUNT(DISTINCT last_name) AS total, department_division
-               FROM ma_public_employee_salaries
-               WHERE year = #{year} GROUP BY department_division
-               ) ma_total
-           ON ma_total.department_division = ma.department_division
-    LEFT JOIN (SELECT COUNT(DISTINCT last_name) AS count_25_50, department_division
-               FROM ma_public_employee_salaries
-               WHERE year = #{year} AND pay_total_actual BETWEEN 10000 AND 25000 GROUP BY department_division
-              ) ma_beetween_25_50
-           ON ma_beetween_25_50.department_division = ma.department_division
-    LEFT JOIN (SELECT COUNT(DISTINCT last_name) AS count_25_50, department_division
-               FROM ma_public_employee_salaries
-               WHERE year = #{year} AND pay_total_actual BETWEEN 25000 AND 50000 GROUP BY department_division
-              ) ma_beetween_25_50
-           ON ma_beetween_25_50.department_division = ma.department_division
-    LEFT JOIN (SELECT COUNT(DISTINCT last_name) AS count_50_75, department_division
-               FROM ma_public_employee_salaries
-               WHERE year = #{year} AND pay_total_actual BETWEEN 50000 AND 75000 GROUP BY department_division
-              ) ma_beetween_50_75
-           ON ma_beetween_50_75.department_division = ma.department_division
-    LEFT JOIN (SELECT COUNT(DISTINCT last_name) AS count_75_100, department_division
-               FROM ma_public_employee_salaries
-               WHERE year = #{year} AND pay_total_actual BETWEEN 75000 AND 100000 GROUP BY department_division
-              ) ma_beetween_75_100
-           ON ma_beetween_75_100.department_division = ma.department_division
-    LEFT JOIN (SELECT COUNT(DISTINCT last_name) AS count_less_10, department_division
-               FROM ma_public_employee_salaries
-               WHERE year = #{year} AND pay_total_actual < 10000 GROUP BY department_division
-              ) ma_less_10
-           ON ma_less_10.department_division = ma.department_division
-    WHERE year = #{year} AND pay_total_actual > 100000
-    GROUP BY ma_clean.DEPARTMENT_DIVISION_CLEAN
-    ORDER BY ma_clean.DEPARTMENT_DIVISION_CLEAN ASC;
+          ON ma_clean.DEPARTMENT_DIVISION = ma.department_division
+    WHERE year = #{year} AND ma.pay_total_actual > 0
+    GROUP BY ma_clean.DEPARTMENT_DIVISION_CLEAN;
   SQL
   puts query
   result = route.client.query(query).to_a
@@ -392,7 +365,7 @@ def ma_public_employee_compensation_25_50_yearly_stage_population(line, argument
             hash['department_division'] = rec['department_division']
             hash['total'] = rec['total']
             hash['more_than_100k'] = rec['more_than_100k']
-            hash['count_25_50'] = rec['count_25_50']
+            hash['count_10_25'] = rec['count_10_25']
             hash['count_25_50'] = rec['count_25_50']
             hash['count_50_75'] = rec['count_50_75']
             hash['count_75_100'] = rec['count_75_100']
@@ -435,19 +408,19 @@ def ma_public_employee_compensation_25_50_yearly_stage_creation(options, mail_se
     percent = (count_25_50 * 100 / total.to_f).abs.round(1)
 
     more_than_100k = stage['more_than_100k']
-    count_25_50 = stage['count_25_50']
+    count_10_25 = stage['count_10_25']
     count_25_50 = stage['count_25_50']
     count_50_75 = stage['count_50_75']
     count_75_100 = stage['count_75_100']
     count_less_10 = stage['count_less_10']
 
-    hash = {more_than_100k: more_than_100k, count_25_50: count_25_50, count_25_50: count_25_50, count_50_75: count_50_75, count_75_100: count_75_100, count_less_10: count_less_10}
+    hash = {more_than_100k: more_than_100k, count_10_25: count_10_25, count_25_50: count_25_50, count_50_75: count_50_75, count_75_100: count_75_100, count_less_10: count_less_10}
     made_between = get_max(hash)
 
     case made_between[0]
     when :more_than_100k
       made_between_str = "more than $100,000"
-    when :count_25_50
+    when :count_10_25
       made_between_str = "between $10,000-$25,000"
     when :count_25_50
       made_between_str = "between $25,000-$50,000"
@@ -462,13 +435,14 @@ def ma_public_employee_compensation_25_50_yearly_stage_creation(options, mail_se
     end
 
     headline = <<~HEADLINE.chomp
-      #{percent}% of employees at #{agency_name} made between $10,000-$25,000 in #{year}
+      #{percent}% of employees at #{agency_name} made between $25,000-$50,000 in #{year}
     HEADLINE
 
     percent_str = Numbers.num_to_words(percent).class.name == 'String' ? Numbers.num_to_words(percent).capitalize : Numbers.num_to_words(percent)
+    second_sentence = made_between[0] != :count_25_50 ? " Most employees at #{agency_name} made #{made_between_str}." : ""
 
     teaser = <<~TEASER.chomp
-      #{percent_str} percent of employees at #{agency_name} made between $10,000-$25,000 in #{year}
+      #{percent_str} percent of employees at #{agency_name} made between $25,000-$50,000 in #{year}
     TEASER
 
     export['headline'] = headline.squeeze(' ').strip
@@ -476,7 +450,7 @@ def ma_public_employee_compensation_25_50_yearly_stage_creation(options, mail_se
     export['teaser'] = "#{teaser}.".squeeze(' ')
 
     output = <<~HEREDOC
-      #{teaser}, according to <a href='https://cthru.data.socrata.com/dataset/Commonwealth-Of-Massachusetts-Payrollv2/rxhc-k6iz'>CTHRU</a>. Most employees at #{agency_name} made #{made_between_str}.\n
+      #{teaser}, according to <a href='https://cthru.data.socrata.com/dataset/Commonwealth-Of-Massachusetts-Payrollv2/rxhc-k6iz'>CTHRU</a>.#{second_sentence}\n
       The national median hourly wage is $19.14 according to the most recent data from the <a href='https://www.bls.gov/oes/current/oes_nat.htm#00-0000'>Bureau of Labor Statistics</a>. According to the <a href='https://data.oecd.org/earnwage/average-wages.htm#indicator-chart'>OECD</a>, the average yearly wage in the US is more than $60,000.\n
     HEREDOC
 
