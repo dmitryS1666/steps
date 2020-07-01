@@ -251,11 +251,11 @@ def get_record_list(year)
      LEFT JOIN ma_public_employee_salaries_department_division_clean ma_clean
             ON ma_clean.DEPARTMENT_DIVISION = ma.department_division
      LEFT JOIN
-         (SELECT COUNT(DISTINCT last_name) AS total, department_division
-            FROM ma_public_employee_salaries
-            WHERE year = #{year} GROUP BY department_division
+         (SELECT COUNT(*) AS total, department_division
+             FROM ma_public_employee_salaries
+             WHERE year = 2019 AND pay_total_actual > 1 GROUP BY department_division
          ) ma_total
-           ON ma_total.department_division = ma.department_division
+            ON ma_total.department_division = ma.department_division
      WHERE year = #{year} AND ma.pay_total_actual > 0
      GROUP BY ma_clean.DEPARTMENT_DIVISION_CLEAN
      ORDER BY ma_clean.DEPARTMENT_DIVISION_CLEAN ASC;
@@ -270,14 +270,15 @@ def get_table_records(year)
   route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
   route.client.query("use #{route.stage_db}")
   query = <<~SQL
-    SELECT CONCAT(ma_max.first_name, ' ', ma_max.last_name) AS individual, ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division, ma_max.max_salary AS salary
-    FROM ma_public_employee_salaries_department_division_clean AS ma_clean
-        INNER JOIN (SELECT first_name, last_name, department_division, MAX(pay_total_actual) AS max_salary
-                    FROM ma_public_employee_salaries WHERE year = #{year}
-                    GROUP BY department_division, last_name
-        ) ma_max
-        ON ma_clean.DEPARTMENT_DIVISION = ma_max.department_division
-    ORDER BY max_salary DESC
+    SELECT CONCAT(ma.first_name, ' ', ma.last_name) AS individual, ma.pay_total_actual AS salary, ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division
+    FROM ma_public_employee_salaries ma
+         INNER JOIN (SELECT department_division, MAX(pay_total_actual) AS max_salary
+                     FROM ma_public_employee_salaries
+                     GROUP BY department_division
+         ) max_ma
+         ON ma.department_division = max_ma.department_division AND ma.pay_total_actual = max_ma.max_salary AND ma.year = #{year}
+        LEFT JOIN ma_public_employee_salaries_department_division_clean ma_clean ON ma_clean.DEPARTMENT_DIVISION = ma.department_division
+    ORDER BY ma.pay_total_actual DESC
     LIMIT 100;
   SQL
   puts query
@@ -445,13 +446,13 @@ def ma_public_employee_compensation_10_25_yearly_stage_creation(options, mail_se
     second_sentence = made_between[0] != :count_10_25 ? " Most employees at #{agency_name} made #{made_between_str}." : ""
 
     headline = <<~HEADLINE.chomp
-      #{percent}% of employees at #{agency_name} made between $10,000-$25,000 in #{year}
+      #{percent}% of employees at the #{agency_name} made between $10,000-$25,000 in #{year}
     HEADLINE
 
     percent_str = Numbers.num_to_words(percent).class.name == 'String' ? Numbers.num_to_words(percent).capitalize : Numbers.num_to_words(percent)
 
     teaser = <<~TEASER.chomp
-      #{percent_str} percent of employees at #{agency_name} made between $10,000-$25,000 in #{year}
+      #{percent_str} percent of employees at the #{agency_name} made between $10,000-$25,000 in #{year}
     TEASER
 
     export['headline'] = headline.squeeze(' ').strip
