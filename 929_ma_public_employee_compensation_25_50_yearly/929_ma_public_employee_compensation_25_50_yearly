@@ -13,38 +13,38 @@ Notes:
 _____________________________________________________
 
 STAGE TABLE DEFINITION
-insert into stage_definition_configurations (tbl, definition) select 'ma_public_employee_compensation_25_50_yearly_staging','{"department_division":"VARCHAR(256)","more_than_100k":"int(5)","total":"int(5)","count_25_50":"int(5)","count_25_50":"int(5)","count_50_75":"int(5)","count_75_100":"int(5)","count_less_10":"int(5)","year":"int(4)","story_table":"LONGTEXT"}';
+insert into stage_definition_configurations (tbl, definition) select 'ma_public_employee_compensation_25_50_yearly_staging','{"department_division":"VARCHAR(256)","more_than_100k":"int(5)","total":"int(5)","count_10_25":"int(5)","count_25_50":"int(5)","count_50_75":"int(5)","count_75_100":"int(5)","count_less_10":"int(5)","year":"int(4)","story_table":"LONGTEXT"}';
 
 
-#741
+#747
 
 STAGE TABLE CREATION
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=741 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=747 -t
 
 STAGE POPULATION CONFIGURATION
 insert into stage_population_configurations(project_name, tbl, definition) select 'MA Public Employee Compensation 25-50 (Yearly)', 'ma_public_employee_compensation_25_50_yearly_staging', '{"known_entities":{"project_name":"MA Public Employee Compensation 25-50 (Yearly)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"ma_public_employee_compensation_25_50_yearly_population","arguments":{}}}}';
 
-population_config_id: #841
+population_config_id: #848
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=841 -t --threads_count=1 --year=2019
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=848 -t --threads_count=1 --year=2019
 
 
 STORY CREATOR CONFIGURATION:
 insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'ma_public_employee_compensation_25_50_yearly_staging', 'ma_public_employee_compensation_25_50_yearly_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
-creation_config_id: #722
+creation_config_id: #730
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=722 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=730 -t
 
 
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 25-50 (Yearly)' -t --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 25-50 (Yearly)' -t --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=730 --population_config_id=848 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 25-50 (Yearly)' -t --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=730 --population_config_id=848 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 25-50 (Yearly)' -t --where="stage.client_name like 'MM - %'"
 
 STAGING: EXPORT STORIES
 bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=340619
@@ -65,8 +65,8 @@ ________________________________________________________________________________
 
 SCHEDULER:
 __________
-population_config_id: #841
-creation_config_id: #722
+population_config_id: #848
+creation_config_id: #730
 
 tbl: ma_public_employee_compensation_25_50_yearly_staging
 desc: MA Public Employee Compensation 25-50 (Yearly)
@@ -74,7 +74,7 @@ desc: MA Public Employee Compensation 25-50 (Yearly)
 config_id - population_config_id
 
 Up to 2 stories per day, per pub, for up to 180 days
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=841 --limit=2 --start_date='2020-06-01' --total_days_till_end_date=180
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=848 --limit=2 --start_date='2020-06-01' --total_days_till_end_date=180
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -90,8 +90,8 @@ ______________________________________
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 25-50 (Yearly)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 25-50 (Yearly)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=730 --population_config_id=848 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 25-50 (Yearly)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=730 --population_config_id=848 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 25-50 (Yearly)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
@@ -100,8 +100,8 @@ select * from story_export_configurations_v2 where tbl = 'ma_public_employee_com
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 25-50 (Yearly)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 25-50 (Yearly)' -t --prod --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=730 --population_config_id=848 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 25-50 (Yearly)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=730 --population_config_id=848 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 25-50 (Yearly)' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
 
