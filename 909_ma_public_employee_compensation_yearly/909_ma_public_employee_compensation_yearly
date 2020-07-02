@@ -276,15 +276,27 @@ end
 def get_table_records(year)
   route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
   route.client.query("use #{route.stage_db}")
+  # query = <<~SQL
+  #   SELECT ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division, ma_max.max_salary AS salary
+  #   FROM ma_public_employee_salaries_department_division_clean AS ma_clean
+  #   INNER JOIN (SELECT department_division, MAX(pay_total_actual) AS max_salary
+  #               FROM ma_public_employee_salaries WHERE year = #{year}
+  #               GROUP BY department_division
+  #             ) ma_max
+  #   ON ma_clean.DEPARTMENT_DIVISION = ma_max.department_division
+  #   ORDER BY max_salary DESC;
+  # SQL
   query = <<~SQL
-    SELECT ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division, ma_max.max_salary AS salary
-    FROM ma_public_employee_salaries_department_division_clean AS ma_clean
-    INNER JOIN (SELECT department_division, MAX(pay_total_actual) AS max_salary
-                FROM ma_public_employee_salaries WHERE year = #{year}
-                GROUP BY department_division
-              ) ma_max
-    ON ma_clean.DEPARTMENT_DIVISION = ma_max.department_division
-    ORDER BY max_salary DESC;
+    SELECT CONCAT(ma.first_name, ' ', ma.last_name) AS employee, ma.pay_total_actual AS salary, ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division
+    FROM ma_public_employee_salaries ma
+         INNER JOIN (SELECT department_division, MAX(pay_total_actual) AS max_salary
+                     FROM ma_public_employee_salaries
+                     GROUP BY department_division
+         ) max_ma
+         ON ma.department_division = max_ma.department_division AND ma.pay_total_actual = max_ma.max_salary AND ma.year = #{year}
+        LEFT JOIN ma_public_employee_salaries_department_division_clean ma_clean ON ma_clean.DEPARTMENT_DIVISION = ma.department_division
+    ORDER BY ma.pay_total_actual DESC
+    LIMIT 100;
   SQL
   puts query
   result = route.client.query(query).to_a
@@ -333,6 +345,7 @@ def table_from_data(records)
     puts 'rec: ', rec
     table << {
         :Department => rec['department_division'],
+        :Employee => rec['employee'],
         :Salary => number_to_money(rec['salary'])
     }
   end
@@ -462,6 +475,8 @@ def ma_public_employee_compensation_yearly_stage_creation(options, mail_sender =
     more_than_100k = stage['more_than_100k'].to_i
 
     percent = (more_than_100k * 100 / total.to_f).abs.round(1)
+    parts = percent.to_s.split(".")
+    percent = parts[1] == "0" ? percent.to_i : percent
 
     more_than_100k = stage['more_than_100k']
     count_10_25 = stage['count_10_25']
@@ -492,14 +507,22 @@ def ma_public_employee_compensation_yearly_stage_creation(options, mail_sender =
 
     second_sentence = made_between[0] != :more_than_100k ? " Most employees at #{agency_name} made #{made_between_str}." : ""
 
+    if agency_name.include?('College') || agency_name.include?('University')
+      agency_name = "at #{agency_name}"
+    elsif agency_name.include? 'Attorney'
+      agency_name = "at the #{agency_name.gsub('Attorney', 'Attorney\'s Office')}"
+    else
+      agency_name = "at the #{agency_name}"
+    end
+
     headline = <<~HEADLINE.chomp
-      #{percent}% of employees at the #{agency_name} made more than $100,000 in #{year}
+      #{percent}% of employees #{agency_name} made more than $100,000 in #{year}
     HEADLINE
 
     percent_str = Numbers.num_to_words(percent).class.name == 'String' ? Numbers.num_to_words(percent).capitalize : Numbers.num_to_words(percent)
 
     teaser = <<~TEASER.chomp
-      #{percent_str} percent of employees at the #{agency_name} made more than $100,000 in #{year}
+      #{percent_str} percent of employees #{agency_name} made more than $100,000 in #{year}
     TEASER
 
     export['headline'] = headline.squeeze(' ').strip
@@ -509,7 +532,7 @@ def ma_public_employee_compensation_yearly_stage_creation(options, mail_sender =
     output = <<~HEREDOC
       #{teaser}, according to <a href='https://cthru.data.socrata.com/dataset/Commonwealth-Of-Massachusetts-Payrollv2/rxhc-k6iz'>CTHRU</a>.#{second_sentence}\n
       The national median hourly wage is $19.14 according to the most recent data from the <a href='https://www.bls.gov/oes/current/oes_nat.htm#00-0000'>Bureau of Labor Statistics</a>. According to the <a href='https://data.oecd.org/earnwage/average-wages.htm#indicator-chart'>OECD</a>, the average yearly wage in the US is more than $60,000.\n
-      The employee with the highest salary that year was #{max_employer} at the #{max_department} earning #{max_amount}.\n
+      The employee with the highest salary in #{year} was #{max_employer} at the #{max_department} earning #{max_amount}.\n
     HEREDOC
 
     output << "<div style=\"font-size:18px\"><strong>Top Salaries By Department</strong></div>"
