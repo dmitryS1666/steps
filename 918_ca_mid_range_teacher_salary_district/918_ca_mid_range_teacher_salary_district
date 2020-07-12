@@ -74,8 +74,8 @@ desc: California - Mid-range teacher salary (District)
 
 config_id - population_config_id
 
-Up to 2 stories per day, per pub, for up to 180 days
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=857 --limit=2 --start_date='2020-06-01' --total_days_till_end_date=180
+3/180/july 13
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=857 --limit=3 --start_date='2020-07-13' --total_days_till_end_date=180
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -91,8 +91,8 @@ ______________________________________
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=739 --population_config_id=857 --story_section_ids=2 --story_tag_ids=34 --photobuckets='High School Test' --job_item_name_description='California - Mid-range teacher salary (District)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=739 --population_config_id=857 --story_section_ids=16 --story_tag_ids=147 --photobuckets='High School Test' --job_item_name_description='California - Mid-range teacher salary (District)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=739 --population_config_id=857 --story_section_ids=2 --story_tag_ids=147 --photobuckets='High School Test' --job_item_name_description='California - Mid-range teacher salary (District)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=739 --population_config_id=857 --story_section_ids=16 --story_tag_ids=34 --photobuckets='High School Test' --job_item_name_description='California - Mid-range teacher salary (District)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
@@ -101,8 +101,8 @@ select * from story_export_configurations_v2 where tbl = 'california_mid_range_t
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=739 --population_config_id=857 --story_section_ids=2 --story_tag_ids=34 --photobuckets='High School Test' --job_item_name_description='California - Mid-range teacher salary (District)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=739 --population_config_id=857 --story_section_ids=16 --story_tag_ids=147 --photobuckets='High School Test' --job_item_name_description='California - Mid-range teacher salary (District)' -t --prod --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=739 --population_config_id=857 --story_section_ids=2 --story_tag_ids=147 --photobuckets='High School Test' --job_item_name_description='California - Mid-range teacher salary (District)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=739 --population_config_id=857 --story_section_ids=16 --story_tag_ids=34 --photobuckets='High School Test' --job_item_name_description='California - Mid-range teacher salary (District)' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
 
@@ -120,7 +120,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='327979'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='345718'
 
 _____
 IF OK
@@ -128,7 +128,7 @@ _____
 
 --threads_count=7 | 13140961 | 13140960
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='327979,327988,327985,327983,327984,327996,327989,327994,327995,327981,327980,327991,327986,327993,327992,327990,327987,327998,327982,327999,327997'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='345718,345690,345706,345719,345703,345702,345731,345750,345711,345739,345724,345734,345735,345696,345737,345723,345720,345701,345704,345692,345751,345708,345729,345730,345713,345742,345726,345748,345736,345745,345746,345716,345728,345732,345697,345691,345694,345744,345710,345699,345738,345741,345698,345709,345722,345747,345715,345693,345714,345700,345717,345727,345721,345749,345752,345705,345695,345725,345743,345712,345707,345733,345740' --threads_count=7
 ___________________________
 
 
@@ -155,7 +155,7 @@ JOIN job_items AS ji
   ON l.job_item_id=ji.id
 WHERE published_at >= '2020-05-12' AND
       deleted = 0 AND
-      l.job_item_id IN (195752,195753,195756,195763,195757,195755,195758,195769,195762,195766,195771,195772,195781,195768,195761,195770,195754,195759,195764,195765,195767)
+      l.job_item_id IN (202796,202830,202813,202849,202799,202854,202824,202833,202818,202832,202805,202816,202815,202811,202826,202819,202812,202801,202828,202822,202856,202835,202836,202831,202817,202827,202806,202809,202802,202843,202844,202829,202823,202845,202840,202810,202798,202803,202821,202800,202850,202820,202858,202814,202839,202807,202847,202851,202842,202857,202825,202846,202841,202852,202848,202853,202838,202834,202797,202855,202837,202808,202804)
 ORDER BY c.name;
 
 
@@ -166,7 +166,7 @@ ___________________________
 
 INSERT INTO loki_storycreator.hle_reminders
     (
-        story_type_name, story_type_stage_table,
+        hle_assignments_number, story_type_name, story_type_stage_table,
         dev_name, slack_handle, dev_email,
         story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
         last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
@@ -174,11 +174,11 @@ INSERT INTO loki_storycreator.hle_reminders
     )
 VALUES
     (
-        'California - Mid-range teacher salary (District)', 'california_mid_range_teacher_salary_district_staging',
+        918, 'California - Mid-range teacher salary (District)', 'california_mid_range_teacher_salary_district_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-        'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
-        '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
-         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
+        'year', 1, 1, 'yearly', 'The Dataset located on db01.usa_raw.ca_report_card_teacher_salaries%',
+        '2020-07-11', 0, 0, 0, 20000, 'yearly', 0,
+         1, 'db1','usa_raw', 'select date(max(postedTime)) date from usa_raw.ca_report_card_teacher_salaries;'
     );
 
 
