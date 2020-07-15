@@ -413,6 +413,11 @@ def ma_public_employee_compensation_25_50_yearly_stage_creation(options, mail_se
     table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
 
     agency_name = stage['department_division']
+    if agency_name.scan(/\(\w+\)/)[0]
+      substring = agency_name.scan(/\(\w+\)/)[0].gsub(/\(|\)/, '')
+      agency_name = agency_name.gsub(agency_name.scan(/\(\w+\)/)[0], substring.slice(0,1).capitalize + substring.slice(1..-1))
+    end
+
     year = stage['year']
     total = stage['total'].to_i
     count_25_50 = stage['count_25_50'].to_f
@@ -434,20 +439,32 @@ def ma_public_employee_compensation_25_50_yearly_stage_creation(options, mail_se
     case made_between[0]
     when :more_than_100k
       made_between_str = "more than $100,000"
+      more_than_2nd = made_between[1]
     when :count_10_25
       made_between_str = "between $10,000-$25,000"
+      more_than_2nd = made_between[1]
     when :count_25_50
       made_between_str = "between $25,000-$50,000"
+      more_than_2nd = made_between[1]
     when :count_50_75
       made_between_str = "between $50,000-$75,000"
+      more_than_2nd = made_between[1]
     when :count_75_100
       made_between_str = "between $75,000-$100,000"
+      more_than_2nd = made_between[1]
     when :count_less_10
       made_between_str = "less than $10,000"
+      more_than_2nd = made_between[1]
     else
       made_between_str = "---"
     end
-    second_sentence = made_between[0] != :count_25_50 ? " Most employees at #{agency_name} made #{made_between_str}." : ""
+
+    percent_2nd = (more_than_2nd * 100 / total.to_f).abs.round(1)
+    parts_2nd = percent_2nd.to_s.split(".")
+    percent_2nd = parts_2nd[1] == "0" ? percent_2nd.to_i : percent_2nd
+
+    # second_sentence = made_between[0] != :more_than_100k ? " Most employees at #{agency_name} made #{made_between_str}." : ""
+    second_sentence = made_between[0] != :count_25_50 ? "#{percent_2nd} percent of employees at #{agency_name} made #{made_between_str}." : ""
 
     if agency_name.include?('College') || agency_name.include?('University')
       agency_name = "at #{agency_name}"
@@ -472,7 +489,8 @@ def ma_public_employee_compensation_25_50_yearly_stage_creation(options, mail_se
     export['teaser'] = "#{teaser}.".squeeze(' ')
 
     output = <<~HEREDOC
-      #{teaser}, according to <a href='https://cthru.data.socrata.com/dataset/Commonwealth-Of-Massachusetts-Payrollv2/rxhc-k6iz'>CTHRU</a>.#{second_sentence}\n
+      #{teaser}, according to <a href='https://cthru.data.socrata.com/dataset/Commonwealth-Of-Massachusetts-Payrollv2/rxhc-k6iz'>CTHRU</a>. That’s #{count_25_50} of employees out of #{total}.\n
+      #{second_sentence}\n
       The national median hourly wage is $19.14 according to the most recent data from the <a href='https://www.bls.gov/oes/current/oes_nat.htm#00-0000'>Bureau of Labor Statistics</a>. According to the <a href='https://data.oecd.org/earnwage/average-wages.htm#indicator-chart'>OECD</a>, the average yearly wage in the US is more than $60,000.\n
     HEREDOC
 
