@@ -2,6 +2,166 @@ desc: Employment #s by MSA Year Over Year Change
 table: employments_by_msa_year_over_year_change_staging
 data_table: db13.usa_raw.metro_employment_earnings
 
+@john.putz
+Additional Export to MM
+Dev Name: Dmitry S.
+Story type Name: #230 - Employment #s by MSA Year Over Year Change
+Old FCD: https://docs.google.com/document/d/1SVCAso9ojjIvDuMD7MWPLFGzgB8uwOBa858LTj34EOc/edit#
+Sample story: https://pipeline-staging.locallabs.com/stories/511641083
+Period: 2018 - 2019
+Total Count: 309
+Max Project Count by client:
+MM - 309
+_____________________________________________________
+
+
+
+STAGE TABLE DEFINITION
+insert into stage_definition_configurations (tbl, definition) select 'employments_by_msa_year_over_year_change_staging','{"client_id":"int", "client_name":"varchar(255)", "publication_id":"int", "publication_name":"varchar(255)", "organization_id":"bigint(20)", "state":"varchar(255)", "area":"varchar(255)", "curr_year":"int", "prev_year":"int", "month":"varchar(255)","curr_value":"varchar(255)","prev_value":"varchar(255)","curr_state_month_value":"varchar(255)","prev_state_month_value":"varchar(255)","report_date":"varchar(255)","table_json":"longtext"}';
+
+#248
+
+STAGE TABLE CREATION
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=248 -t
+
+STAGE POPULATION CONFIGURATION
+insert into stage_population_configurations(project_name, tbl, definition) select 'Employment #s by MSA Year Over Year Change', 'employments_by_msa_year_over_year_change_staging', '{"known_entities":{"project_name":"Employment #s by MSA Year Over Year Change"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"employments_by_msa_year_over_year_change_stage_population","arguments":{}}}}';
+
+population_config_id: #375
+
+STAGE POPULATION:
+$ cd ~/Loki/procedures
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=375 -t --year='2019' --month=4
+
+
+STORY CREATOR CONFIGURATION:
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'employments_by_msa_year_over_year_change_staging', 'employments_by_msa_year_over_year_change_stage_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+
+creation_config_id: #255
+
+STORY CREATION COMMAND:
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=255 -t
+
+
+STAGING: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=255 --population_config_id=375 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Hiring - 1000x667' --job_item_name_description='Employment #s by MSA Year Over Year Change' -t
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=255 --population_config_id=375 --story_section_ids=16 --story_tag_ids=9 --photobuckets='Hiring - 1000x667' --job_item_name_description='Employment #s by MSA Year Over Year Change' -t --where="stage.client_name LIKE 'MM - %'"
+
+
+STAGING: EXPORT STORIES
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id='306502'
+
+
+
+FIRST FEEDBACK
+________________________________________
+irb ->
+load 'Loki.rb'
+Hle::Story::Feedback.stories_feedback('511680424,511680443,511680442,511680424')
+
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511699742,511699739,511699738
+
+
+!!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
+________________________________________________________________________________________________________________________________________
+
+SCHEDULER:
+__________
+population_config_id: #375
+creation_config_id: #255
+
+tbl: employments_by_msa_year_over_year_change_staging
+desc: Employment #s by MSA Year Over Year Change
+
+config_id - population_config_id
+
+230 - 2/180/July 20
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=375 --limit=2 --start_date='2020-07-20' --total_days_till_end_date=180
+
+__________________________________________________
+чтоб проверить шедулер, что он "окейно" отработал:
+
+select publication_name, min(publish_on), max(publish_on), count(*) from 'employments_by_msa_year_over_year_change_staging' group by publication_name;
+
+______________________________________
+PRODUCTION: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+______________________________________
+
+--where="client_name like 'MM - %'"
+
+РАЗБИВКА ПО КЛИНЕТАМ!!!
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=255 --population_config_id=375 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Hiring - 1000x667' --job_item_name_description='Employment #s by MSA Year Over Year Change' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=255 --population_config_id=375 --story_section_ids=16 --story_tag_ids=9 --photobuckets='Hiring - 1000x667' --job_item_name_description='Employment #s by MSA Year Over Year Change' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+______________________________________
+
+select * from story_export_configurations_v2 where tbl = 'employments_by_msa_year_over_year_change_staging' and export_name like '%production%' order by id DESC;
+
+______________________________________
+если все ок, то выполняем без --limit_config=1
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=255 --population_config_id=375 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Hiring - 1000x667' --job_item_name_description='Employment #s by MSA Year Over Year Change' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=255 --population_config_id=375 --story_section_ids=16 --story_tag_ids=9 --photobuckets='Hiring - 1000x667' --job_item_name_description='Employment #s by MSA Year Over Year Change' -t --prod --where="stage.client_name like 'MM - %'"
+_________
+повторяем
+
+select * from story_export_configurations_v2 where tbl = 'employments_by_msa_year_over_year_change_staging' and export_name like '%production%' order by id DESC;
+
+
+______________________
+для построения таблицы
+______________________
+
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from employments_by_msa_year_over_year_change_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='employments_by_msa_year_over_year_change_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+
+
+__________________________
+PRODUCTION: EXPORT STORIES
+__________________________
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='employments_by_msa_year_over_year_change_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=310461 --limit=1
+
+_____
+IF OK
+_____
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='59062,59063,346410,59064,59065,346401,346408,346411,346403,59066,346422,346412,346424,346430,346436,59067,346429,346419,59068,346427,59069,346397,346405,346418,59071,59072,346398,59073,346414,346402,59074,59075,59076,346404,59077,346415,59078,346399,59079,59100,346431,346413,59080,346437,59081,59082,59083,346420,59084,346426,59085,59086,59087,59088,346433,59089,59090,59091,59092,59093,59094,346407,59095,59096,346423,59097,346425,59098,59099,59102,346395,346428,346396,59101,346393,346409,346392,346421,346434,346394,346417,346438,346432,59103,346435,346416,346400,59104,59105,346406,59106,59107,59108,59109,59070,59110,59111,59112' --threads_count=7
+___________________________
+
+
+ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
+___________________________
+
+SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
+FROM story_export_configurations_v2
+WHERE tbl = "california_professional_licenses_issued_city_month_staging" AND
+      export_name LIKE '%production%';
+
+# pipeline-core-replica2.jnswire_prod query:
+
+SELECT headline, c.name AS publication, concat('https://pipeline.locallabs.com/stories/', s.id) AS url,
+       published_at, ji.name AS job_item, cc.name AS client
+FROM stories AS s
+JOIN communities AS c
+  ON s.community_id = c.id
+JOIN client_companies AS cc
+  ON c.client_company_id = cc.id
+JOIN data_entry_leads AS l
+  ON l.id = s.lead_id
+JOIN job_items AS ji
+  ON l.job_item_id=ji.id
+WHERE published_at >= '2020-04-24' AND
+      deleted = 0 AND
+      l.job_item_id IN (186752,186761,186757,186753,186764,186763,186762,186768,186770,186766,186767,186769,186758,186765,186759,186756,186760,186754,186755)
+ORDER BY c.name;
+
+
+
+
+REMINDER TOOL
+___________________________
 
 INSERT INTO loki_storycreator.hle_reminders
 (
@@ -19,3 +179,262 @@ VALUES
     '2019-08-31', 0, 0, 0, 20000, 'monthly', 0,
     1, 'db13','usa_raw', 'select date(max(postedTime)) date from usa_raw.metro_employment_earnings;'
 );
+
+
+
+
+# Creator: Dmitry Suschinsky
+# Story type: Employment #s by MSA Year Over Year Change
+# Template:
+# Created: July 2020
+
+# tbl: employments_by_msa_year_over_year_change_staging
+# db01.usa_raw.usa_administrative_division_states
+# db13.usa_raw.metro_employment_earnings
+# branch: s230_employment_msa_year_over_year_mm_d_sushi
+# employments_by_msa_year_over_year_change.rb
+
+require 'date'
+
+def normalize_rate(value)
+  value= "#{value.to_s.sub(/\.0$/, '')}"
+end
+
+def fill_table(curr_month, curr_value, prev_value)
+  table = []
+
+  table << {
+      "<strong>#{curr_month} 2019 (In thousands)</strong>" => normalize_rate(curr_value.to_f),
+      "<strong>#{curr_month} 2018 (In thousands)</strong>"  => normalize_rate(prev_value.to_f),
+      "<strong>Percent Change </strong>"  => normalize_rate(((curr_value.to_f - prev_value.to_f) * 100 / prev_value.to_f).round(1))
+  }
+
+  table
+end
+
+def get_periods(data_route)
+  data_route.client.query(%(
+      SELECT DISTINCT month
+      FROM metro_employment_earnings
+      WHERE year = 2019;)).flat_map(&:values)
+end
+
+def preliminary?(data_route, month)
+  return true if data_route.client.query(%(
+      SELECT *
+      FROM metro_employment_earnings
+      WHERE year = 2019
+      AND month = '#{month}'
+      AND preliminary = 0;)).to_a.empty?
+  false
+end
+
+def get_record(data_route, month, state, year)
+  root_query = "SELECT id, state, state_area, avg_payroll AS value, year, max(report_date) AS maxdate
+    FROM metro_employment_earnings
+    WHERE month = '#{month}'
+      AND preliminary = 0
+      AND state = '#{state}'
+      AND state_area != 'NULL'
+      AND year = '#{year}'
+    GROUP BY state_area, year;"
+  data_route.client.query(root_query)
+end
+
+def get_total_value(data_route, month, state, year)
+  data_route.client.query(%(
+      SELECT id, state, state_area, avg_payroll AS value, year, min(report_date) AS mindate
+      FROM metro_employment_earnings
+      WHERE month = '#{month}'
+          AND preliminary = 0
+          AND state = '#{state['name']}'
+          AND state_area = 'NULL'
+          AND year = '#{year}';)).to_a
+end
+
+def generate_source_id(source_id, year, month, state, publication)
+  source_id * 1_000_000_000 +
+      publication * 100_000_000 +
+      year * 1_000_000 +
+      month * 100_000 +
+      state * 1000
+end
+
+
+# Population Code
+def employments_by_msa_year_over_year_change_stage_population(line, arguments)
+  delivery = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
+  delivery.client.query("use #{delivery.stage_db}")
+
+  data_route = Route_noprefix.new(host: DB13, stage_db: 'usa_raw')
+  data_route.client.query("use #{data_route.stage_db}")
+
+  data_state = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+  data_state.client.query("use #{data_state.stage_db}")
+
+  periods = get_periods(data_route)
+
+  main_list_states = "SELECT DISTINCT id, name, pl_production_org_id, pl_production_org_name FROM usa_administrative_division_states;"
+  states = data_state.client.query(main_list_states)
+
+  states.each do |state|
+    p state
+  end
+
+  reasons = {
+      publications: [],
+      org_ids: []
+  }
+
+
+  periods.each_with_index do |month, i|
+    next if preliminary?(data_route, month)
+
+    states.each_with_index do |state, k|
+
+      unless state['pl_production_org_id']
+        reasons[:publications] << state['id']
+        next
+      end
+
+      # Metro Business Network
+      # MM-California
+      publications = []
+      publications << Hle::Publications.mm_pubs_excluding_states(state['pl_production_org_id'], 'production', 'California')
+      publications << get_journal_from_org_id(state['pl_production_org_id'], 'production', 120) rescue nil
+
+      publications.flatten!.uniq!
+
+      if publications.count.zero?
+        reasons[:publications] << state['id']
+        next
+      end
+
+      publications.each do |publication|
+        curr_record = get_record(data_route, month, state['name'], 2019).map do |rec|
+          {
+              id: rec['id'],
+              state_area: rec['state_area'],
+              state: rec['state'],
+              value: rec['value'],
+              year: rec['year']
+          }
+        end
+
+        prev_record = get_record(data_route, month, state['name'], 2018).map do |rec|
+          {
+              state_area: rec['state_area'],
+              state: rec['state'],
+              value: rec['value'],
+              year: rec['year'],
+          }
+        end
+
+        curr_total_value = get_total_value(data_route, month, state, 2019).map do |rec|
+          { value: rec['value'] }
+        end
+
+        prev_total_value = get_total_value(data_route, month, state, 2018).map do |rec|
+          { value: rec['value'] }
+        end
+
+        state = state
+        puts "#{month}: #{k + 1} - processing: #{state} (state)"
+
+        curr_record.each_with_index do |curr_rec, index|
+          hash = {}
+
+          table = fill_table(month, curr_total_value[0][:value], prev_total_value[0][:value])
+
+          hash['publication_name'] = "#{publication['publication_name']}"
+          if hash['publication_name'] == ''
+            reasons[:publications] << curr_rec[:id]
+            next
+          end
+
+          hash['client_name'] = 'Business Dailies'
+          hash['client_id'] = 120
+          hash['publication_id'] = publication['id'].to_i
+          hash['source_table_id'] = 19844
+          hash['source_id'] = 19844 * 1_000_000_000 + publication['id'].to_i * 10_000_000 + curr_rec['id'].to_i
+          hash['organization_id'] = state['pl_production_org_id']
+
+          hash['area'] = curr_rec[:state_area]
+          hash['curr_value'] = curr_rec[:value]
+          hash['prev_value'] = prev_record[index][:value]
+          hash['curr_state_month_value'] = curr_total_value[0][:value]
+          hash['prev_state_month_value'] = prev_total_value[0][:value]
+          hash['state'] = state['name']
+          hash['month'] = month
+          hash['curr_year'] = '2019'
+          hash['prev_year'] = '2018'
+
+          hash['table_json'] = table.to_json
+
+          puts " HASH" , hash
+
+          # insert to _stage table
+          rules = insert_rules(hash.escaped)
+          query = %(insert into #{@config['target_table']}#{rules})
+          delivery.client.query(query)
+        end
+
+      end
+    end
+  end
+
+  p 'Final statistics:', reasons
+
+  data_route.client.close if data_route
+  delivery.client.close if delivery
+  'INVALID'
+end
+
+
+# Story Creation Code
+def employments_by_msa_year_over_year_change_stage_creation(options)
+  total = @stage_selection.count
+  @stage_selection.each_with_index do |stage, i|
+    p "\r#{i + 1}/#{total}: \n"
+    export = {}
+
+    state = stage['state']
+    area = stage['area'].delete('(1)').delete('(2)')
+
+    month = stage['month']
+    # (новый - старый) * 100 / старый
+    # (cur - prev) * 100 / cur
+    difference = ((stage['curr_value'].to_f - stage['prev_value'].to_f) * 100.to_f / stage['prev_value'].to_f).round(1)
+    curr_value = Numbers.numbers_add_commas((stage['curr_value'].to_f * 1000).round(0))
+    prev_value = Numbers.numbers_add_commas((stage['prev_value'].to_f * 1000).round(0))
+    curr_state_month_value = normalize_rate((stage['curr_state_month_value'].to_f / 1000).round(3))
+
+    if difference.zero?
+      title_part = 'unchanged'
+      part = 'unchanged from'
+    elsif difference.negative?
+      difference = normalize_rate(difference.abs)
+      title_part = "decrease by #{difference}%"
+      part = "a #{difference} percent decrease over"
+    else
+      difference = normalize_rate(difference.abs)
+      title_part = "increase by #{difference}%"
+      part = "a #{difference} percent increase over"
+    end
+
+    the = ' the '
+    the = ' ' if area == 'The Villages'
+    export['headline'] = "#{area} non-farm payroll employees #{title_part} since last year\n"
+
+    export['teaser'] = "The number of employees on non-farm payrolls for the month of #{month} in#{the}#{area} metropolitan statistical area was #{curr_value}, #{part} the same period last year, according to the U.S. Bureau of Labor Statistics.\n"
+    output = ''
+
+    output << "The number of employees on non-farm payrolls for the month of #{month} in#{the}#{area} metropolitan statistical area was #{curr_value}, #{part} the same period last year, <a href='https://www.bls.gov/home.htm'>according to the U.S. Bureau of Labor Statistics.</a>\n
+    Last #{month}, #{area} reported #{prev_value} workers on non-farm payrolls.\n
+    Statistics were compiled from reports from the civilian labor force and unemployment data, both of which heavily relied on household surveys. The data is not seasonally adjusted.\n
+    Employment data is gleaned from an establishment survey that measures non-farm employment, hours and earnings by industry. The data is also based on payroll jobs and such factors as where the establishments are located.\n
+    Overall, #{state} reported #{curr_state_month_value} million people employed on non-farm payrolls in #{month}.<div style=\"font-size:18px\"><strong>#{state} Employees on Non-Farm Payrolls 2019 vs. 2018</strong></div>#{graph_from_json(stage['table_json'])}<i>Source: Bureau of Labor Statistics</i>"
+
+    export = prepare_output(stage, output, export, options)
+  end
+end
