@@ -1,0 +1,470 @@
+Pension investment earnings by state
+
+@john.putz
+Additional Export to MM
+Dev Name: Dmitry S.
+Story type Name: #236 - Pension investment earnings by state
+Old FCD: https://docs.google.com/document/d/1_K3DhEIh-AtJEAhOpKnPrLbRiHutNsme3QaDBCmGCjA/edit#
+Sample story: https://pipeline-staging.locallabs.com/stories/511644619
+Period: 2018
+Total Count: 47
+Max Project Count by client:
+MM - 1
+_____________________________________________________
+
+
+STAGE TABLE DEFINITION
+insert into stage_definition_configurations (tbl, definition) select 'pension_investment_earnings_by_state_staging', '{"client_id":"int", "client_name":"varchar(255)", "publication_id":"int", "publication_name":"varchar(255)", "organization_id":"bigint(20)", "state":"varchar(255)", "earnings_on_investments_state_prev":"varchar(255)", "earnings_on_investments_state_current":"varchar(255)", "total_securities_state":"varchar(255)", "government_securities_state":"varchar(255)", "nongovernment_securities_state":"varchar(255)", "corporate_stocks_state":"varchar(255)", "corporate_bonds_state":"varchar(255)", "number_of_systems_state_and_local":"varchar(255)", "number_of_systems_state":"varchar(255)", "number_of_systems_local":"varchar(255)", "total_membership_state_and_local":"varchar(255)",  "total_membership_state":"varchar(255)", "total_membership_local":"varchar(255)", "curr_year":"varchar(255)", "prev_year":"varchar(255)"}';
+
+#278
+
+STAGE TABLE CREATION
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=278 -t
+
+STAGE POPULATION CONFIGURATION
+insert into stage_population_configurations(project_name,tbl, definition) select 'Pension Investment Earnings by State', 'pension_investment_earnings_by_state_staging', '{"known_entities":{"project_name":"Pension Investment Earnings by State"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"pension_investment_earnings_by_state_population","arguments":{}}}}';
+
+population_config_id: #404
+
+STAGE POPULATION:
+$ cd ~/Loki/procedures
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=404 -t
+
+
+STORY CREATOR CONFIGURATION:
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'pension_investment_earnings_by_state_staging', 'pension_investment_earnings_by_state_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+
+creation_config_id: #287
+
+STORY CREATION COMMAND:
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=287 -t
+
+
+STAGING: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=287 --population_config_id=404 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='Pension Investment Earnings by State' -t
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=287 --population_config_id=404 --story_section_ids=16 --story_tag_ids=8 --photobuckets='Economy' --job_item_name_description='Pension Investment Earnings by State' -t --where="stage.client_name LIKE 'MM - %'"
+
+STAGING: EXPORT STORIES
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=
+
+
+
+
+
+!!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
+________________________________________________________________________________________________________________________________________
+
+SCHEDULER:
+__________
+population_config_id: #404
+creation_config_id: #287
+
+tbl: pension_investment_earnings_by_state_staging
+desc: Pension Investment Earnings by State
+
+config_id - population_config_id
+
+
+236 - 1/47/July 19
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=404 --limit=51 --start_date='2020-07-19' --total_days_till_end_date=47
+
+__________________________________________________
+чтоб проверить шедулер, что он "окейно" отработал:
+
+select publication_name, min(publish_on), max(publish_on), count(*) from 'pension_investment_earnings_by_state_staging' group by publication_name;
+
+______________________________________
+PRODUCTION: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+______________________________________
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=287 --population_config_id=404 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='Pension Investment Earnings by State' -t --prod --limit_config=1 --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=287 --population_config_id=404 --story_section_ids=16 --story_tag_ids=8 --photobuckets='Economy' --job_item_name_description='Pension Investment Earnings by State' -t  --prod --limit_config=1 --where="stage.client_name LIKE 'MM - %'"
+
+______________________________________
+
+select * from story_export_configurations_v2 where tbl = 'pension_investment_earnings_by_state_staging' and export_name like '%production%' order by id DESC;
+
+______________________________________
+если все ок, то выполняем без --limit_config=1
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=287 --population_config_id=404 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='Pension Investment Earnings by State' -t --prod --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=287 --population_config_id=404 --story_section_ids=16 --story_tag_ids=8 --photobuckets='Economy' --job_item_name_description='Pension Investment Earnings by State' -t  --prod --where="stage.client_name LIKE 'MM - %'"
+
+_________
+повторяем 
+
+select * from story_export_configurations_v2 where tbl = 'pension_investment_earnings_by_state_staging' and export_name like '%production%' order by id DESC;
+
+
+______________________
+для построения таблицы 	
+______________________
+
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from pension_investment_earnings_by_state_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='pension_investment_earnings_by_state_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+
+
+__________________________
+PRODUCTION: EXPORT STORIES
+__________________________
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='pension_investment_earnings_by_state_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=89165 --limit=1
+
+_____
+IF OK
+_____
+--threads_count=7
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='89912,89913,346363,89914,89915,346354,346361,346364,346356,89916,346375,346365,346377,346383,346389,89917,346382,346372,89918,346380,89919,346350,346358,346371,89920,89921,346351,89922,346367,346355,89923,89924,89925,346357,89926,346368,89927,346352,89928,89949,346384,346366,89929,346390,89930,89931,89932,346373,89933,346379,89934,89935,89936,89937,346386,89938,89939,89940,89941,89942,89943,346360,89944,89945,346376,89946,346378,89947,89948,89951,346348,346381,346349,89950,346346,346362,346345,346374,346387,346347,346370,346391,346385,89952,346388,346369,346353,89953,89954,346359,89955,89956,89957,89958,89959,89960,89961' --threads_count=7
+
+
+ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
+___________________________
+
+SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
+FROM story_export_configurations_v2
+WHERE tbl = 'pension_investment_earnings_by_state_staging' AND
+      export_name LIKE '%production%';
+
+# pipeline-core-replica2.jnswire_prod query:
+
+SELECT headline, c.name AS publication, concat('https://pipeline.locallabs.com/stories/', s.id) AS url,
+       published_at, ji.name AS job_item, cc.name AS client
+FROM stories AS s
+JOIN communities AS c
+  ON s.community_id = c.id
+JOIN client_companies AS cc
+  ON c.client_company_id = cc.id
+JOIN data_entry_leads AS l
+  ON l.id = s.lead_id
+JOIN job_items AS ji
+  ON l.job_item_id=ji.id
+WHERE published_at >= '2020-07-14' AND
+      deleted = 0 AND
+      l.job_item_id IN ()
+ORDER BY c.name;
+
+
+
+
+
+
+
+INSERT INTO loki_storycreator.hle_reminders
+    (
+        story_type_name, story_type_stage_table, hle_assignments_number,
+        dev_name, slack_handle, dev_email,
+        story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
+        last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
+        data_source_checker_on, data_source_host, data_source_db, data_source_update_query
+    )
+VALUES
+    (
+        'Pension Investment Earnings by State', 'pension_investment_earnings_by_state_staging', '236',
+        'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
+        'yearly', 1, 1, 'yearly', 'The Dataset located on db12.usa_raw.public_pensions_survey%',
+        '2019-10-30', 0, 0, 0, 20000, 'yearly', 0,
+         1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.public_pensions_survey;'
+    );
+
+
+
+# Creator: Dmitry Suschinsky
+# Story type: Pension investment earnings by state
+# Template:
+# Created: July 2020
+
+# tbl: pension_investment_earnings_by_state_staging
+# db01.usa_raw.public_pensions_survey
+# db13.usa_raw.metro_employment_earnings
+# branch: s236_pension_investment_earnings_by_state_mm_d_sushi
+# pension_investment_earnings_by_state.rb
+
+require 'date'
+
+def normalize_rate(value)
+  value= "#{value.to_s.sub(/\.0$/, '')}"
+end
+
+def preliminary?(data_route, month)
+  return true if data_route.client.query(%(
+      SELECT *
+      FROM metro_employment_earnings
+      WHERE year = 2019
+      AND month = '#{month}'
+      AND preliminary = 0;)).to_a.empty?
+  false
+end
+
+def root_record(data_route, state, curr_year, prev_year)
+  root_query = "SELECT root_data.item, root_data.region, root_data.year as root_year, root_data.state as state_curr,
+       prev_data.year as prev_year, prev_data.state as state_prev, total_security_data.state AS total_securities_state,
+       governmental_security_data.state AS governmental_security_state,
+       nongovernmental_security_data.state AS nongovernmental_security_state,
+       corporate_bonds_data.state AS corporate_bonds_state,
+       corporate_stocks_data.state AS corporate_stocks_state,
+       number_of_systems_data.state AS number_of_systems_state,
+       number_of_systems_data.local AS number_of_systems_local,
+       number_of_systems_data.state_and_local AS number_of_systems_state_and_local,
+       total_membership_data.state AS total_membership_state,
+       total_membership_data.local AS total_membership_local,
+       total_membership_data.state_and_local AS total_membership_state_and_local
+
+    FROM usa_raw.public_pensions_survey as root_data
+
+    INNER JOIN (SELECT state, item, region, year FROM usa_raw.public_pensions_survey) as prev_data
+        ON root_data.item = prev_data.item AND root_data.region = prev_data.region
+
+    INNER JOIN (SELECT state, item, region, year FROM usa_raw.public_pensions_survey) as total_security_data
+        ON root_data.region = total_security_data.region AND root_data.year = total_security_data.year
+
+    INNER JOIN (SELECT state, item, region, year FROM usa_raw.public_pensions_survey) as governmental_security_data
+        ON root_data.region = governmental_security_data.region AND root_data.year = governmental_security_data.year
+
+    INNER JOIN (SELECT state, item, region, year FROM usa_raw.public_pensions_survey) as nongovernmental_security_data
+        ON root_data.region = nongovernmental_security_data.region AND root_data.year = nongovernmental_security_data.year
+
+    INNER JOIN (SELECT state, item, region, year FROM usa_raw.public_pensions_survey) as corporate_bonds_data
+        ON root_data.region = corporate_bonds_data.region AND root_data.year = corporate_bonds_data.year
+
+    INNER JOIN (SELECT state, item, region, year FROM usa_raw.public_pensions_survey) as corporate_stocks_data
+        ON root_data.region = corporate_stocks_data.region AND root_data.year = corporate_stocks_data.year
+
+    INNER JOIN (SELECT state, local, state_and_local, item, region, year FROM usa_raw.public_pensions_survey) as number_of_systems_data
+        ON root_data.region = number_of_systems_data.region AND root_data.year = number_of_systems_data.year
+
+    INNER JOIN (SELECT state, local, state_and_local, item, region, year FROM usa_raw.public_pensions_survey) as total_membership_data
+        ON root_data.region = total_membership_data.region AND root_data.year = total_membership_data.year
+
+    WHERE
+      root_data.item = 'Earnings on investments' AND
+      root_data.region = '#{state}' AND
+      root_data.year = '#{curr_year}' AND
+      prev_data.year = '#{prev_year}' AND
+      root_data.state != 'NULL' AND root_data.state IS NOT NULL AND
+      total_security_data.item = 'Total securities' AND
+      governmental_security_data.item = 'Governmental securities' AND
+      nongovernmental_security_data.item = 'Nongovernmental securities' AND
+      corporate_bonds_data.item = 'Corporate bonds' AND
+      corporate_stocks_data.item = 'Corporate stocks' AND
+      number_of_systems_data.item = 'Number of systems' AND
+      total_membership_data.item = 'Total Membership';"
+  data_route.client.query(root_query).to_a
+end
+
+def generate_source_id(source_id, year, month, state, publication)
+  source_id * 1_000_000_000 +
+      publication * 100_000_000 +
+      year * 1_000_000 +
+      month * 100_000 +
+      state * 1000
+end
+
+
+# Population Code
+def pension_investment_earnings_by_state_stage_population(line, arguments)
+  delivery = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
+  delivery.client.query("use #{delivery.stage_db}")
+
+  data_state = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+  data_state.client.query("use #{data_state.stage_db}")
+
+  data_route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+  data_route.client.query("use #{data_route.stage_db}")
+
+  main_list_states = "SELECT DISTINCT id, name, pl_production_org_id, pl_production_org_name FROM usa_administrative_division_states;"
+  states = data_state.client.query(main_list_states)
+
+  states.each do |state|
+    p state
+  end
+
+  reasons = {
+      publications: [],
+      org_ids: []
+  }
+
+  curr_year = '2018'
+  prev_year = '2017'
+
+  states.each_with_index do |state, k|
+
+    unless state['pl_production_org_id']
+      reasons[:publications] << state['id']
+      next
+    end
+
+    # Metro Business Network
+    # MM-California
+    publications = []
+    publications << Hle::Publications.mm_pubs_excluding_states(state['pl_production_org_id'], 'production', 'California')
+    publications << get_journal_from_org_id(state['pl_production_org_id'], 'production', 120) rescue nil
+
+    publications.flatten!.uniq!
+
+    if publications.count.zero?
+      reasons[:publications] << state['id']
+      next
+    end
+
+    publications.each do |publication|
+      p "state['name']"
+      p state['name']
+
+      p "publication"
+      p publication
+
+      records = root_record(data_route, state['name'], curr_year, prev_year)
+
+      p 'records: '
+      p records
+
+      records.each do |rec|
+        hash = {}
+
+        hash['publication_name'] = "#{publication['publication_name']}"
+        if hash['publication_name'] == ''
+          reasons[:publications] << rec[:id]
+          next
+        end
+        hash['client_name'] = publication['client_name']
+        hash['client_id'] = publication['client_id']
+        hash['publication_id'] = publication['id'].to_i
+        hash['source_table_id'] = 19852
+        hash['organization_id'] = state['pl_production_org_id']
+
+        hash['state'] = state['name']
+        hash['curr_year'] = rec['root_year']
+        hash['prev_year'] = rec['prev_year']
+        hash['earnings_on_investments_state_prev'] = rec['state_prev']
+        hash['earnings_on_investments_state_current'] = rec['state_curr']
+        hash['total_securities_state'] = rec['total_securities_state']
+        hash['government_securities_state'] = rec['governmental_security_state']
+        hash['nongovernment_securities_state'] = rec['nongovernmental_security_state']
+        hash['corporate_bonds_state'] = rec['corporate_bonds_state']
+        hash['corporate_stocks_state'] = rec['corporate_stocks_state']
+        hash['number_of_systems_state_and_local'] = rec['number_of_systems_state_and_local']
+        hash['number_of_systems_state'] = rec['number_of_systems_state']
+        hash['number_of_systems_local'] = rec['number_of_systems_local']
+        hash['total_membership_state_and_local'] = rec['total_membership_state_and_local']
+        hash['total_membership_state'] = rec['total_membership_state']
+        hash['total_membership_local'] = rec['total_membership_local']
+
+        puts " HASH" , hash
+
+        # insert to _stage table
+        rules = insert_rules(hash.escaped)
+        query = %(insert into #{@config['target_table']}#{rules})
+        delivery.client.query(query)
+      end
+
+    end
+  end
+
+  p 'Final statistics:', reasons
+
+  delivery.client.close if delivery
+  'INVALID'
+end
+
+
+# Story Creation Code
+def pension_investment_earnings_by_state_stage_creation(options)
+  total = @stage_selection.count
+  @stage_selection.each_with_index do |stage, i|
+    p "\r#{i + 1}/#{total}: \n"
+    export = {}
+
+    state = stage['state']
+
+    curr_year = stage['curr_year']
+    prev_year = stage['prev_year']
+
+    state_curr = stage['earnings_on_investments_state_current']
+    state_prev = stage['earnings_on_investments_state_prev']
+
+    total_securities_state = to_million(stage['total_securities_state'].to_f)
+    government_securities_state = to_million(stage['government_securities_state'].to_f)
+    nongovernment_securities_state = to_million(stage['nongovernment_securities_state'].to_f)
+    corporate_bonds_state = to_million(stage['corporate_bonds_state'].to_f)
+    corporate_stocks_state = to_million(stage['corporate_stocks_state'].to_f)
+
+    number_of_systems_state_and_local = Numbers.numbers_add_commas((stage['number_of_systems_state_and_local'].to_f).round(0))
+    number_of_systems_state = Numbers.numbers_add_commas((stage['number_of_systems_state'].to_f).round(0))
+    number_of_systems_local = Numbers.numbers_add_commas((stage['number_of_systems_local'].to_f).round(0))
+
+    p 'number_of_systems_state: '
+    p number_of_systems_state
+    p number_of_systems_local
+    p '--------------------------------------'
+
+    if number_of_systems_state.to_f > 0 && number_of_systems_local.to_f > 0
+      big_system_var = ", including #{number_of_systems_state} state-level pension funds and #{number_of_systems_local} local-level systems"
+    else
+      big_system_var = ''
+    end
+
+    total_membership_state_and_local = Numbers.numbers_add_commas((stage['total_membership_state_and_local'].to_f).round(0))
+    total_membership_state = Numbers.numbers_add_commas((stage['total_membership_state'].to_f).round(0))
+    total_membership_local = Numbers.numbers_add_commas((stage['total_membership_local'].to_f).round(0))
+
+    if total_membership_state.to_f > 0 && total_membership_local.to_f > 0
+      big_membership_var = " (#{total_membership_state} at the state level and #{total_membership_local} at the local level)"
+    else
+      big_membership_var = ''
+    end
+
+    # (новый - старый) * 100 / старый
+    difference = ((state_curr.to_f - state_prev.to_f) * 100.to_f / state_prev.to_f).round(1)
+    curr_value = to_million(state_curr.to_f)
+    prev_value = to_million(state_prev.to_f)
+
+    # headline: fall/increase
+    # dropped/climbed
+
+    if difference.zero?
+      title_part = 'unchanged'
+      body_part = 'unchanged from'
+    elsif difference.negative?
+      difference = normalize_rate(difference.abs)
+      title_part = "fall"
+      body_part = "dropped"
+    else
+      difference = normalize_rate(difference.abs)
+      title_part = "increase"
+      body_part = "climbed"
+    end
+
+    export['headline'] = "#{state} pension investment earnings #{title_part} #{difference} percent\n"
+
+    export['teaser'] = "The earnings on investments for #{state} public pensions #{body_part} from $#{prev_value} in #{prev_year} to $#{curr_value} in #{curr_year}, according to data obtained from the U.S. Census Bureau’s Annual Survey of Public Pensions.\n"
+    output = ''
+
+    output << "The earnings on investments for #{state} public pensions #{body_part} from $#{prev_value} in #{prev_year} to $#{curr_value} in #{curr_year}, according to data obtained from the <a href='https://www.bls.gov/home.htm'>U.S. Census Bureau’s Annual Survey of Public Pensions.</a>\n\n
+    The state reported that it had invested $#{total_securities_state} in securities, including $#{government_securities_state} in  government securities and $#{nongovernment_securities_state} in nongovernmental securities. Another $#{corporate_stocks_state} was invested in corporate stocks, and $#{corporate_bonds_state} was invested in corporate bonds.\n\n
+    The Census Bureau’s survey includes public pensions sponsored by local and state government entities with employees who are compensated with public funds. The local governments include counties, townships, school districts and special districts.\n\n
+    The data gathered includes revenues, expenditures, financial assets, membership and liabilities information.
+    Residents in Alaska, Florida, Nevada, New Hampshire, South Dakota, Tennessee, Texas, Washington and Wyoming do not pay state income taxes.
+    The Census Bureau cautions that not all respondents answer all survey questions. Thus, some fields were left blank.\n\n
+    #{state} reported data from #{number_of_systems_state_and_local} pension systems#{big_system_var}. The total number of pension system members was #{total_membership_state_and_local}#{big_membership_var}.\n"
+
+    export = prepare_output(stage, output, export, options)
+  end
+end
+
+
+def to_million(value)
+  value = value.to_f
+  if value >= 1_000_000_000_000
+    value = "#{(value / 1_000_000_000_000.0).round(1).to_s.sub(/\.0$/, '')} trillion"
+  elsif value >= 1_000_000_000
+    value = "#{(value / 1_000_000_000.0).round(1).to_s.sub(/\.0$/, '')} billion"
+  elsif value >= 1_000_000
+    value = "#{(value / 1_000_000.0).round(1).to_s.sub(/\.0$/, '')} million"
+  else
+    value = "#{value.to_s.sub(/\.0$/, '')}"
+  end
+  value
+end
