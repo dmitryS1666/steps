@@ -1,3 +1,17 @@
+Combined tax revenue by state quarterly change
+
+@john.putz
+Additional Export to MM
+Dev Name: Dmitry S.
+Story type Name: #242 - Combined tax revenue by state quarterly change
+Old FCD: https://docs.google.com/document/d/1rWgHl6LQ9M_9J1UZsF_cfbfldswGbmqFmuDl-WW_nhY/edit#
+Sample story: https://pipeline-staging.locallabs.com/stories/511643289
+Period: Q12019/Q42018
+Total Count: 47
+Max Project Count by client:
+MM - 47
+_____________________________________________________
+
 STAGE TABLE DEFINITION
 insert into stage_definition_configurations (tbl, definition) select 'combined_tax_revenue_by_state_quarterly_change_staging', '{""client_id":"int", "client_name":"varchar(255)", "publication_id":"int", "publication_name":"varchar(255)", "organization_id":"bigint(20)", "state":"varchar(255)", "report_date":"varchar(255)", "tax_sum_prev":"varchar(255)", "tax_sum_curr":"varchar(255)", "month_of_update":"varchar(255)", "period":"varchar(255)", "largest_amount":"varchar(255)", "next_largest_amount":"varchar(255)", "table":"longtext", "largest_type":"varchar(255)", "next_largest_type":"varchar(255)"}';
 
@@ -13,7 +27,7 @@ population_config_id: #396
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=396 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=396 -t --date=''
 
 
 STORY CREATOR CONFIGURATION:
@@ -52,9 +66,9 @@ creation_config_id: #278
 
 config_id - population_config_id
 
+242 - 1/50/July 20
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=396 --limit=1 --start_date='2020-07-20' --total_days_till_end_date=50
 
-publish them all on September 19
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=396 --limit=51 --start_date='2019-09-19'
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
@@ -66,7 +80,8 @@ PRODUCTION: STORY EXPORT CONFIGURATION
 ______________________________________
 
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=278 --population_config_id=396 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Money' --job_item_name_description='Combined Tax Revenue by State Quarterly Change' -t --prod --limit_config=1
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=278 --population_config_id=396 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='Combined Tax Revenue by State Quarterly Change' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=278 --population_config_id=396 --story_section_ids=16 --story_tag_ids=10 --photobuckets='Economy' --job_item_name_description='Combined Tax Revenue by State Quarterly Change' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
@@ -75,7 +90,8 @@ select * from story_export_configurations_v2 where tbl = 'combined_tax_revenue_b
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=278 --population_config_id=396 --story_section_ids=2 --story_tag_ids=37 --photobuckets='Money' --job_item_name_description='Combined Tax Revenue by State Quarterly Change' -t --prod
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=278 --population_config_id=396 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='Combined Tax Revenue by State Quarterly Change' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=278 --population_config_id=396 --story_section_ids=16 --story_tag_ids=10 --photobuckets='Economy' --job_item_name_description='Combined Tax Revenue by State Quarterly Change' -t --prod --where="stage.client_name like 'MM - %'"
 
 _________
 повторяем 
@@ -99,20 +115,36 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_
 _____
 IF OK
 _____
+--threads_count=7
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='67168,67169,67170,67171,67172,67173,67174,67175,67177,67178,67179,67180,67181,67182,67183,67184,67185,67206,67186,67187,67188,67189,67190,67191,67192,67193,67194,67195,67196,67197,67198,67199,67200,67201,67202,67203,67204,67205,67208,67207,67209,67210,67211,67212,67213,67214,67215,67176,67216,67217,67218'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='67168,67169,346305,67170,67171,346296,346303,346306,346298,67172,346317,346307,346319,346325,346331,67173,346324,346314,67174,346322,67175,346292,346300,346313,67177,67178,346293,67179,346309,346297,67180,67181,67182,346299,67183,346310,67184,346294,67185,67206,346326,346308,67186,346332,67187,67188,67189,346315,67190,346321,67191,67192,67193,67194,346328,67195,67196,67197,67198,67199,67200,346302,67201,67202,346318,67203,346320,67204,67205,67208,346289,346323,346290,67207,346287,346304,346291,346316,346329,346288,346312,346333,346327,67209,346330,346311,346295,67210,67211,346301,67212,67213,67214,67215,67176,67216,67217,67218' --threads_count=7
 
 ___________________________
 ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
 ___________________________
 
-select headline, c.name as publication, concat('https://pipeline.locallabs.com/stories/', s.id) as url, published_at, ji.name as job_item, cc.name as client from stories s
-  join communities c on s.community_id = c.id
-  join client_companies cc on c.client_company_id = cc.id
-  join data_entry_leads l on l.id = s.lead_id
-  join job_items ji on l.job_item_id=ji.id
-where published_at >= '2019-08-30' and deleted = 0 and ji.type in ('JobItem::Hle') and ji.name rlike 'Combined Tax Revenue by State Quarterly Change'
-order by c.name;
+SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
+FROM story_export_configurations_v2
+WHERE tbl = 'combined_tax_revenue_by_state_quarterly_change_staging' AND
+      export_name LIKE '%production%';
+
+# pipeline-core-replica2.jnswire_prod query:
+
+SELECT headline, c.name AS publication, concat('https://pipeline.locallabs.com/stories/', s.id) AS url,
+       published_at, ji.name AS job_item, cc.name AS client
+FROM stories AS s
+JOIN communities AS c
+  ON s.community_id = c.id
+JOIN client_companies AS cc
+  ON c.client_company_id = cc.id
+JOIN data_entry_leads AS l
+  ON l.id = s.lead_id
+JOIN job_items AS ji
+  ON l.job_item_id=ji.id
+WHERE published_at >= '2020-07-14' AND
+      deleted = 0 AND
+      l.job_item_id IN (31839,31841,31803,31814,31810,31844,31816,31835,31842,31836,31801,31802,31805,31806,31807,31808,31811,31812,31813,31815,31817,31818,31819,31820,31821,31822,31824,31826,31827,31828,31829,31830,31831,31823,31832,31833,31834,31837,31838,31840,31845,31846,31847,31848,31809,31850,31851,31804,31825,31843,203356,31849,203383,203358,203359,203340,203345,203381,203346,203351,203373,203362,203361,203364,203347,203379,203365,203380,203355,203384,203339,203352,203353,203370,203374,203376,203343,203350,203366,203377,203338,203341,203344,203348,203354,203360,203363,203367,203382,203378,203372,203349,203342,203357,203371,203375,203368,203369)
+ORDER BY c.name;
 
 
 
@@ -135,3 +167,386 @@ VALUES
         '2019-09-18', 0, 0, 0, 20000, 'quarterly', 0,
          1, 'db13','usa_raw', 'select date(max(postedTime)) date from usa_raw.quarterly_summary_of_state_and_local_taxes_data;'
     );
+
+
+
+# Creator: Dmitry Suschinsky
+# Story type: Combined tax revenue by state quarterly change
+# Template:
+# Created: July 2020
+
+# tbl: combined_tax_revenue_by_state_quarterly_change_staging
+# db13.usa_raw.quarterly_summary_of_state_and_local_taxes_data
+# branch: s242_combined_tax_revenue_by_state_quarterly_mm_d_sushi
+# combined_tax_revenue_by_state_quarterly_change.rb
+
+# Common methods of IL General Assembly Office-holder votes in past week (il_sen_rep_votes_past_week)
+# ------------------------------------------------------------------------------------------------
+def number_to_money(value, rounding = 2, currency = '$')
+  value.to_f < 0 ? prefix = "-#{currency}" : prefix = "#{currency}"
+  parts = normalize_to_positive(value).to_f.round(rounding).to_s.split('.')
+  parts.delete_at(1) if parts[1].to_i.zero?
+  counter = 2
+  parts[0] = parts[0].split('').reverse.each_with_index.map { |el, i|
+    counter += 1
+    (counter % 3).zero? && !i.zero? ? el += "," : el
+  }.reverse.join('')
+  "#{prefix}#{parts.join('.')}"
+end
+
+def number_to_money_table(value)
+  if value.negative?
+    '$0'
+  else
+    Numbers.numbers_add_commas(value.abs).split.unshift('$').join
+  end
+end
+
+# ------------------------------------------------------------------------------------------------
+def number_to_money_suffixed(value, suffix = '')
+  if value >= 10 ** 9
+    value = (value.to_f / (10 ** 9)).round(1)
+    suffix = ' quadrillion' if suffix.eql?('')
+  elsif value >= 10 ** 6
+    value = (value.to_f / (10 ** 6)).round(1)
+    suffix = ' trillion' if suffix.eql?('')
+  elsif value >= 10 ** 3
+    value = (value.to_f / (10 ** 3)).round(1)
+    suffix = ' billion' if suffix.eql?('')
+  elsif value > 0
+    value = value.to_f.round(1)
+    suffix = ' million' if suffix.eql?('')
+  else
+    return ''
+  end
+  "#{number_to_money(value, 1)}#{suffix}"
+end
+# ------------------------------------------------------------------------------------------------
+def string_mistakes_fix(string, event, result = ' ')
+  loop do
+    break unless string.index(event)
+
+    string.gsub!(event, result)
+  end
+  string
+end
+# ------------------------------------------------------------------------------------------------
+def zero_fraction_cut(str)
+  str = string_mistakes_fix(str, /0$/, '')
+  str = string_mistakes_fix(str, /\.$/, '')
+end
+# ------------------------------------------------------------------------------------------------
+def easy_titleize(line)
+  line = line.split.map(&:capitalize)*' '
+end
+# ------------------------------------------------------------------------------------------------
+def ending_s_adding(title)
+  arr = title.split
+  arr[-1].split('')[-1].eql?('s') ? arr[-1] << '\'' : arr[-1] << '\'s'
+  arr.join(' ')
+end
+# ------------------------------------------------------------------------------------------------
+def normalize_to_positive(value)
+  value = value < 0 ? value * -1 : value
+end
+# ------------------------------------------------------------------------------------------------
+def our_months_format(n)
+  mnths = %w(Jan. Feb. March April May June July Aug. Sept. Oct. Nov. Dec.)
+  (1..12).to_a.index(n) ? mnths[n-1] : ''
+end
+# ------------------------------------------------------------------------------------------------
+def make_period_full(str)
+  symb = str[1].to_i
+  year = str[2, 4]
+  matching_hash = matching_hash = {1 => 'first', 2 => 'second', 3 => 'third', 4 => 'fourth'}
+  "the #{matching_hash[symb]} quarter of #{year}"
+end
+# ------------------------------------------------------------------------------------------------
+def table_filling(data_route, state, period)
+  query = " SELECT
+                data.id, SUM(data.val) as money, types.dt_idx, types.dt_desc_clean, types.tax_category, types.dt_unit AS koeff,
+                per.per_name AS period
+            FROM quarterly_summary_of_state_and_local_taxes_data AS data
+                 JOIN quarterly_summary_of_state_and_local_taxes_data_types AS types
+                      ON types.dt_idx = data.dt_idx
+                 JOIN quarterly_summary_of_state_and_local_taxes_geo_levels AS geo
+                      ON geo.geo_idx = data.geo_idx
+                 JOIN quarterly_summary_of_state_and_local_taxes_time_periods AS per
+                      ON per.per_idx = data.per_idx
+            WHERE data.cat_idx = 3
+              AND data.report_date = (SELECT max(report_date) FROM quarterly_summary_of_state_and_local_taxes_data)
+              AND geo.geo_desc = '#{state}'
+              AND per.per_name = #{period.dump} GROUP BY types.tax_category;"
+
+  table_rows = data_route.client.query(query)
+  table = []
+  property, sales, income, license, other =  ''
+
+  table_rows.each do |row|
+    property = row['money'] if row['tax_category'].eql?('Property')
+    sales = row['money'] if row['tax_category'].eql?('Sales')
+    income = row['money'] if row['tax_category'].eql?('Income')
+    license = row['money'] if row['tax_category'].eql?('License')
+    other = row['money'] if row['tax_category'].eql?('Other')
+  end
+
+  table << {"Type of Tax" => "Property Taxes", "Amount (millions)" => number_to_money_table(property)} unless property.to_s.empty?
+  table << {"Type of Tax" => "Sales and Gross Receipts Taxes", "Amount (millions)" => number_to_money(sales)} unless  sales.to_s.empty?
+  table << {"Type of Tax" => "Income Taxes", "Amount (millions)" => number_to_money_table(income)} unless  income.to_s.empty?
+  table << {"Type of Tax" => "License Taxes", "Amount (millions)" => number_to_money_table(license)} unless  license.to_s.empty?
+  table << {"Type of Tax" => "Other Taxes", "Amount (millions)" => number_to_money_table(other)} unless other.to_s.empty?
+
+  table
+end
+# ------------------------------------------------------------------------------------------------
+def combined_tax_revenue_by_state_q_change_stage_population(line,argument)
+  require 'bigdecimal'
+  require 'bigdecimal/util'
+  require 'date'
+
+  #  --date: quarter of the year, that will be compared with same period of the previous year.
+  puts("\n!!!\nParameter date required\n!!!\n") unless (@options['date'])
+  return 'INVALID' unless (@options['date'])
+
+  begin
+    puts("\n!!!\nDate at the input can not be matched to one of the year quarters\n!!!\n") unless [1, 4, 7 ,10].include?(Date.parse(@options['date']).month)
+  rescue ArgumentError
+    puts("\n!!!\nParameter date can not be parsed as date\n!!!\n")
+    return 'INVALID'
+  end
+  date_curr = Date.parse(@options['date'])
+  matching_hash = {1 => 1, 4 => 2, 7 => 3, 10 => 4}
+
+  option_current  = 'Q' + matching_hash[date_curr.month].to_s + date_curr.year.to_s
+  option_previous = 'Q' + matching_hash[date_curr.prev_month(3).month].to_s + date_curr.prev_month(3).year.to_s
+
+  data_route = Route_noprefix.new(host: DB13, stage_db: 'usa_raw')
+  data_route.client.query("use #{data_route.stage_db}")
+
+  delivery = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
+  delivery.client.query("use #{delivery.stage_db}")
+
+  data_state = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+  data_state.client.query("use #{data_state.stage_db}")
+
+  main_list_states = "SELECT DISTINCT id, name, pl_production_org_id, pl_production_org_name FROM usa_administrative_division_states;"
+  states = data_state.client.query(main_list_states)
+
+  states.each do |state|
+    p state
+  end
+
+  i = 0
+  total_states = states.count
+  p total_states
+
+  reasons = {
+      publication_name: [],
+      zero_money_curr_data: [],
+      zero_money_prev_data: [],
+      wrong_ratio: [] }
+
+  states.each do |st|
+    i += 1
+    puts "#{i}/#{total_states} - processing: #{st['name']}"
+
+    data_query = "
+      SELECT
+        data.id, data.val as money, types.dt_idx, types.dt_desc_clean,
+        types.tax_category, types.dt_unit AS koeff, per.per_name AS period,
+        (SELECT max(report_date) FROM quarterly_summary_of_state_and_local_taxes_data) AS upd_date
+      FROM quarterly_summary_of_state_and_local_taxes_data AS data
+        JOIN quarterly_summary_of_state_and_local_taxes_data_types AS types
+          ON types.dt_idx = data.dt_idx
+        JOIN quarterly_summary_of_state_and_local_taxes_geo_levels AS geo
+          ON geo.geo_idx = data.geo_idx
+        JOIN quarterly_summary_of_state_and_local_taxes_time_periods AS per
+          ON per.per_idx = data.per_idx
+      WHERE data.cat_idx = 3
+        AND data.report_date = (SELECT max(report_date) FROM quarterly_summary_of_state_and_local_taxes_data)
+        AND data.dt_idx != 37
+        AND geo.geo_desc = '#{st['name']}'
+        AND per.per_name IN ('#{option_current}','#{option_previous}')"
+
+    data_query_2 = "
+        SELECT data.id, data.val AS money, types.dt_desc_clean AS tax_type
+        FROM quarterly_summary_of_state_and_local_taxes_data AS data
+           JOIN quarterly_summary_of_state_and_local_taxes_data_types AS types
+                ON types.dt_idx = data.dt_idx
+           JOIN quarterly_summary_of_state_and_local_taxes_geo_levels AS geo
+                ON geo.geo_idx = data.geo_idx
+           JOIN quarterly_summary_of_state_and_local_taxes_time_periods AS per
+                ON per.per_idx = data.per_idx
+        WHERE data.cat_idx = 3
+          AND data.report_date = (SELECT max(report_date) FROM quarterly_summary_of_state_and_local_taxes_data)
+          AND data.dt_idx != 37
+          AND geo.geo_desc = '#{st['name']}'
+          AND per.per_name = '#{option_current}'
+        AND data.val != 0
+        ORDER BY data.val DESC LIMIT 2;"
+
+    full_data = data_route.client.query(data_query)
+    top_rows_data = data_route.client.query(data_query_2).to_a
+
+    unless full_data.map{|el| el['koeff']}.uniq.size.eql?(1)
+      reasons[:wrong_ratio] << "#{st['name']} #{option_current}"
+      next
+    end
+
+    unless top_rows_data.map{|el| el['koeff']}.uniq.size.eql?(1)
+      reasons[:wrong_ratio] << "#{st['name']} #{option_current}"
+      next
+    end
+
+    month_of_update = ''
+    tax_sum_prev, tax_sum_curr = 0, 0
+
+    full_data.each do |cat|
+      month_of_update = cat['upd_date'].strftime('%B') if cat['period'].eql?(option_current) && month_of_update.eql?('')
+      tax_sum_curr += cat['money'].to_i if cat['period'].eql?(option_current)
+      tax_sum_prev += cat['money'].to_i if cat['period'].eql?(option_previous)
+    end
+
+    tax_large_value = top_rows_data[0]['money']
+    tax_large_type = top_rows_data[0]['tax_type']
+    tax_next_large_value = top_rows_data[1]['money']
+    tax_next_large_type = top_rows_data[1]['tax_type']
+
+    if tax_sum_prev.zero?
+      reasons[:zero_money_prev_data] << "#{st['name']} #{option_previous}"
+      next
+    end
+
+    if tax_sum_curr.zero?
+      reasons[:zero_money_curr_data] << "#{st['name']} #{option_current}"
+      next
+    end
+
+    table = table_filling(data_route, st['name'], option_current)
+
+    unless st['pl_production_org_id']
+      reasons[:publications] << st['id']
+      next
+    end
+
+    # Metro Business Network
+    # MM-California
+    publications = []
+    publications << Hle::Publications.mm_pubs_excluding_states(state['pl_production_org_id'], 'production', 'California')
+    publications << get_journal_from_org_id(state['pl_production_org_id'], 'production', 120) rescue nil
+
+    publications.flatten!.uniq!
+
+    if publications.count.zero?
+      reasons[:publications] << st['id']
+      next
+    end
+
+    publications.each do |publication|
+      hash = {}
+
+      hash['publication_name'] = "#{publication['publication_name']}"
+      if hash['publication_name'].empty?
+        reasons[:publication_name] << publication['id']
+        next
+      end
+      hash['client_name'] = publication['client_name']
+      hash['client_id'] = publication['client_id']
+      hash['publication_id'] = publication['id'].to_i
+      hash['source_table_id'] = 19833
+      hash['organization_id'] = st['pl_production_org_id']
+
+      hash['tax_sum_prev'] = tax_sum_prev
+      hash['tax_sum_curr'] = tax_sum_curr
+      hash['month_of_update'] = month_of_update
+      hash['period'] = option_current + '/' + option_previous
+      hash['largest_amount'] = tax_large_value
+      hash['next_largest_amount'] = tax_next_large_value
+      hash['largest_type'] = tax_large_type
+      hash['next_largest_type'] = tax_next_large_type
+
+      hash['table'] = table.to_json
+
+      rules = insert_rules(hash.escaped)
+      query = "insert into #{@config['target_table']}#{rules}"
+      p query
+      delivery.client.query(query)
+      puts hash if i.eql?(1)
+    end
+  end
+  p reasons
+
+  delivery.client.close if delivery
+  data_route.client.close if data_route
+  # data_route.web_client.close if data_route
+  'INVALID'
+end
+
+def combined_tax_revenue_by_state_q_change_stage_creation(options, mail_sender = false)
+  i = 0
+  count = @stage_selection.count
+  @stage_selection.each do |stage|
+    i += 1
+    p "#{i}/#{count}: "
+    export = {}
+
+    publication_name = stage['publication_name']
+    state = stage['state'] # state = easy_titleize(stage['state'])
+    tax_sum_prev = stage['tax_sum_prev']
+    tax_sum_curr = stage['tax_sum_curr']
+    month_of_update = stage['month_of_update'].capitalize
+
+    period_curr = stage['period'].split('/')[0]
+    period_prev = stage['period'].split('/')[1]
+
+    period_q_curr = period_curr[0, 2]
+    period_y_curr = period_curr[2, 4]
+    period_q_prev = period_prev[0, 2]
+    period_y_prev = period_prev[2, 4]
+    period_full = make_period_full(period_curr)
+
+    tax_large_value = stage['largest_amount'].to_f
+    tax_next_large_value = stage['next_largest_amount'].to_f
+    tax_large_type = stage['largest_type']
+    tax_next_large_type = stage['next_largest_type']
+
+    perc_change = ((tax_sum_curr.to_f / tax_sum_prev.to_f - 1) * 100).round(1)
+
+    if perc_change > 0
+      insert_1 = "up #{zero_fraction_cut(normalize_to_positive(perc_change).to_s)} percent"
+      insert_2 = "a #{zero_fraction_cut(normalize_to_positive(perc_change).to_s)} percent increase over"
+    elsif perc_change < 0
+      insert_1 = "down #{zero_fraction_cut(normalize_to_positive(perc_change).to_s)} percent"
+      insert_2 = "a #{zero_fraction_cut(normalize_to_positive(perc_change).to_s)} percent decrease from"
+    else
+      insert_1 = "did not change much"
+      insert_2 = "a minor change over"
+    end
+
+    tax_sum_prev = number_to_money_suffixed(tax_sum_prev.to_f)
+    tax_sum_curr = number_to_money_suffixed(tax_sum_curr.to_f)
+
+    tax_large = number_to_money_suffixed(tax_large_value)
+    tax_next_large = number_to_money_suffixed(tax_next_large_value)
+
+    table = JSON.parse(stage['table'])
+    table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
+
+    export['headline'] = "#{ending_s_adding(state)} combined tax revenues #{insert_1} since #{period_q_prev} #{period_y_prev}"
+
+    export['teaser'] = "#{state} collected #{tax_sum_curr} combined tax revenues for property, sales and gross receipts, and income taxes during #{period_full}, #{insert_2} the previous quarter when #{tax_sum_prev} was reported, according to the U.S. Census Bureau’s Quarterly Summary of State and Local Taxes.\n\n" # which was released in #{month_of_update}.\n\n"
+
+    output = "#{export['teaser']}\n\n"
+
+    output << "The majority of the state’s tax revenue was collected through #{tax_large_type} (#{tax_large}) and #{tax_next_large_type} (#{tax_next_large}).\n\n"
+
+    output << "In addition to detailed tax revenue data from each state, the Quarterly Summary of State and Local Government Tax Revenue includes an estimate of state and local government tax revenue at a national level.\n\n"
+    output << "The Census Bureau cautions that it sets the tax classifications among the survey categories, and they may differ from the classifications set by the state governments.\n\n"
+
+    output << "<div style=\"font-size:18px\"><strong>#{period_q_curr} #{state} Tax Collections</strong></div>"
+    output << table
+    output << "<i>Source: U.S. Census Bureau</i>"
+
+    export = prepare_output(stage, output, export, options)
+  end
+end
