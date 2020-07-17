@@ -45,8 +45,8 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=7
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=714 --population_config_id=832 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation (Yearly)' -t --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=714 --population_config_id=832 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation (Yearly)' -t --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=714 --population_config_id=832 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation (Yearly)' -t --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=714 --population_config_id=832 --story_section_ids=16 --story_tag_ids=8 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation (Yearly)' -t --where="stage.client_name like 'MM - %'"
 
 STAGING: EXPORT STORIES
 bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=340619
@@ -92,8 +92,8 @@ ______________________________________
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=714 --population_config_id=832 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation (Yearly)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=714 --population_config_id=832 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation (Yearly)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=714 --population_config_id=832 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation (Yearly)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=714 --population_config_id=832 --story_section_ids=16 --story_tag_ids=8 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation (Yearly)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
@@ -102,8 +102,8 @@ select * from story_export_configurations_v2 where tbl = 'ma_public_employee_com
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=714 --population_config_id=832 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation (Yearly)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=714 --population_config_id=832 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation (Yearly)' -t --prod --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=714 --population_config_id=832 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation (Yearly)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=714 --population_config_id=832 --story_section_ids=16 --story_tag_ids=8 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation (Yearly)' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
 
@@ -121,7 +121,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='327979'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='346732'
 
 _____
 IF OK
@@ -129,7 +129,7 @@ _____
 
 --threads_count=7 | 13140961 | 13140960
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='327979,327988,327985,327983,327984,327996,327989,327994,327995,327981,327980,327991,327986,327993,327992,327990,327987,327998,327982,327999,327997'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='346730,346740,346739,346593,346738,346734,346731,346737,346736,346735,346733,346729,346732'
 ___________________________
 
 
@@ -154,9 +154,9 @@ JOIN data_entry_leads AS l
   ON l.id = s.lead_id
 JOIN job_items AS ji
   ON l.job_item_id=ji.id
-WHERE published_at >= '2020-05-12' AND
+WHERE published_at >= '2020-07-16' AND
       deleted = 0 AND
-      l.job_item_id IN (195752,195753,195756,195763,195757,195755,195758,195769,195762,195766,195771,195772,195781,195768,195761,195770,195754,195759,195764,195765,195767)
+      l.job_item_id IN (203614,203675,203678,203683,203677,203681,203684,203680,203686,203679,203685,203676,203682)
 ORDER BY c.name;
 
 
@@ -167,7 +167,7 @@ ___________________________
 
 INSERT INTO loki_storycreator.hle_reminders
     (
-        story_type_name, story_type_stage_table,
+        hle_assignments_number, story_type_name, story_type_stage_table,
         dev_name, slack_handle, dev_email,
         story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
         last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
@@ -175,10 +175,10 @@ INSERT INTO loki_storycreator.hle_reminders
     )
 VALUES
     (
-        'MA Public Employee Compensation (Yearly)', 'ma_public_employee_compensation_yearly_staging',
+        909, 'MA Public Employee Compensation (Yearly)', 'ma_public_employee_compensation_yearly_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-        'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
-        '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
+        'annual', 1, 1, 'annually', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
+        '2020-01-10', 0, 0, 0, 20000, 'annually', 0,
          1, 'db12','usa_raw', 'select date(max(postedTime)) date from usa_raw.michigan_professional_licensing;'
     );
 
