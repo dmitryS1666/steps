@@ -7,7 +7,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=575 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'Population Changes County', 'illinois_population_changes_county_staging', '{"known_entities":{"project_name":"Population Changes County"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"illinois_population_changes_county_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'Population Changes County', 'illinois_population_changes_county_staging', '{"known_entities":{"project_name":"Population Changes County"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"illinois_population_changes_county_population","arguments":{}}}}';
 
 population_config_id: #690
 
@@ -331,7 +331,7 @@ def illinois_population_changes_city_stage_population(line, argument)
   @semaphore = Mutex.new
   threads = Array.new(threads_count) do
     Thread.new do
-      delivery = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
+      delivery = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
       delivery.client.query("use #{delivery.stage_db}")
       data_state_06 = Route_noprefix.new(host: DB06, stage_db: 'voters_2016')
       data_state_06.client.query("use #{data_state_06.stage_db}")

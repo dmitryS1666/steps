@@ -7,7 +7,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=378 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name,tbl, definition) select 'Home Sales by Financing Type (Quarterly)', 'home_sales_by_financing_type_quart_staging', '{"known_entities":{"project_name":"Home Sales by Financing Type (Quarterly)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"home_sales_by_financing_type_quarter_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name,tbl, definition) select 'Home Sales by Financing Type (Quarterly)', 'home_sales_by_financing_type_quart_staging', '{"known_entities":{"project_name":"Home Sales by Financing Type (Quarterly)"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"home_sales_by_financing_type_quarter_population","arguments":{}}}}';
 
 population_config_id: #502
 

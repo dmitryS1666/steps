@@ -9,7 +9,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=502 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)', 'mi_prof_licenses_exp_comp_same_time_ly_county_m_staging', '{"known_entities":{"project_name":"Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"michigan_prof_lic_issued_comp_prev_per_county_m_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)', 'mi_prof_licenses_exp_comp_same_time_ly_county_m_staging', '{"known_entities":{"project_name":"Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"michigan_prof_lic_issued_comp_prev_per_county_m_population","arguments":{}}}}';
 
 population_config_id: #623
 
@@ -73,7 +73,7 @@ ______________________________________
 
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=2 --story_tag_ids=3 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --limit_config=1 --where="client_id = 120"
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
@@ -83,7 +83,7 @@ select * from story_export_configurations_v2 where tbl = 'mi_prof_licenses_exp_c
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=2 --story_tag_ids=3 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --where="client_id = 120"
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
@@ -117,7 +117,7 @@ ___________________________
 ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
 ___________________________
 
-# DB05.loki_storycreator query:
+# DB02.loki_storycreator query:
 
 SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
 FROM story_export_configurations_v2

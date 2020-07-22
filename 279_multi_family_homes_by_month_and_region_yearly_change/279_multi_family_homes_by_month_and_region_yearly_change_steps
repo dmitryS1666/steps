@@ -8,7 +8,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=287 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name,tbl, definition) select 'Multi Family Homes by Month and Region Yearly Change', 'multi_family_homes_by_month_and_region_yearly_change_staging', '{"known_entities":{"project_name":"Multi Family Homes by Month and Region Yearly Change"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"multi_family_homes_by_month_and_region_yearly_change_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name,tbl, definition) select 'Multi Family Homes by Month and Region Yearly Change', 'multi_family_homes_by_month_and_region_yearly_change_staging', '{"known_entities":{"project_name":"Multi Family Homes by Month and Region Yearly Change"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"multi_family_homes_by_month_and_region_yearly_change_population","arguments":{}}}}';
 
 population_config_id: #414
 

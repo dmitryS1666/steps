@@ -8,7 +8,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=390 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'VA Hospital Wait Time by State Ranked', 'va_hospital_wait_time_by_state_rank_staging', '{"known_entities":{"project_name":"VA Hospital Wait Time by State Ranked"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"va_hospital_wait_time_by_state_rank_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'VA Hospital Wait Time by State Ranked', 'va_hospital_wait_time_by_state_rank_staging', '{"known_entities":{"project_name":"VA Hospital Wait Time by State Ranked"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"va_hospital_wait_time_by_state_rank_population","arguments":{}}}}';
 
 population_config_id: #515
 

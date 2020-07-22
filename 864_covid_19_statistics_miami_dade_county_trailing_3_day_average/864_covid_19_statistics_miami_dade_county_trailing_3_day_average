@@ -24,7 +24,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=672 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'Covid-19 Statistics - Trailing 3 day average', 'covid_19_stat_miami_dade_county_trailing_3_day_avg_staging', '{"known_entities":{"project_name":"Covid-19 Statistics - Trailing 3 day average"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"covid_19_statistics_miami_dade_county_trailing_3_day_average_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'Covid-19 Statistics - Trailing 3 day average', 'covid_19_stat_miami_dade_county_trailing_3_day_avg_staging', '{"known_entities":{"project_name":"Covid-19 Statistics - Trailing 3 day average"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"covid_19_statistics_miami_dade_county_trailing_3_day_average_population","arguments":{}}}}';
 
 population_config_id: #781
 
@@ -281,7 +281,7 @@ def covid_19_statistics_miami_dade_county_trailing_3_day_average_stage_populatio
   route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
   route.client.query("use #{route.stage_db}")
 
-  data_state = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
+  data_state = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
   data_state.client.query("use #{data_state.stage_db}")
 
   count = get_count(route, date_start, date_finish)[0]['count']
@@ -293,7 +293,7 @@ def covid_19_statistics_miami_dade_county_trailing_3_day_average_stage_populatio
   @semaphore = Mutex.new
   threads = Array.new(threads_count) do
     Thread.new do
-      delivery = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
+      delivery = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
       delivery.client.query("use #{delivery.stage_db}")
       data_state_01 = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
       data_state_01.client.query("use #{data_state_01.stage_db}")

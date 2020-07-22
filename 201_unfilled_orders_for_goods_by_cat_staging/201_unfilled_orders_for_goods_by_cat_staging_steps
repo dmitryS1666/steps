@@ -12,7 +12,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=223 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'Unfilled Orders for Goods by Cat', 'unfilled_orders_for_goods_by_cat_staging', '{"known_entities":{"project_name":"Unfilled Orders for Goods by Cat"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"unfilled_orders_for_goods_by_cat_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'Unfilled Orders for Goods by Cat', 'unfilled_orders_for_goods_by_cat_staging', '{"known_entities":{"project_name":"Unfilled Orders for Goods by Cat"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"unfilled_orders_for_goods_by_cat_population","arguments":{}}}}';
 
 population_config_id: #353
 
@@ -80,8 +80,8 @@ ______________________________________
 --where="client_name like 'MM - %'"
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=235 --population_config_id=353 --story_section_ids=2 --story_tag_ids=37 --photobuckets='General Business - 1000x667' --job_item_name_description='Unfilled Orders for Goods by Cat' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=235 --population_config_id=353 --story_section_ids=16 --story_tag_ids=37 --photobuckets='General Business - 1000x667' --job_item_name_description='Unfilled Orders for Goods by Cat' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=235 --population_config_id=353 --story_section_ids=2 --story_tag_ids=3 --photobuckets='General Business - 1000x667' --job_item_name_description='Unfilled Orders for Goods by Cat' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=235 --population_config_id=353 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Unfilled Orders for Goods by Cat' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 

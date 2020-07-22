@@ -22,7 +22,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=278 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name,tbl, definition) select 'Pension Investment Earnings by State', 'pension_investment_earnings_by_state_staging', '{"known_entities":{"project_name":"Pension Investment Earnings by State"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"pension_investment_earnings_by_state_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name,tbl, definition) select 'Pension Investment Earnings by State', 'pension_investment_earnings_by_state_staging', '{"known_entities":{"project_name":"Pension Investment Earnings by State"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"pension_investment_earnings_by_state_population","arguments":{}}}}';
 
 population_config_id: #404
 
@@ -265,7 +265,7 @@ end
 
 # Population Code
 def pension_investment_earnings_by_state_stage_population(line, arguments)
-  delivery = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
+  delivery = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
   delivery.client.query("use #{delivery.stage_db}")
 
   data_state = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')

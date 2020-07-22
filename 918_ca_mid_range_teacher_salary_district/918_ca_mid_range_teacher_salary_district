@@ -23,7 +23,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=755 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'California - Mid-range teacher salary (District)', 'california_mid_range_teacher_salary_district_staging', '{"known_entities":{"project_name":"California - Mid-range teacher salary (District)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"california_mid_range_teacher_salary_district_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'California - Mid-range teacher salary (District)', 'california_mid_range_teacher_salary_district_staging', '{"known_entities":{"project_name":"California - Mid-range teacher salary (District)"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"california_mid_range_teacher_salary_district_population","arguments":{}}}}';
 
 population_config_id: #857
 
@@ -194,8 +194,8 @@ VALUES
 # california_mid_range_teacher_salary_district.rb
 
 def california_mid_range_teacher_salary_district_population(line, arguments)
-  db05 = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
-  db05.client.query("use #{db05.stage_db}")
+  db02 = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
+  db02.client.query("use #{db02.stage_db}")
 
 
 
@@ -248,7 +248,7 @@ def california_mid_range_teacher_salary_district_population(line, arguments)
       rules = insert_ignore_rules(h.escaped)
       query = "insert ignore into #{@config['target_table']}#{rules}"
 
-      db05.client.query(query)
+      db02.client.query(query)
       counter += 1
     end
   end
@@ -256,7 +256,7 @@ def california_mid_range_teacher_salary_district_population(line, arguments)
 
     puts "Source size: #{source.size}"
     puts "Counter:     #{counter}"
-    db05.client.close if db05
+    db02.client.close if db02
     'INVALID' # a very important string!!!
 end
 

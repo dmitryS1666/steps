@@ -10,7 +10,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=587 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'Generic State - White Population Change City (short and long term)', 'gen_st_white_pop_change_city_short_and_long_term_staging', '{"known_entities":{"project_name":"Generic State - White Population Change City (short and long term)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"gen_st_white_pop_change_city_short_and_long_term_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'Generic State - White Population Change City (short and long term)', 'gen_st_white_pop_change_city_short_and_long_term_staging', '{"known_entities":{"project_name":"Generic State - White Population Change City (short and long term)"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"gen_st_white_pop_change_city_short_and_long_term_population","arguments":{}}}}';
 
 population_config_id: #701
 

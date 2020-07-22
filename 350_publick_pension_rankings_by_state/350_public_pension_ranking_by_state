@@ -7,7 +7,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=368 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name,tbl, definition) select 'Public Pension Ranking by State', 'public_pension_ranking_by_state_staging', '{"known_entities":{"project_name":"Public Pension Ranking by State"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"public_pension_ranking_by_state_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name,tbl, definition) select 'Public Pension Ranking by State', 'public_pension_ranking_by_state_staging', '{"known_entities":{"project_name":"Public Pension Ranking by State"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"public_pension_ranking_by_state_population","arguments":{}}}}';
 
 population_config_id: #492
 

@@ -7,7 +7,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=248 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name,tbl, definition) select 'Employment #s by MSA Year Over Year Change', 'employments_by_msa_year_over_year_change_staging', '{"known_entities":{"project_name":"Employment #s by MSA Year Over Year Change"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"employments_by_msa_year_over_year_change_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name,tbl, definition) select 'Employment #s by MSA Year Over Year Change', 'employments_by_msa_year_over_year_change_staging', '{"known_entities":{"project_name":"Employment #s by MSA Year Over Year Change"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"employments_by_msa_year_over_year_change_population","arguments":{}}}}';
 
 #375
 

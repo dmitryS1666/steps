@@ -10,7 +10,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=641 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'California - Professional Licenses Issued (Zip - Quarter)', 'ca_prof_licenses_issued_zip_q_staging', '{"known_entities":{"project_name":"California - Professional Licenses Issued (Zip - Quarter)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"ca_prof_licenses_issued_zip_q_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'California - Professional Licenses Issued (Zip - Quarter)', 'ca_prof_licenses_issued_zip_q_staging', '{"known_entities":{"project_name":"California - Professional Licenses Issued (Zip - Quarter)"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"ca_prof_licenses_issued_zip_q_population","arguments":{}}}}';
 
 population_config_id: #755
 
@@ -339,7 +339,7 @@ def ca_prof_licenses_issued_zip_q_stage_population(line, argument)
   route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
   route.client.query("use #{route.stage_db}")
 
-  data_state = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
+  data_state = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
   data_state.client.query("use #{data_state.stage_db}")
 
   zips = get_zips(route)
@@ -375,7 +375,7 @@ def ca_prof_licenses_issued_zip_q_stage_population(line, argument)
   @semaphore = Mutex.new
   threads = Array.new(threads_count) do
     Thread.new do
-      delivery = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
+      delivery = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
       delivery.client.query("use #{delivery.stage_db}")
       data_state_01 = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
       data_state_01.client.query("use #{data_state_01.stage_db}")

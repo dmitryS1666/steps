@@ -7,7 +7,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=463 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'Texas - Professional Licenses Set to Expire by Profession (City - Quarter)', 'texas_prof_licenses_set_expire_by_prof_city_q_staging', '{"known_entities":{"project_name":"Texas - Professional Licenses Set to Expire by Profession (City - Quarter)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"texas_prof_licenses_set_expire_by_prof_city_q_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'Texas - Professional Licenses Set to Expire by Profession (City - Quarter)', 'texas_prof_licenses_set_expire_by_prof_city_q_staging', '{"known_entities":{"project_name":"Texas - Professional Licenses Set to Expire by Profession (City - Quarter)"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"texas_prof_licenses_set_expire_by_prof_city_q_population","arguments":{}}}}';
 
 population_config_id: #582
 

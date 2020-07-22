@@ -38,7 +38,7 @@ def quarterly_rental_vacancy_rate_by_state_stage_population(line, arguments)
   data_state = Route_noprefix.new(host: 'db12', stage_db: 'usa_raw')
   data_state.client.query("use #{data_state.stage_db}")
 
-  delivery = Route_noprefix.new(host: 'db05', stage_db: 'loki_storycreator')
+  delivery = Route_noprefix.new(host: 'db02', stage_db: 'loki_storycreator')
   delivery.client.query("use #{delivery.stage_db}")
 
   main_list_states = "SELECT DISTINCT id, name, pl_production_org_id, pl_production_org_name FROM usa_administrative_division_states;"

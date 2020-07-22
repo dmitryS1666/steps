@@ -9,7 +9,7 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='cre
 
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name,tbl, definition) select 'Average VA Purchase Loan Amount by State & Quarter', 'average_va_purchase_loan_amount_by_state_and_quarter_staging', '{"known_entities":{"project_name":"Average VA Purchase Loan Amount by State & Quarter"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"average_va_purchase_loan_amount_by_state_and_quarter_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name,tbl, definition) select 'Average VA Purchase Loan Amount by State & Quarter', 'average_va_purchase_loan_amount_by_state_and_quarter_staging', '{"known_entities":{"project_name":"Average VA Purchase Loan Amount by State & Quarter"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"average_va_purchase_loan_amount_by_state_and_quarter_population","arguments":{}}}}';
 
 population_config_id: #428
 

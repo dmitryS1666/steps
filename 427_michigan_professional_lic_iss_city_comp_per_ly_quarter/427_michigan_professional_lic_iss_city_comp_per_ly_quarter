@@ -8,7 +8,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=439 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)', 'michigan_prof_lic_issued_comp_prev_per_county_q_staging', '{"known_entities":{"project_name":"Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"michigan_prof_lic_issued_comp_prev_per_county_q_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)', 'michigan_prof_lic_issued_comp_prev_per_county_q_staging', '{"known_entities":{"project_name":"Michigan - Professional Licenses Issued Compared to prev per (County - Quarter)"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"michigan_prof_lic_issued_comp_prev_per_county_q_population","arguments":{}}}}';
 
 population_config_id: #560
 
@@ -116,7 +116,7 @@ ___________________________
 ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
 ___________________________
 
-# DB05.loki_storycreator query:
+# DB02.loki_storycreator query:
 
 SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
 FROM story_export_configurations_v2
@@ -138,7 +138,7 @@ JOIN job_items AS ji
   ON l.job_item_id=ji.id
 WHERE published_at >= '2020-01-07' AND
       deleted = 0 AND
-      l.job_item_id IN (<result_of_DB05.storycreator_query>)
+      l.job_item_id IN (<result_of_DB02.storycreator_query>)
 ORDER BY c.name;
 
 

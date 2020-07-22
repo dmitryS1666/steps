@@ -8,7 +8,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=402 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)', 'michigan_professional_lic_iss_city_comp_per_ly_q_staging', '{"known_entities":{"project_name":"Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"michigan_prof_licenses_issued_city_comp_per_ly_q_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)', 'michigan_professional_lic_iss_city_comp_per_ly_q_staging', '{"known_entities":{"project_name":"Michigan - Professional Licenses Issued Compared to same time LY (City - Quarter)"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"michigan_prof_licenses_issued_city_comp_per_ly_q_population","arguments":{}}}}';
 
 population_config_id: #525
 

@@ -24,7 +24,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=741 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'MA Public Employee Compensation 10-25 (Yearly)', 'ma_public_employee_compensation_10_25_yearly_staging', '{"known_entities":{"project_name":"MA Public Employee Compensation 10-25 (Yearly)"},"resources":{":root":{"host":"db05","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"ma_public_employee_compensation_10_25_yearly_population","arguments":{}}}}';
+insert into stage_population_configurations(project_name, tbl, definition) select 'MA Public Employee Compensation 10-25 (Yearly)', 'ma_public_employee_compensation_10_25_yearly_staging', '{"known_entities":{"project_name":"MA Public Employee Compensation 10-25 (Yearly)"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"ma_public_employee_compensation_10_25_yearly_population","arguments":{}}}}';
 
 population_config_id: #841
 
@@ -336,7 +336,7 @@ def ma_public_employee_compensation_10_25_yearly_stage_population(line, argument
     @semaphore = Mutex.new
     threads = Array.new(threads_count) do
       Thread.new do
-        delivery = Route_noprefix.new(host: DB05, stage_db: 'loki_storycreator')
+        delivery = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
         delivery.client.query("use #{delivery.stage_db}")
         thread_route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
         thread_route.client.query("use #{thread_route.stage_db}")
