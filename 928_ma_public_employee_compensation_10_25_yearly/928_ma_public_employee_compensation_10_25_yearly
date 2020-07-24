@@ -45,8 +45,8 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=7
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 10-25 (Yearly)' -t --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 10-25 (Yearly)' -t --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation 10-25 (Yearly)' -t --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=16 --story_tag_ids=8 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation 10-25 (Yearly)' -t --where="stage.client_name like 'MM - %'"
 
 STAGING: EXPORT STORIES
 bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=340619
@@ -75,8 +75,8 @@ desc: MA Public Employee Compensation 10-25 (Yearly)
 
 config_id - population_config_id
 
-Up to 2 stories per day, per pub, for up to 180 days
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=841 --limit=2 --start_date='2020-06-01' --total_days_till_end_date=180
+928 -- 3/180/July 27
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=841 --limit=3 --start_date='2020-07-27' --total_days_till_end_date=180
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -92,8 +92,8 @@ ______________________________________
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 10-25 (Yearly)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 10-25 (Yearly)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation 10-25 (Yearly)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=16 --story_tag_ids=8 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation 10-25 (Yearly)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
@@ -102,8 +102,8 @@ select * from story_export_configurations_v2 where tbl = 'ma_public_employee_com
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 10-25 (Yearly)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Campaign Contributions' --job_item_name_description='MA Public Employee Compensation 10-25 (Yearly)' -t --prod --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation 10-25 (Yearly)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=722 --population_config_id=841 --story_section_ids=16 --story_tag_ids=8 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation 10-25 (Yearly)' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
 
@@ -121,7 +121,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='327979'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='347456'
 
 _____
 IF OK
@@ -129,7 +129,7 @@ _____
 
 --threads_count=7 | 13140961 | 13140960
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='327979,327988,327985,327983,327984,327996,327989,327994,327995,327981,327980,327991,327986,327993,327992,327990,327987,327998,327982,327999,327997'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='347456,347467,347466,347455,347465,347461,347458,347464,347463,347462,347460,347457,347459' --threads_count=7
 ___________________________
 
 
@@ -154,9 +154,9 @@ JOIN data_entry_leads AS l
   ON l.id = s.lead_id
 JOIN job_items AS ji
   ON l.job_item_id=ji.id
-WHERE published_at >= '2020-05-12' AND
+WHERE published_at >= '2020-07-23' AND
       deleted = 0 AND
-      l.job_item_id IN (195752,195753,195756,195763,195757,195755,195758,195769,195762,195766,195771,195772,195781,195768,195761,195770,195754,195759,195764,195765,195767)
+      l.job_item_id IN (203872,203874,203875,203882,203876,203879,203881,203877,203884,203878,203883,203873,203880)
 ORDER BY c.name;
 
 
@@ -167,7 +167,7 @@ ___________________________
 
 INSERT INTO loki_storycreator.hle_reminders
     (
-        story_type_name, story_type_stage_table,
+        hle_assignments_number, story_type_name, story_type_stage_table,
         dev_name, slack_handle, dev_email,
         story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
         last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
@@ -175,7 +175,7 @@ INSERT INTO loki_storycreator.hle_reminders
     )
 VALUES
     (
-        'MA Public Employee Compensation 10-25 (Yearly)', 'ma_public_employee_compensation_10_25_yearly_staging',
+        928, 'MA Public Employee Compensation 10-25 (Yearly)', 'ma_public_employee_compensation_10_25_yearly_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
         'quarter', 1, 1, 'quarterly', 'The Dataset located on db12.usa_raw.michigan_professional_licensing%',
         '2020-01-10', 0, 0, 0, 20000, 'quarterly', 0,
@@ -489,7 +489,7 @@ def ma_public_employee_compensation_10_25_yearly_stage_creation(options, mail_se
     export['teaser'] = "#{teaser}.".squeeze(' ')
 
     output = <<~HEREDOC
-      #{teaser}, according to <a href='https://cthru.data.socrata.com/dataset/Commonwealth-Of-Massachusetts-Payrollv2/rxhc-k6iz'>CTHRU</a>. That’s #{count_10_25} of employees out of #{total}.\n
+      #{teaser}, according to <a href='https://cthru.data.socrata.com/dataset/Commonwealth-Of-Massachusetts-Payrollv2/rxhc-k6iz'>CTHRU</a>. That’s #{Numbers.numbers_add_commas(count_10_25)} of employees out of #{Numbers.numbers_add_commas(total)}.\n
       #{second_sentence}\n
       The national median hourly wage is $19.14 according to the most recent data from the <a href='https://www.bls.gov/oes/current/oes_nat.htm#00-0000'>Bureau of Labor Statistics</a>. According to the <a href='https://data.oecd.org/earnwage/average-wages.htm#indicator-chart'>OECD</a>, the average yearly wage in the US is more than $60,000.\n
     HEREDOC
