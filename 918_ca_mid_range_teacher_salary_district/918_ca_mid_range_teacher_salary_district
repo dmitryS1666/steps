@@ -193,110 +193,106 @@ VALUES
 # branch: california_mid_range_teacher_salary_district_d_sushi
 # california_mid_range_teacher_salary_district.rb
 
-def california_mid_range_teacher_salary_district_population(line, arguments)
-  db02 = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
-  db02.client.query("use #{db02.stage_db}")
-
-
+def california_mid_range_teacher_salary_district_stage_population(line, arguments)
+  loki_db = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
+  loki_db.client.query("use #{loki_db.stage_db}")
 
   options = derive_options({})
   message = ''
   raise message if options['option'] == 'some_error'
-  year        = 2019
-  m_biz_id    = 120
-  location    = 'California'
+  year = 2019
+  m_biz_id = 120
+  location = 'California'
   environment = 'production'
-  source,
-    table,
-    top_district_name,
-    top_district_average,
-    top_class = source_query
+
+  source, table, top_district_name,
+      top_district_average,
+      top_class = source_query
   counter = 0
   dist_counter = 1
 
   source.each_with_index do |row, index|
-      puts "#{index}/#{source.size} of #{dist_counter}. #{row['district']}".yellow
-      puts "PL Org ID: #{row['org_id']}".green
-      next if row['org_id'].nil?
+    puts "#{index}/#{source.size} of #{dist_counter}. #{row['district']}".yellow
+    puts "PL Org ID: #{row['org_id']}".green
+    next if row['org_id'].nil?
 
-      m_biz_pubs = get_journal_from_org_id(row['org_id'], environment, m_biz_id)
-      m_biz_pubs   = m_biz_pubs.delete_if { |p| !p['publication_name'].match?('California') }
-      mm_st_pubs = Hle::Publications.mm_pubs_excluding_states(row['org_id'], environment, location)
-      publications = mm_st_pubs + m_biz_pubs
-      publications.each do |publication|
-      h    = {}
+    m_biz_pubs = get_journal_from_org_id(row['org_id'], environment, m_biz_id)
+    m_biz_pubs = m_biz_pubs.delete_if { |p| !p['publication_name'].match?('California') }
+    mm_st_pubs = Hle::Publications.mm_pubs_excluding_states(row['org_id'], environment, location)
+    publications = mm_st_pubs + m_biz_pubs
+    publications.each do |publication|
+      hash = {}
 
-      h['organization_id']      = row['org_id']
-      h['publication_id']       = publication['id'].to_i
-      h['publication_name']     = publication['publication_name']
-      h['client_id']            = publication['client_id']
-      h['client_name']          = publication['client_name']
-      h['source_table_id']      = 21343
-      h['district']             = row['district']
-      h['average_2019']         = Numbers.money(row['average_2019']).to_s.gsub(/(\d\d?)\.0/, '\1')
-      h['average_2018']         = Numbers.money(row['average_2018']).to_s.gsub(/(\d\d?)\.0/, '\1')
-      h['average_max']          = Numbers.money(row['average_max']).to_s.gsub(/(\d\d?)\.0/, '\1')
-      h['top_district_name']    = top_district_name
-      h['top_class']            = top_class
-      h['top_district_average'] = Numbers.money(top_district_average).to_s.gsub(/(\d\d?)\.0/, '\1')
-      h['avg_class']            = row['avg_class']
-      h['difference_pct_max']   = row['difference_pct_max'].to_s.gsub(/(\d\d?)\.0/, '\1')
-      h['difference_pct']       = row['difference_pct'].to_s.gsub(/(\d\d?)\.0/, '\1')
-      h['year']                 = year
-      h['story_table']          = table
+      hash['organization_id'] = row['org_id']
+      hash['publication_id'] = publication['id'].to_i
+      hash['publication_name'] = publication['publication_name']
+      hash['client_id'] = publication['client_id']
+      hash['client_name'] = publication['client_name']
+      hash['source_table_id'] = 21343
 
-      rules = insert_ignore_rules(h.escaped)
+      hash['district'] = row['district']
+      hash['average_2019'] = Numbers.money(row['average_2019']).to_s.gsub(/(\d\d?)\.0/, '\1')
+      hash['average_2018'] = Numbers.money(row['average_2018']).to_s.gsub(/(\d\d?)\.0/, '\1')
+      hash['average_max'] = Numbers.money(row['average_max']).to_s.gsub(/(\d\d?)\.0/, '\1')
+      hash['top_district_name'] = top_district_name
+      hash['top_class'] = top_class
+      hash['top_district_average'] = Numbers.money(top_district_average).to_s.gsub(/(\d\d?)\.0/, '\1')
+      hash['avg_class'] = row['avg_class']
+      hash['difference_pct_max'] = row['difference_pct_max'].to_s.gsub(/(\d\d?)\.0/, '\1')
+      hash['difference_pct'] = row['difference_pct'].to_s.gsub(/(\d\d?)\.0/, '\1')
+      hash['year'] = year
+      hash['story_table'] = table
+
+      rules = insert_ignore_rules(hash.escaped)
       query = "insert ignore into #{@config['target_table']}#{rules}"
 
-      db02.client.query(query)
+      loki_db.client.query(query)
       counter += 1
     end
   end
 
 
-    puts "Source size: #{source.size}"
-    puts "Counter:     #{counter}"
-    db02.client.close if db02
-    'INVALID' # a very important string!!!
+  puts "Source size: #{source.size}"
+  puts "Counter: #{counter}"
+  loki_db.client.close if loki_db
+  'INVALID' # a very important string!!!
 end
 
-def california_mid_range_teacher_salary_district_creation(options)
+def california_mid_range_teacher_salary_district_stage_creation(options)
   count = @stage_selection.count
   @stage_selection.each_with_index do |stage, i|
     print "\n PROCESSING #{i+1}/#{count}\n"
 
-    table              = graph_from_json(stage['story_table'])
-    year               = stage['year']
-    average_2019       = stage['average_2019']
-    average_max        = stage['average_max']
-    difference_pct_max = stage['difference_pct_max'].to_i.abs
-    difference_pct_max = difference_pct_max.to_s.gsub(/(\d\d?)\.0/,'\1')
-    difference_pct     = stage['difference_pct'].to_s.gsub(/(\d\d?)\.0/,'\1')
-    difference_pct     = difference_pct == '0' ? 'There was no difference in salaries for beginning teachers compared to last year.' :
-                                                 "The difference in salaries for beginning teachers compared to last year was #{difference_pct} percent."
-    top_district       = stage['top_district_name']
-    top_salary         = stage['top_district_average']
-    district           = stage['district']
-    district_body = district == 'Santa Clara Unified' ? "Teachers in this district had the highest average pay in the state." : "The district that had the highest average pay among its beginning teachers was #{top_district} with an average salary of #{top_salary}."
-    url_1              = "https://www.cde.ca.gov/"
-    url_2              = "https://blogs.edweek.org/teachers/teaching_now/2019/04/which_states_have_the_highest_and_lowest_teacher_salaries.html"
-    url_3              = "https://learningpolicyinstitute.org/product/interactive-map-understanding-teacher-shortages-california?utm_source=LPI+Master+List&utm_campaign=d4d19cd741-LPIMC_CATeacherShortageInteractive_20191205&utm_medium=email&utm_term=0_7e60dfa1d8-d4d19cd741-42305231"
+    table = graph_from_json(stage['story_table'])
+    year = (stage['year'] - 1).to_s + '-' + stage['year'].to_s.slice(2..-1)
+    average_2019 = stage['average_2019']
+    average_max = stage['average_max']
+    difference_pct_max = stage['difference_pct_max'].abs
+    difference_pct_max = difference_pct_max.round(1).to_s.gsub(/(\d\d?)\.0/,'\1')
+    difference_pct = stage['difference_pct'].to_s.gsub(/(\d\d?)\.0/,'\1')
+    difference_pct = difference_pct == '0' ? 'There was no difference in salaries for mid-range teachers compared to last year.' :
+                             "The difference in salaries for mid-range teachers compared to last year was #{difference_pct} percent."
+    top_district = stage['top_district_name']
+    top_salary = stage['top_district_average']
+    district = stage['district']
+    district_body = district == 'Santa Clara Unified' ? "Teachers in this district had the highest average pay in the state." : "The district that had the highest average pay among its mid-range teachers was #{top_district} with an average salary of #{top_salary}."
+    url_1 = "https://www.cde.ca.gov/"
+    url_2 = "https://blogs.edweek.org/teachers/teaching_now/2019/04/which_states_have_the_highest_and_lowest_teacher_salaries.html"
+    url_3 = "https://learningpolicyinstitute.org/product/interactive-map-understanding-teacher-shortages-california?utm_source=LPI+Master+List&utm_campaign=d4d19cd741-LPIMC_CATeacherShortageInteractive_20191205&utm_medium=email&utm_term=0_7e60dfa1d8-d4d19cd741-42305231"
 
     export = {}
     export['headline'] = <<~HEADER.squeeze(' ').chomp
-    #{average_2019} average salary for beginning teachers in #{district}
+    #{average_2019} average salary for teachers in #{district}
     HEADER
     export['teaser'] = <<~TEASER.squeeze(' ').chomp
-    During the #{year} school year, the average salary for a beginning teacher at #{district} was #{average_2019}.
+    During the #{year} school year, the average salary for a teacher at #{district} was #{average_2019}.
     TEASER
     output = <<~BODY.squeeze(' ').chomp
-    During the #{year} school year, the average salary for a beginning teacher at #{district} was #{average_2019}, according to the #{"California Department of Education.".to_link(url_1)}\ 
-    This was #{difference_pct_max} percent less than the highest-paid teacher in the district who made #{average_max}. #{difference_pct}
+    During the #{year} school year, the average salary for a mid-range teacher at #{district} was #{average_2019}, according to the #{"California Department of Education.".to_link(url_1)} This was #{difference_pct_max} percent less than the highest-paid teacher in the district who made #{average_max}. #{difference_pct}
     #{district_body}
-    Salaries for teachers vary widely based on geographic region. According to the #{"National Education Association".to_link(url_2)}, there is roughly a $40,000 pay difference between teachers in California and Mississippi. 
-    While California ranks second in average salaries according to the NEA, the #{"Learning Policy Institute".to_link(url_3)} estimates that 80 percent of its school districts are experiencing teacher shortages. 
-    Because of these shortages, 34 percent of newly-hired teachers have substandard teaching credentials. 
-			#{'Beginning teacher pay in the school district'.to_table_title}#{table}\n
+    Salaries for teachers vary widely based on geographic region. According to the #{"National Education Association".to_link(url_2)}, there is roughly a $40,000 pay difference between teachers in California and Mississippi.
+    While California ranks second in average salaries according to the NEA, the #{"Learning Policy Institute".to_link(url_3)} estimates that 80 percent of its school districts are experiencing teacher shortages. Because of these shortages, 34 percent of newly-hired teachers have substandard teaching credentials.
+		#{'Mid-range teacher pay in the school district'.to_table_title}#{table}\n
     BODY
 
     prepare_output(stage, output, export, options)
@@ -307,7 +303,7 @@ def source_query
   db01 = Route_noprefix.new(host: DB01, raw_db: 'usa_raw')
   db01.client.query('use usa_raw;')
   query = <<~SQL
-  select year_2018.district_amount as average_2018,
+    select year_2018.district_amount as average_2018,
        year_2019.district_amount as average_2019,
        max.average_max,
        round((AVG(avg_el.elementary + avg_sec.secondary)), 0) as avg_class,
@@ -315,40 +311,40 @@ def source_query
        round((year_2019.district_amount - year_2018.district_amount)/(year_2018.district_amount)* 100, 2) as difference_pct,
        ds.district,
        ds.pl_production_org_id as org_id
-from usa_raw.ca_report_card_teacher_salaries year_2018
-         join usa_raw.ca_report_card_teacher_salaries year_2019 on year_2019.district_code = year_2018.district_code
-         join (select district, district_code, pl_production_org_id from usa_raw.ca_report_card_district_contact_info group by district_code) ds on year_2018.district_code = ds.district_code
-         join (select MAX(district_amount) average_max, district_code from usa_raw.ca_report_card_teacher_salaries group by district_code) max on
-             year_2018.district_code = max.district_code
-         join(select AVG(avg_class_size) elementary, district_code from usa_raw.ca_report_card_elementary_class_size group by district_code) avg_el
-             on year_2018.district_code = avg_el.district_code
-         join(select AVG(avg_class_size) secondary, district_code from usa_raw.ca_report_card_secondary_class_size group by district_code) avg_sec
-             on year_2018.district_code = avg_sec.district_code
-where year_2018.category = 'Beginning Teacher Salary' and
-      year_2019.category = 'Beginning Teacher Salary' and
-      year_2019.school_year = '2018-19' and
-      year_2018.school_year = '2017-18' and
-      year_2018.district_amount IS NOT NULL and
-      year_2019.district_amount IS NOT NULL and
-      avg_el.elementary IS NOT NULL and
-      avg_sec.secondary IS NOT NULL and
-      ds.pl_production_org_id IS NOT NULL
-group by year_2018.district_code
-order by average_2019 desc;
+    from usa_raw.ca_report_card_teacher_salaries year_2018
+             join usa_raw.ca_report_card_teacher_salaries year_2019 on year_2019.district_code = year_2018.district_code
+             join (select district, district_code, pl_production_org_id from usa_raw.ca_report_card_district_contact_info group by district_code) ds on year_2018.district_code = ds.district_code
+             join (select MAX(district_amount) average_max, district_code from usa_raw.ca_report_card_teacher_salaries group by district_code) max on
+            year_2018.district_code = max.district_code
+             join(select AVG(avg_class_size) elementary, district_code from usa_raw.ca_report_card_elementary_class_size group by district_code) avg_el
+                 on year_2018.district_code = avg_el.district_code
+             join(select AVG(avg_class_size) secondary, district_code from usa_raw.ca_report_card_secondary_class_size group by district_code) avg_sec
+                 on year_2018.district_code = avg_sec.district_code
+    where year_2018.category = 'Mid-Range Teacher Salary' and
+            year_2019.category = 'Mid-Range Teacher Salary' and
+            year_2019.school_year = '2018-19' and
+            year_2018.school_year = '2017-18' and
+        year_2018.district_amount IS NOT NULL and
+        year_2019.district_amount IS NOT NULL and
+        avg_el.elementary IS NOT NULL and
+        avg_sec.secondary IS NOT NULL and
+        ds.pl_production_org_id IS NOT NULL
+    group by year_2018.district_code
+    order by average_2019 desc;
   SQL
-  result = db01.client.query(query).to_a.ranking!('district')
+  result = db01.client.query(query).to_a.ranking!('average_2019')
   db01.client.close
 
-  top_district_name    = result.first['district']
+  top_district_name = result.first['district']
   top_district_average = result.first['average_2019']
-  top_class            = result.first['avg_class']
+  top_class = result.first['avg_class']
   result.map { |el| el['average_2019'] = Numbers.money(el['average_2019']).gsub(/(\d\d?)\.0/, '\1')}
   table = result.build_table(
-    [{heading: 'Rank',
-      column: 'rank'},
-     {heading: 'District',
-      column: 'district'},
-     {heading: 'Salary',
-      column: 'average_2019'}])
+      [
+          {heading: 'Rank', column: 'rank'},
+          {heading: 'District', column: 'district'},
+          {heading: 'Salary', column: 'average_2019'}
+      ]
+  )
   [result, table, top_district_name, top_district_average, top_class]
 end
