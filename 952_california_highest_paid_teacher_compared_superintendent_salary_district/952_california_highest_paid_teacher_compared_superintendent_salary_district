@@ -75,8 +75,8 @@ desc: California - Highest Paid Teacher compared to superintendent salary (Distr
 
 config_id - population_config_id
 
-3/180/july 13
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=880 --limit=3 --start_date='2020-07-13' --total_days_till_end_date=180
+952 - 8/200/Aug 1
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=880 --limit=8 --start_date='2020-08-01' --total_days_till_end_date=200
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -121,7 +121,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='345718'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='348144'
 
 _____
 IF OK
@@ -129,7 +129,7 @@ _____
 
 --threads_count=7 | 13140961 | 13140960
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='345718,345690,345706,345719,345703,345702,345731,345750,345711,345766,345724,345734,345735,345696,345737,345723,345720,345701,345704,345692,345751,345708,345729,345730,345713,345742,345726,345748,345736,345745,345746,345716,345728,345732,345697,345691,345694,345744,345710,345699,345738,345741,345698,345709,345722,345747,345715,345693,345714,345700,345717,345727,345721,345749,345752,345705,345695,345725,345743,345712,345707,345733,345740' --threads_count=7
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='348144,348117,348134,348150,348132,348137,348168,348159,348139,348174,348158,348143,348153,348119,348127,348160,348129,348128,348146,348120,348176,348165,348140,348152,348126,348167,348164,348172,348175,348179,348163,348121,348169,348155,348131,348118,348125,348173,348130,348136,348162,348171,348122,348156,348142,348161,348154,348123,348148,348135,348141,348149,348170,348178,348157,348147,348124,348138,348177,348151,348133,348166,348145' --threads_count=7
 ___________________________
 
 
@@ -154,9 +154,9 @@ JOIN data_entry_leads AS l
   ON l.id = s.lead_id
 JOIN job_items AS ji
   ON l.job_item_id=ji.id
-WHERE published_at >= '2020-05-12' AND
+WHERE published_at >= '2020-07-29' AND
       deleted = 0 AND
-      l.job_item_id IN (202796,202830,202813,202849,202799,202854,202824,202833,202818,202832,202805,202816,202815,202811,202826,202819,202812,202801,202828,202822,202856,202835,202836,202831,202817,202827,202806,202809,202802,202843,202844,202829,202823,202845,202840,202810,202798,202803,202821,202800,202850,202820,202858,202814,202839,202807,202847,202851,202842,202880,202825,202846,202841,202852,202848,202853,202838,202834,202797,202855,202837,202808,202804)
+      l.job_item_id IN (204642,204683,204658,204702,204648,204697,204669,204674,204676,204689,204661,204655,204681,204672,204654,204651,204659,204649,204667,204646,204684,204665,204677,204663,204664,204695,204660,204657,204644,204652,204687,204685,204666,204699,204668,204671,204645,204656,204679,204650,204698,204673,204682,204690,204691,204653,204696,204704,204700,204701,204675,204670,204678,204688,204692,204686,204680,204694,204643,204703,204693,204662,204647)
 ORDER BY c.name;
 
 
@@ -175,10 +175,10 @@ INSERT INTO loki_storycreator.hle_reminders
     )
 VALUES
     (
-        918, 'California - Highest Paid Teacher compared to superintendent salary (District)', 'ca_highest_paid_teacher_comp_superintendent_district_staging',
+        952, 'California - Highest Paid Teacher compared to superintendent salary (District)', 'ca_highest_paid_teacher_comp_superintendent_district_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-        'year', 1, 1, 'yearly', 'The Dataset located on db01.usa_raw.ca_report_card_teacher_salaries%',
-        '2020-07-11', 0, 0, 0, 20000, 'yearly', 0,
+        'year', 1, 1, 'annually', 'The Dataset located on db01.usa_raw.ca_report_card_teacher_salaries%',
+        '2020-07-11', 0, 0, 0, 20000, 'annually', 0,
          1, 'db1','usa_raw', 'select date(max(postedTime)) date from usa_raw.ca_report_card_teacher_salaries;'
     );
 
