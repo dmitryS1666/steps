@@ -1,3 +1,14 @@
+@john.putz
+Additional Export to MM
+Dev Name: Dmitry S.
+Story type Name: #297 - Average VA Purchase Loan Amount by State & Quarter - Quarterly change
+Old FCD: https://docs.google.com/document/d/1XvlU3YXSz0ehmxJGVtWYR-BTfocNeC-9zGuHRs5PWn4/edit#
+Sample story: https://pipeline-staging.locallabs.com/stories/511647018
+Period: 2019
+Total Count: 47
+Max Project Count by client:
+MM - 1
+
 STAGE TABLE DEFINITION
 insert into stage_definition_configurations (tbl, definition) select 'avg_va_purchase_loan_amount_by_state_and_q_q_staging', '{"client_id":"int", "client_name":"varchar(255)", "publication_id":"int", "publication_name":"varchar(255)", "organization_id":"bigint(20)", "state":"varchar(255)", "first_quarter":"varchar(255)", "second_quarter":"varchar(255)", "first_value":"varchar(255)", "second_value":"varchar(255)", "year":"varchar(255)"}';
 
@@ -15,7 +26,7 @@ population_config_id: #432
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=432 -t --date='1.04.2019'
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=432 -t --date='1-04-2019' --slack_id=UKYAGBYC9
 
 
 
@@ -25,7 +36,7 @@ insert into storycreator_configurations (tbl, template, extension, export_argume
 creation_config_id: #317
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=317 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=317 -t --slack_id=UKYAGBYC9
 
 
 
@@ -50,46 +61,6 @@ Loki has been loaded for irb testing.
  => true 
 2.6.3 :002 > Hle::Story::Feedback.stories_feedback([511647017, 511647018, 511647019, 511647021, 511647022])
 
-https://pipeline-staging.locallabs.com/stories/511647017
-------------
- Was/were -- teaser: You are using was/were in the first paragraph of the story. Make sure that, if there will be stories with singular/plural subjects, the story uses the singular/plural verb, were/was.
- Four or more capital letters in row -- body: Show the capitalized sequence of characters and recommend a discussion with John about whether normalization of the words or phrases in that variable spot should be performed.
-Va.
-VA
- State abbreviations -- headline: States should be abbreviated in AP style in tables only. In the body of the story, state names should be spelled out completely. So, 'CO' or 'Colo.' should be come 'Colorado'.
-
-https://pipeline-staging.locallabs.com/stories/511647018
-------------
- Was/were -- teaser: You are using was/were in the first paragraph of the story. Make sure that, if there will be stories with singular/plural subjects, the story uses the singular/plural verb, were/was.
- Four or more capital letters in row -- body: Show the capitalized sequence of characters and recommend a discussion with John about whether normalization of the words or phrases in that variable spot should be performed.
-Va.
-VA
- State abbreviations -- headline: States should be abbreviated in AP style in tables only. In the body of the story, state names should be spelled out completely. So, 'CO' or 'Colo.' should be come 'Colorado'.
-
-https://pipeline-staging.locallabs.com/stories/511647019
-------------
- Was/were -- teaser: You are using was/were in the first paragraph of the story. Make sure that, if there will be stories with singular/plural subjects, the story uses the singular/plural verb, were/was.
- Four or more capital letters in row -- body: Show the capitalized sequence of characters and recommend a discussion with John about whether normalization of the words or phrases in that variable spot should be performed.
-Va.
-VA
- State abbreviations -- headline: States should be abbreviated in AP style in tables only. In the body of the story, state names should be spelled out completely. So, 'CO' or 'Colo.' should be come 'Colorado'.
-
-https://pipeline-staging.locallabs.com/stories/511647021
-------------
- Was/were -- teaser: You are using was/were in the first paragraph of the story. Make sure that, if there will be stories with singular/plural subjects, the story uses the singular/plural verb, were/was.
- Four or more capital letters in row -- body: Show the capitalized sequence of characters and recommend a discussion with John about whether normalization of the words or phrases in that variable spot should be performed.
-Va.
-VA
- State abbreviations -- headline: States should be abbreviated in AP style in tables only. In the body of the story, state names should be spelled out completely. So, 'CO' or 'Colo.' should be come 'Colorado'.
-
-https://pipeline-staging.locallabs.com/stories/511647022
-------------
- Was/were -- teaser: You are using was/were in the first paragraph of the story. Make sure that, if there will be stories with singular/plural subjects, the story uses the singular/plural verb, were/was.
- Four or more capital letters in row -- body: Show the capitalized sequence of characters and recommend a discussion with John about whether normalization of the words or phrases in that variable spot should be performed.
-Va.
-VA
- State abbreviations -- headline: States should be abbreviated in AP style in tables only. In the body of the story, state names should be spelled out completely. So, 'CO' or 'Colo.' should be come 'Colorado'.
- => nil 
 
 
 !!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
@@ -105,8 +76,8 @@ creation_config_id: #317
 
 config_id - population_config_id
 
-Publish them all on October 16
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=432 --limit=51 --start_date='2019-10-16'
+297 -- Publish all on August 10
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=432 --limit=47 --start_date='2020-08-10'
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
@@ -118,7 +89,8 @@ PRODUCTION: STORY EXPORT CONFIGURATION
 ______________________________________
 
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=317 --population_config_id=432 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Real Estate' --job_item_name_description='Average VA Purchase Loan Amount by State & Quarter - Quarterly change' -t --prod --limit_config=1
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=317 --population_config_id=432 --story_section_ids=3 --story_tag_ids=198 --photobuckets='Real Estate' --job_item_name_description='Average VA Purchase Loan Amount by State & Quarter - Quarterly change' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=317 --population_config_id=432 --story_section_ids=8 --story_tag_ids=198 --photobuckets='Real Estate' --job_item_name_description='Average VA Purchase Loan Amount by State & Quarter - Quarterly change' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
@@ -127,7 +99,8 @@ select * from story_export_configurations_v2 where tbl = 'avg_va_purchase_loan_a
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=317 --population_config_id=432 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Real Estate' --job_item_name_description='Average VA Purchase Loan Amount by State & Quarter - Quarterly change' -t --prod
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=317 --population_config_id=432 --story_section_ids=3 --story_tag_ids=198 --photobuckets='Real Estate' --job_item_name_description='Average VA Purchase Loan Amount by State & Quarter - Quarterly change' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=317 --population_config_id=432 --story_section_ids=8 --story_tag_ids=198 --photobuckets='Real Estate' --job_item_name_description='Average VA Purchase Loan Amount by State & Quarter - Quarterly change' -t --prod --where="stage.client_name like 'MM - %'"
 
 _________
 повторяем 
@@ -146,25 +119,40 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='avg_va_purchase_loan_amount_by_state_and_q_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=67168 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='avg_va_purchase_loan_amount_by_state_and_q_q_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=94598 --limit=1
 
 _____
 IF OK
 _____
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids=bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='94598,94599,94600,94601,94602,94603,94604,94605,94607,94608,94609,94610,94611,94612,94613,94614,94615,94636,94616,94617,94618,94619,94620,94621,94622,94623,94624,94625,94626,94627,94628,94629,94630,94631,94632,94633,94634,94635,94638,94637,94639,94640,94641,94642,94643,94644,94645,94606,94646,94647'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='94598,94599,349722,94600,94601,349713,349720,349723,349715,94602,349734,349724,349736,349742,349748,94603,349741,349731,94604,349739,94605,349709,349717,349730,94607,94608,349710,94609,349726,349714,94610,94611,94612,349716,94613,349727,94614,349711,94615,94636,349743,349725,94616,349749,94617,94618,94619,349732,94620,349738,94621,94622,94623,94624,349745,94625,94626,94627,94628,94629,94630,349719,94631,94632,349735,94633,349737,94634,94635,94638,349706,349740,349707,94637,349704,349721,349708,349733,349746,349705,349729,349750,349744,94639,349747,349728,349712,94640,94641,349718,94642,94643,94644,94645,94606,94646,94647,94648'  --threads_count=7
 
 ___________________________
 ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
 ___________________________
 
-select headline, c.name as publication, concat('https://pipeline.locallabs.com/stories/', s.id) as url, published_at, ji.name as job_item, cc.name as client from stories s
-  join communities c on s.community_id = c.id
-  join client_companies cc on c.client_company_id = cc.id
-  join data_entry_leads l on l.id = s.lead_id
-  join job_items ji on l.job_item_id=ji.id
-where published_at >= '2019-10-03' and deleted = 0 and ji.type in ('JobItem::Hle') and ji.name rlike 'Average VA Purchase Loan Amount by State & Quarter - Quarterly change'
-order by c.name;
+SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
+FROM story_export_configurations_v2
+WHERE tbl = 'avg_va_purchase_loan_amount_by_state_and_q_q_staging' AND
+      export_name LIKE '%production%';
+
+# pipeline-core-replica2.jnswire_prod query:
+
+SELECT headline, c.name AS publication, concat('https://pipeline.locallabs.com/stories/', s.id) AS url,
+       published_at, ji.name AS job_item, cc.name AS client
+FROM stories AS s
+JOIN communities AS c
+  ON s.community_id = c.id
+JOIN client_companies AS cc
+  ON c.client_company_id = cc.id
+JOIN data_entry_leads AS l
+  ON l.id = s.lead_id
+JOIN job_items AS ji
+  ON l.job_item_id=ji.id
+WHERE published_at >= '2020-08-03' AND
+      deleted = 0 AND
+      l.job_item_id IN (41008,41010,40972,40983,40979,41013,40985,41004,41011,41005,40970,40971,40974,40975,40976,40977,40980,40981,40982,40984,40986,40987,40988,40989,40990,40991,40993,40995,40996,40997,40998,40999,41000,40992,41001,41002,41003,41006,41007,41009,41014,41015,41016,41017,40978,41019,41020,40973,40994,41012,205622,41018,205649,205624,205625,205606,205611,205647,205612,205617,205639,205628,205627,205630,205613,205645,205631,205646,205621,205650,205605,205618,205619,205636,205640,205642,205609,205616,205632,205643,205604,205607,205610,205614,205620,205626,205629,205633,205648,205644,205638,205615,205608,205623,205637,205641,205634,205635)
+ORDER BY c.name;
 
 
 

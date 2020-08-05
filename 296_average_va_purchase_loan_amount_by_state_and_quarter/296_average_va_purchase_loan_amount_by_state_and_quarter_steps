@@ -1,3 +1,14 @@
+@john.putz
+Additional Export to MM
+Dev Name: Dmitry S.
+Story type Name: #296 - Average VA Purchase Loan Amount by State & Quarter
+Old FCD: https://docs.google.com/document/d/1YjOZI2B3k31AB1e9NtbiXDbI78bT9oawyOJhaMdbkdk/edit#
+Sample story: https://pipeline-staging.locallabs.com/stories/511645905
+Period: 2019
+Total Count: 47
+Max Project Count by client:
+MM - 1
+
 STAGE TABLE DEFINITION
 insert into stage_definition_configurations (tbl, definition) select 'average_va_purchase_loan_amount_by_state_and_quarter_staging', '{"client_id":"int", "client_name":"varchar(255)", "publication_id":"int", "publication_name":"varchar(255)", "organization_id":"bigint(20)", "state":"varchar(255)", "quarter":"varchar(255)", "value":"varchar(255)", "year":"varchar(255)"}';
 
@@ -56,8 +67,9 @@ creation_config_id: #310
 
 config_id - population_config_id
 
-export them all on October 16
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=428 --limit=51 --start_date='2019-10-16'
+
+296 -- Publish all on August 8
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=428 --limit=47 --start_date='2020-08-08'
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -70,7 +82,8 @@ PRODUCTION: STORY EXPORT CONFIGURATION
 ______________________________________
 
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=310 --population_config_id=428 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Real Estate' --job_item_name_description='Average VA Purchase Loan Amount by State & Quarter' -t --prod --limit_config=1
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=310 --population_config_id=428 --story_section_ids=3 --story_tag_ids=198 --photobuckets='Real Estate' --job_item_name_description='Average VA Purchase Loan Amount by State & Quarter' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=310 --population_config_id=428 --story_section_ids=8 --story_tag_ids=198 --photobuckets='Real Estate' --job_item_name_description='Average VA Purchase Loan Amount by State & Quarter' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
@@ -79,7 +92,8 @@ select * from story_export_configurations_v2 where tbl = 'average_va_purchase_lo
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=310 --population_config_id=428 --story_section_ids=2 --story_tag_ids=198 --photobuckets='Real Estate' --job_item_name_description='Average VA Purchase Loan Amount by State & Quarter' -t --prod
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=310 --population_config_id=428 --story_section_ids=3 --story_tag_ids=198 --photobuckets='Real Estate' --job_item_name_description='Average VA Purchase Loan Amount by State & Quarter' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=310 --population_config_id=428 --story_section_ids=8 --story_tag_ids=198 --photobuckets='Real Estate' --job_item_name_description='Average VA Purchase Loan Amount by State & Quarter' -t --prod --where="stage.client_name like 'MM - %'"
 
 _________
 повторяем 
@@ -104,19 +118,34 @@ _____
 IF OK
 _____
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='81880,81881,81882,81883,81884,81885,81886,81888,81889,81890,81891,81892,81893,81894,81895,81896,81917,81897,81898,81899,81900,81901,81902,81903,81904,81905,81906,81907,81908,81909,81910,81911,81912,81913,81914,81915,81916,81919,81918,81920,81921,81922,81923,81924,81925,81926,81887,81927,81928,81929'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='81879,81880,349675,81881,81882,349666,349673,349676,349668,81883,349687,349677,349689,349695,349701,81884,349694,349684,81885,349692,81886,349662,349670,349683,81888,81889,349663,81890,349679,349667,81891,81892,81893,349669,81894,349680,81895,349664,81896,81917,349696,349678,81897,349702,81898,81899,81900,349685,81901,349691,81902,81903,81904,81905,349698,81906,81907,81908,81909,81910,81911,349672,81912,81913,349688,81914,349690,81915,81916,81919,349659,349693,349660,81918,349657,349674,349661,349686,349699,349658,349682,349703,349697,81920,349700,349681,349665,81921,81922,349671,81923,81924,81925,81926,81887,81927,81928,81929' --threads_count=7
 
 ___________________________
 ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
 ___________________________
 
-select headline, c.name as publication, concat('https://pipeline.locallabs.com/stories/', s.id) as url, published_at, ji.name as job_item, cc.name as client from stories s
-  join communities c on s.community_id = c.id
-  join client_companies cc on c.client_company_id = cc.id
-  join data_entry_leads l on l.id = s.lead_id
-  join job_items ji on l.job_item_id=ji.id
-where published_at >= '2019-09-18' and deleted = 0 and ji.type in ('JobItem::Hle') and ji.name rlike 'Average VA Purchase Loan Amount by State & Quarter'
-order by c.name;
+SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
+FROM story_export_configurations_v2
+WHERE tbl = 'average_va_purchase_loan_amount_by_state_and_quarter_staging' AND
+      export_name LIKE '%production%';
+
+# pipeline-core-replica2.jnswire_prod query:
+
+SELECT headline, c.name AS publication, concat('https://pipeline.locallabs.com/stories/', s.id) AS url,
+       published_at, ji.name AS job_item, cc.name AS client
+FROM stories AS s
+JOIN communities AS c
+  ON s.community_id = c.id
+JOIN client_companies AS cc
+  ON c.client_company_id = cc.id
+JOIN data_entry_leads AS l
+  ON l.id = s.lead_id
+JOIN job_items AS ji
+  ON l.job_item_id=ji.id
+WHERE published_at >= '2020-08-03' AND
+      deleted = 0 AND
+      l.job_item_id IN (199839,199856,199848,199850,199841,199845,199852,199855,199844,199847,199857,199853,199846,199854,199843,199851,199849,199840,199842)
+ORDER BY c.name;
 
 
 
@@ -138,3 +167,184 @@ VALUES
         '2019-09-18', 0, 0, 0, 20000, 'quarterly', 0,
          1, 'db13','usa_raw', 'select date(max(postedTime)) date from usa_raw.va_home_loan_by_state;'
     );
+
+
+
+# Creator: Dmitry Suschinsky
+# Story type: Average VA Purchase Loan Amount by State & Quarter
+# Template: https://docs.google.com/document/d/13F_f2Qyc4n37OiczxgTliytZQAHHVyKjcC9JeMJfHYg/edit?usp=sharing
+# Created: August 2020
+
+# tbl: average_va_purchase_loan_amount_by_state_and_quarter_staging
+# db01.usa_raw.va_home_loan_by_state
+# branch: s296_average_va_purchase_loan_amount_by_state_and_quarter_d_sushi
+
+def average_va_purchase_loan_amount_by_state_and_quarter_stage_population(line,argument)
+  require 'bigdecimal'
+  require 'bigdecimal/util'
+  require 'date'
+
+  #  --date: quarter of the year, that will be compared with same period of the previous year.
+  puts("\n!!!\nParameter date required\n!!!\n") unless (@options['date'])
+  return 'INVALID' unless (@options['date'])
+
+  begin
+    puts("\n!!!\nDate at the input can not be matched to one of the year quarters\n!!!\n") unless [1, 4, 7 ,10].include?(Date.parse(@options['date']).month)
+  rescue ArgumentError
+    puts("\n!!!\nParameter date can not be parsed as date\n!!!\n")
+    return 'INVALID'
+  end
+
+  date_curr = Date.parse(@options['date'])
+  matching_hash = {1 => 1, 4 => 2, 7 => 3, 10 => 4}
+
+  current_num_quarter = matching_hash[date_curr.month].to_s
+  current_year = date_curr.year.to_s
+
+  data_route = Route_noprefix.new(host: DB13, stage_db: 'usa_raw')
+  data_route.client.query("use #{data_route.stage_db}")
+
+  delivery = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
+  delivery.client.query("use #{delivery.stage_db}")
+
+  data_state = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+  data_state.client.query("use #{data_state.stage_db}")
+
+  main_list_states = "SELECT DISTINCT id, name, pl_production_org_id, pl_production_org_name, short_name FROM usa_administrative_division_states;"
+  states = data_state.client.query(main_list_states)
+
+  states.each do |state|
+    p state
+  end
+
+  i = 0
+  total_states = states.count
+  p total_states
+
+  reasons = {
+      publications: [],
+      publication_name: []
+  }
+
+  states.each do |st|
+    i += 1
+    puts "#{i}/#{total_states} - processing: #{st['name']}"
+
+    unless st['pl_production_org_id']
+      reasons[:publications] << st['id']
+      next
+    end
+
+    # Metro Business Network
+    # MM-California
+    publications = []
+    publications << Hle::Publications.mm_pubs_excluding_states(st['pl_production_org_id'], 'production')
+    publications << get_journal_from_org_id(st['pl_production_org_id'], 'production', 120) rescue nil
+
+    publications.flatten!.uniq!
+
+    if publications.count.zero?
+      reasons[:publications] << st['id']
+      next
+    end
+
+    publications.each do |publication|
+      records = get_records(data_state, st['short_name'], current_num_quarter, current_year)
+
+      records.each do |record|
+        hash = {}
+
+        hash['publication_name'] = "#{publication['publication_name']}"
+        if hash['publication_name'].empty?
+          reasons[:publication_name] << publication['id']
+          next
+        end
+
+        hash['client_name'] = publication['client_name']
+        hash['client_id'] = publication['client_id']
+        hash['publication_id'] = publication['id'].to_i
+        hash['source_table_id'] = 19833
+        hash['organization_id'] = st['pl_production_org_id']
+        hash['source_id'] = hash['source_table_id'].to_i * 1_000_000_000 + publication['id'].to_i * 10_000_000 + record['id'].to_i
+
+        hash['state'] = record['state']
+        hash['quarter'] = record['quarter_no']
+        hash['value'] = record['val']
+        hash['year'] = record['year']
+
+        rules = insert_rules(hash.escaped)
+        query = "insert into #{@config['target_table']}#{rules}"
+        p query
+        delivery.client.query(query)
+        puts hash if i.eql?(1)
+      end
+
+    end
+  end
+  p reasons
+
+  delivery.client.close if delivery
+  data_route.client.close if data_route
+  'INVALID'
+end
+
+def average_va_purchase_loan_amount_by_state_and_quarter_stage_creation(options, mail_sender = false)
+  i = 0
+  count = @stage_selection.count
+  @stage_selection.each do |stage|
+    i += 1
+    p "#{i}/#{count}: "
+    export = {}
+
+    state = stage['state']
+    quarter_num = stage['quarter']
+    val = to_million(stage['value'])
+    year = stage['year']
+
+
+    export['headline'] = "VA Purchase Loans in #{state} average #{val} for Q#{quarter_num} #{year}"
+
+    export['teaser'] = "The average VA Purchase Loan amount for #{state} in the #{get_quarter_to_word(quarter_num)} of fiscal year #{year} was #{val}, according to figures provided by the Veterans Affairs Home Loans Index.\n"
+
+    output = ''
+
+    output << "The average VA Purchase Loan amount for #{state} in the #{get_quarter_to_word(quarter_num)} of fiscal year #{year} was #{val}, <a href='https://www.benefits.va.gov/HOMELOANS/index.asp'>according to figures provided by the Veterans Affairs Home Loans Index</a>\n\n"
+
+    output << "The VA assists service members, veterans and eligible surviving spouses to achieve homeownership through loans provided by banks and mortgage companies.\n\n"
+    output << "A portion of the loan is guaranteed by the VA, which allows the lender to provide better rates.\n\n"
+    output << "A number of VA housing programs can help members buy, build or repair their homes. Loan types may include Purchase Loans, Interest Rate Reduction Refinance Loans (IRRRL), and Adapted Housing Grants, which are geared toward veterans with a service-connected disability.\n\n"
+
+    export = prepare_output(stage, output, export, options)
+  end
+end
+
+def get_records(data_route, state_code, current_num_quarter, current_year)
+  root_query = "SELECT year, quarter_no, state_list.name AS state, loan_amount_avg_purchase AS val
+          FROM usa_raw.va_home_loan_by_state AS root
+          JOIN (SELECT DISTINCT id, name, pl_production_org_id, pl_production_org_name, short_name FROM usa_administrative_division_states) AS state_list
+          ON state_list.short_name = root.state_code
+          WHERE quarter_no = #{current_num_quarter} and year = #{current_year} and state_code = '#{state_code}';"
+  data_route.client.query(root_query).to_a
+
+end
+
+def get_quarter_to_word(quarter)
+  return 'first quarter' if quarter.to_i == 1
+  return 'second quarter' if quarter.to_i == 2
+  return 'third quarter' if quarter.to_i == 3
+  return 'fourth quarter' if quarter.to_i == 4
+end
+
+def to_million(value)
+  value = value.to_f
+  if value >= 1_000_000_000_000
+    value = "#{Numbers.money((value / 1_000_000_000_000.0).round(2)).to_s.sub(/\.0$/, '')} trillion"
+  elsif value >= 1_000_000_000
+    value = "#{Numbers.money((value / 1_000_000_000.0).round(2)).to_s.sub(/\.0$/, '')} billion"
+  elsif value >= 1_000_000
+    value = "#{Numbers.money((value / 1_000_000.0).round(2)).to_s.sub(/\.0$/, '')} million"
+  else
+    value = "#{Numbers.money(value).to_s.sub(/\.0$/, '')}"
+  end
+  value
+end
