@@ -205,13 +205,6 @@ def get_zips(data_route)
   data_route.client.query(root_query).to_a
 end
 
-def growth_type_head_line(curr, prev, zip_population_diff)
-  # increases by #, decreases by #, or unchanged
-  return "increases by #{separate_comma(zip_population_diff)} people" if curr > prev
-  return "decreases by #{separate_comma(zip_population_diff)} people" if curr < prev
-  'unchanged' if (curr == prev)
-end
-
 def table_from_data(records)
   table = []
   det = Determiner.new
@@ -233,14 +226,6 @@ def table_from_data(records)
     }
   end
   table
-end
-
-def separate_comma(number)
-  if number.to_f.abs > 999
-    number.to_f.round.abs.to_s.sub(/\.0$/,'').chars.to_a.reverse.each_slice(3).map(&:join).join(",").reverse
-  else
-    number.to_f.round(1).abs.to_s.sub(/\.0$/,'')
-  end
 end
 
 def titleize(str)

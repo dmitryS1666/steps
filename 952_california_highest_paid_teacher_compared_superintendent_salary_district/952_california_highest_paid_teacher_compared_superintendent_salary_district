@@ -206,7 +206,7 @@ def ca_highest_paid_teacher_comp_superintendent_district_stage_population(line, 
   location = 'California'
   environment = 'production'
   source, table, top_district_name,
-      top_district = source_query
+      top_district, top_super = source_query
 
   counter = 0
   dist_counter = 1
@@ -231,12 +231,32 @@ def ca_highest_paid_teacher_comp_superintendent_district_stage_population(line, 
       h['source_table_id'] = 21343
 
       h['district'] = row['district']
-      h['max_mid'] = row['max_mid']
-      h['average_mid_max'] = row['average_mid_max']
+      h['max_super'] = row['max_super']
       h['max_highest'] = row['max_highest']
       h['top_district_name'] = top_district_name
       h['top_district'] = top_district
+      h['top_super'] = top_super
       h['year'] = year
+
+      info_array = [
+          {position: 'Beginning Teacher', value: Numbers.money(row['avg_beg']).gsub(/(\d\d?)\.0/, '\1')},
+          {position: 'Mid-range Teacher', value: Numbers.money(row['avg_mid']).gsub(/(\d\d?)\.0/, '\1')},
+          {position: 'Highest paid Teacher', value: Numbers.money(row['avg_highest']).gsub(/(\d\d?)\.0/, '\1')},
+          {position: 'Principal (Elementary School)', value: Numbers.money(row['avg_elementary']).gsub(/(\d\d?)\.0/, '\1')},
+          {position: 'Principal (Middle School)', value: Numbers.money(row['avg_middle']).gsub(/(\d\d?)\.0/, '\1')},
+          {position: 'Principal (High School)', value: Numbers.money(row['avg_high']).gsub(/(\d\d?)\.0/, '\1')},
+          {position: 'Superintendent', value: Numbers.money(row['avg_super']).gsub(/(\d\d?)\.0/, '\1')}
+      ]
+
+      info_table = StoryTable.new
+      info_table.header = ['Position', 'Salary']
+      info_table.content = []
+
+      info_array.each do |row|
+        info_table.content << [:position, :value]
+      end
+
+      h['info_table'] = info_table
       h['story_table'] = table
 
       rules = insert_ignore_rules(h.escaped)
@@ -258,42 +278,43 @@ def ca_highest_paid_teacher_comp_superintendent_district_stage_creation(options)
   @stage_selection.each_with_index do |stage, i|
     print "\n PROCESSING #{i+1}/#{count}\n"
 
-    table = graph_from_json(stage['story_table'])
-    year = stage['year']
+    table = StoryTable.new.from_json(stage['story_table']).to_html
+    info_table = StoryTable.new.from_json(stage['info_table']).to_html
+    year = (stage['year'] - 1).to_s + '-' + stage['year'].to_s.slice(2..-1)
     max_highest_num = stage['max_highest']
-    max_mid_num = stage['max_mid']
+    max_super_num = stage['max_super']
 
-    difference_pct_max = ((max_highest_num - max_mid_num) / max_mid_num.to_f * 100).abs.round(1)
-    average_mid_max = Numbers.money(stage['average_mid_max']).gsub(/(\d\d?)\.0/, '\1')
+    difference_pct_max = ((max_highest_num - max_super_num) / max_super_num.to_f * 100).abs.round(1)
 
     max_highest = Numbers.money(max_highest_num).gsub(/(\d\d?)\.0/, '\1')
-    max_mid = Numbers.money(max_mid_num).gsub(/(\d\d?)\.0/, '\1')
-    difference_salary = Numbers.money((max_highest_num.to_i - max_mid_num.to_i).to_i.abs).gsub(/(\d\d?)\.0/, '\1')
+    max_super = Numbers.money(max_super_num).gsub(/(\d\d?)\.0/, '\1')
+    difference_salary = Numbers.money((max_highest_num.to_i - max_super_num.to_i).to_i.abs).gsub(/(\d\d?)\.0/, '\1')
+    more_less = (max_highest_num.to_i - max_super_num.to_i) > 0 ? 'more' : 'less'
 
     top_district = stage['top_district_name']
     top_salary = Numbers.money(stage['top_district']).to_s.gsub(/(\d\d?)\.0/, '\1')
+    top_super = Numbers.money(stage['top_super']).to_s.gsub(/(\d\d?)\.0/, '\1')
     district = stage['district']
 
-    district_body = district == 'Santa Clara Unified' ? "Teachers in this district had the highest average pay in the state." : "The district that had the highest pay among its teachers was #{top_district} with a salary of #{top_salary}."
+    district_body = district == 'Santa Clara Unified' ? "Teachers in this district had the highest average pay in the state." : "The district that had the highest pay among its teachers was #{top_district} with a salary of #{top_salary} while the highest compensated superintendent made #{top_super}."
     url_1 = "https://www.cde.ca.gov/"
     url_2 = "https://blogs.edweek.org/teachers/teaching_now/2019/04/which_states_have_the_highest_and_lowest_teacher_salaries.html"
     url_3 = "https://learningpolicyinstitute.org/product/interactive-map-understanding-teacher-shortages-california?utm_source=LPI+Master+List&utm_campaign=d4d19cd741-LPIMC_CATeacherShortageInteractive_20191205&utm_medium=email&utm_term=0_7e60dfa1d8-d4d19cd741-42305231"
 
     export = {}
     export['headline'] = <<~HEADER.squeeze(' ').chomp
-    Highest paid teacher in district makes #{difference_salary} more than mid-range teacher salaries
+    Highest paid teacher in district makes #{difference_salary} #{more_less} than superintendent
     HEADER
     export['teaser'] = <<~TEASER.squeeze(' ').chomp
-    The highest salary for a teacher at #{district} was #{max_highest} while the mid-range salary was #{max_mid} during the #{year} school year.
+    During the #{year} school year, the highest salary for a teacher at #{district} was #{max_highest}.
     TEASER
     output = <<~BODY.squeeze(' ').chomp
-    During the #{year} school year, the highest salary for a teacher at #{district} was #{max_highest}, according to the #{"California Department of Education.".to_link(url_1)}\
-    This was #{difference_pct_max} percent more than the mid-range teacher pay in the district of #{average_mid_max} on average.
+    During the #{year} school year, the highest salary for a teacher at #{district} was #{max_highest}, according to the #{"California Department of Education.".to_link(url_1)} This was #{difference_pct_max} percent less than the Superintendents salary of #{max_super}.
     #{district_body}
 
     Salaries for teachers vary widely based on geographic region. According to the #{"National Education Association".to_link(url_2)}, there is roughly a $40,000 pay difference between teachers in California and Mississippi.
-    While California ranks second in average salaries according to the NEA, the #{"Learning Policy Institute".to_link(url_3)} estimates that 80 percent of its school districts are experiencing teacher shortages.
-    Because of these shortages, 34 percent of newly-hired teachers have substandard teaching credentials.
+    While California ranks second in average salaries according to the NEA, the #{"Learning Policy Institute".to_link(url_3)} estimates that 80 percent of its school districts are experiencing teacher shortages. Because of these shortages, 34 percent of newly-hired teachers have substandard teaching credentials.
+			#{"Pay per position in #{district} on average".to_table_title}#{info_table}\n
 			#{'Districts with the highest-paid teacher'.to_table_title}#{table}\n
     BODY
 
@@ -305,39 +326,62 @@ def source_query
   db01 = Route_noprefix.new(host: DB01, raw_db: 'usa_raw')
   db01.client.query('use usa_raw;')
   query = <<~SQL
-  select max_highest.max_highest as max_highest, max_mid.max_mid as max_mid, avg_mid.average_mid_max,
-       ds.district, ds.pl_production_org_id as org_id
-  from usa_raw.ca_report_card_teacher_salaries year_2019
-      join (select district, district_code, pl_production_org_id from usa_raw.ca_report_card_district_contact_info group by district_code) ds
-          on year_2019.district_code = ds.district_code
-      join (select MAX(district_amount) max_highest, district_code from usa_raw.ca_report_card_teacher_salaries WHERE category='Highest Teacher Salary' group by district_code) max_highest
-          on year_2019.district_code = max_highest.district_code
-      join (select MAX(district_amount) max_mid, district_code from usa_raw.ca_report_card_teacher_salaries WHERE category='Mid-Range Teacher Salary' group by district_code) max_mid
-          on year_2019.district_code = max_mid.district_code
-      join(select round(AVG(district_amount), 0) average_mid_max, district_code from usa_raw.ca_report_card_teacher_salaries WHERE category='Mid-Range Teacher Salary' group by district_code) avg_mid
-          on year_2019.district_code = avg_mid.district_code
-  where year_2019.school_year = '2018-19' and
+    select max_highest.max_highest as max_highest, max_super.max_super as max_super,
+           avg_beg, avg_mid, avg_highest, avg_elementary, avg_middle, avg_high, avg_super,
+           ds.district, ds.pl_production_org_id as org_id, year_2019.district_code
+    from usa_raw.ca_report_card_teacher_salaries year_2019
+             join (select district, district_code, pl_production_org_id from usa_raw.ca_report_card_district_contact_info group by district_code) ds
+                  on year_2019.district_code = ds.district_code
+             join (select MAX(district_amount) max_highest, district_code from usa_raw.ca_report_card_teacher_salaries WHERE category='Highest Teacher Salary' group by district_code) max_highest
+                  on year_2019.district_code = max_highest.district_code
+             join (select MAX(district_amount) max_super, district_code from usa_raw.ca_report_card_teacher_salaries WHERE category='Superintendent Salary' group by district_code) max_super
+                  on year_2019.district_code = max_super.district_code
+
+             left join (SELECT district_code,
+                               round(SUM(IF(category = 'Beginning Teacher Salary', district_amount, 0))/SUM(IF(category = 'Beginning Teacher Salary', 1, 0)), 0) as avg_beg,
+                               round(SUM(IF(category = 'Mid-Range Teacher Salary', district_amount, 0))/SUM(IF(category = 'Mid-Range Teacher Salary', 1, 0)), 0) as avg_mid,
+                               round(SUM(IF(category = 'Highest Teacher Salary', district_amount, 0))/SUM(IF(category = 'Highest Teacher Salary', 1, 0)), 0) as avg_highest,
+                               round(SUM(IF(category = 'Average Principal Salary (Elementary)', district_amount, 0))/SUM(IF(category = 'Average Principal Salary (Elementary)', 1, 0)), 0) as avg_elementary,
+                               round(SUM(IF(category = 'Average Principal Salary (Middle)', district_amount, 0))/SUM(IF(category = 'Average Principal Salary (Middle)', 1, 0)), 0) as avg_middle,
+                               round(SUM(IF(category = 'Average Principal Salary (High)', district_amount, 0))/SUM(IF(category = 'Average Principal Salary (High)', 1, 0)), 0) as avg_high,
+                               round(SUM(IF(category = 'Superintendent Salary', district_amount, 0))/SUM(IF(category = 'Superintendent Salary', 1, 0)), 0) as avg_super
+                   FROM usa_raw.ca_report_card_teacher_salaries
+                   WHERE school_year = '2018-19'
+                   group by district_code
+                  ) avg
+             on year_2019.district_code = avg.district_code
+    where year_2019.school_year = '2018-19' and
         ds.pl_production_org_id IS NOT NULL and
         max_highest.max_highest IS NOT NULL and
-        max_mid.max_mid IS NOT NULL
-  group by year_2019.district_code
-  order by max_highest desc;
+        max_super.max_super IS NOT NULL
+    group by year_2019.district_code
+    order by max_highest desc;
   SQL
   result = db01.client.query(query).to_a.ranking_new!('max_highest')
-  db01.client.close
 
   top = result.first
   top_district_name = top['district']
   top_district = top['max_highest']
+  top_district_code = top['district_code']
+
+  query_super = <<~SQL
+    select MAX(district_amount) max_super from usa_raw.ca_report_card_teacher_salaries WHERE category='Superintendent Salary' AND district_code = #{top_district_code} AND school_year='2018-19';
+  SQL
+  top_super = db01.client.query(query_super).to_a.first['max_super']
+  db01.client.close
 
   result.map { |el| el['max_highest_salary'] = Numbers.money(el['max_highest']).gsub(/(\d\d?)\.0/, '\1')}
 
-  table = result.ranking!('max_highest').build_table(
-      [
-          {heading: 'Rank', column: 'rank'},
-          {heading: 'District', column: 'district'},
-          {heading: 'Salary', column: 'max_highest_salary'}
-      ]
-  )
-  [result, table, top_district_name, top_district]
+  table = StoryTable.new
+  table.header = ['Rank', 'District', 'Salary']
+  table.content = []
+
+  result.ranking!('max_highest').each do |row|
+    table.content << [row['rank'], Cleaner.person_clean(row['district']),
+                      row['max_highest_salary']]
+  end
+
+  table
+
+  [result, table, top_district_name, top_district, top_super]
 end
