@@ -15,7 +15,7 @@ population_config_id: #623
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=623 -t --date='2019-12-30' --threads_count=5
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=623 -t --date='2019-12-30' --threads_count=5 --slack_id=UKYAGBYC9
 
 
 STORY CREATOR CONFIGURATION:
@@ -24,14 +24,14 @@ insert into storycreator_configurations (tbl, template, extension, export_argume
 creation_config_id: #501
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=501 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=501 -t --slack_id=UKYAGBYC9
 
 
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t
-
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=501 --population_config_id=623 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring Compared to same time LY (County - Month)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 STAGING: EXPORT STORIES
 bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='242803,242807,242800,242820'
@@ -102,7 +102,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='mi_prof_licenses_exp_comp_same_time_ly_county_m_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=248034 --limit=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org='mi_prof_licenses_exp_comp_same_time_ly_county_m_staging' --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_id=339691 --limit=1
 
 _____
 IF OK
@@ -110,7 +110,7 @@ _____
 
 --threads_count=7
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='248034,248064,248049,248036,248077,248033,248068,248041,248022,248020,248058,248075,248060,248009,248063,248013,248055,248061,248048,248010,248019,248027,248066,248026,248025,248024,248069,248065,248050,248018,248042,247936,248038,248015,248031,248073,248044,248070,248028,248051,248053,248052,248054,248029,248030,248037,248056,248011,248040,248012,248023,248016,248062,248059,248039,248067,248057,248076,248021,248017,248074,248071,247937,248032,248045,248047,248043,248072,248014,248035,248046' --threads_count=7
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='339657,339687,339672,339659,339700,339656,339691,339664,339645,339643,339681,339698,339683,339632,339686,339636,339678,339684,339671,339633,339642,339650,339689,339649,339648,339647,339692,339688,339673,339641,339665,339630,339661,339638,339654,339696,339667,339693,339651,339674,339676,339675,339677,339652,339653,339660,339679,339634,339663,339635,339646,339639,339685,339682,339662,339690,339680,339699,339644,339640,339697,339694,339631,339655,339668,339670,339666,339695,339637,339658,339669' --threads_count=7
 ___________________________
 
 
