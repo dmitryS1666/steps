@@ -1,0 +1,50 @@
+    table = StoryTable.new.from_json(stage['story_table']).to_html
+	#{'Districts with the highest-paid teacher'.to_table_title}#{table}\n
+
+
+  table = StoryTable.new
+  table.header = ['Rank', 'District', 'Salary']
+  table.content = []
+
+  result.ranking!('max_highest').each do |row|
+    table.content << [row['rank'], Cleaner.person_clean(row['district']),
+                      row['max_highest_salary']]
+  end
+
+  table
+  
+  
+  
+  
+  
+  def table_from_data(records)
+  table = []
+  det = Determiner.new
+
+  records.each do |rec|
+    if rec['lapse_date'] != '0000-00-00'
+      lapse_date = DateTime.strptime(rec['lapse_date'], '%Y-%m-%d').strftime('%m-%d-%Y')
+    else
+      lapse_date = 'N/A'
+    end
+    issued_date = DateTime.strptime(rec['issued_date'], '%Y-%m-%d')
+
+    table = StoryTable.new
+    table.header = ['License Holder', 'License Type', 'Lapse Date', 'Issued Date']
+    table.content = []
+
+    table.content << [
+        det.determine(rec['license_holder']) == "Organization" ?  Cleaner.org_clean(rec['license_holder']) : Cleaner.person_clean(rec['license_holder']),
+        rec['license_type'],
+        lapse_date,
+        issued_date.strftime('%m-%d-%Y')
+    ]
+  end
+  table
+end
+
+
+    table = StoryTable.new.from_json(stage['story_table']).to_html
+
+    output << "#{license_s} issued during first half #{year} in #{zip}".to_table_title
+    output << table

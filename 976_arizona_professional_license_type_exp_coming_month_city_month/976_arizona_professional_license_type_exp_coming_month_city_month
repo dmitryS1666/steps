@@ -1,0 +1,387 @@
+Arizona - Professional License Type Expiring in the Coming Month (City - Month)
+https://docs.google.com/document/d/1SWHB7e1dK6GW7FftfUyOXI80PLcEamTrxOVMDzVIsUE/edit#heading=h.gjdgxs
+
+@john.putz
+First Export. Approved by James and Kirkland
+Dev Name: Dmitry S.
+Story type Name: #952 Arizona - Professional License Type Expiring in the Coming Month (City - Month)
+FCD: https://docs.google.com/document/d/1ZZlShrLMm46LBaCNcQDipJkYBFTKK96RtqK3FJxc3DI/edit#
+Sample story: https://pipeline-staging.locallabs.com/stories/511729984
+Period: 2018 - 2019
+Total Count: 895
+Max Project Count by client:
+MB - 522
+MM - 27
+_____________________________________________________
+
+STAGE TABLE DEFINITION
+insert into stage_definition_configurations (tbl, definition) select 'ar_prof_license_type_exp_coming_month_city_m_staging','{"city":"varchar(255)","count":"int","year":"int(4)","month":"int(2)","story_table":"longtext"}';
+
+
+#801
+
+STAGE TABLE CREATION
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=801 -t
+
+STAGE POPULATION CONFIGURATION
+insert into stage_population_configurations(project_name, tbl, definition) select 'Arizona - Professional License Type Expiring in the Coming Month (City - Month)', 'ar_prof_license_type_exp_coming_month_city_m_staging', '{"known_entities":{"project_name":"Arizona - Professional License Type Expiring in the Coming Month (City - Month)"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"arizona_professional_license_type_exp_coming_month_city_m_population","arguments":{}}}}';
+
+population_config_id: #905
+
+STAGE POPULATION:
+$ cd ~/Loki/procedures
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=905 -t --year=2020 --month=8
+
+
+STORY CREATOR CONFIGURATION:
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'ar_prof_license_type_exp_coming_month_city_m_staging', 'arizona_professional_license_type_exp_coming_month_city_m_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+
+creation_config_id: #766
+
+STORY CREATION COMMAND:
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=766 -t
+
+
+STAGING: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=766 --population_config_id=905 --story_section_ids=2 --story_tag_ids=34 --photobuckets='High School Test' --job_item_name_description='Arizona - Professional License Type Expiring in the Coming Month (City - Month)' -t --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=766 --population_config_id=905 --story_section_ids=16 --story_tag_ids=147 --photobuckets='High School Test' --job_item_name_description='Arizona - Professional License Type Expiring in the Coming Month (City - Month)' -t --where="stage.client_name like 'MM - %'"
+
+STAGING: EXPORT STORIES
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=340619
+
+
+
+FIRST FEEDBACK
+________________________________________
+irb ->
+load 'Loki.rb'
+Hle::Story::Feedback.stories_feedback('511701546,511701553,511701552')
+
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511733406,511733408,511733409
+
+
+!!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
+________________________________________________________________________________________________________________________________________
+
+SCHEDULER:
+__________
+population_config_id: #905
+creation_config_id: #766
+
+tbl: ar_prof_license_type_exp_coming_month_city_m_staging
+desc: Arizona - Professional License Type Expiring in the Coming Month (City - Month)
+
+config_id - population_config_id
+
+952 - 8/200/Aug 1
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=905 --limit=8 --start_date='2020-08-01' --total_days_till_end_date=200
+
+__________________________________________________
+чтоб проверить шедулер, что он "окейно" отработал:
+
+select publication_name, min(publish_on), max(publish_on), count(*) from 'ar_prof_license_type_exp_coming_month_city_m_staging' group by publication_name;
+
+______________________________________
+PRODUCTION: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+______________________________________
+
+--where="client_name like 'MM - %'"
+
+РАЗБИВКА ПО КЛИНЕТАМ!!!
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=766 --population_config_id=905 --story_section_ids=2 --story_tag_ids=147 --photobuckets='High School Test' --job_item_name_description='Arizona - Professional License Type Expiring in the Coming Month (City - Month)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=766 --population_config_id=905 --story_section_ids=16 --story_tag_ids=34 --photobuckets='High School Test' --job_item_name_description='Arizona - Professional License Type Expiring in the Coming Month (City - Month)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+
+______________________________________
+
+select * from story_export_configurations_v2 where tbl = 'ar_prof_license_type_exp_coming_month_city_m_staging' and export_name like '%production%' order by id DESC;
+
+______________________________________
+если все ок, то выполняем без --limit_config=1
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=766 --population_config_id=905 --story_section_ids=2 --story_tag_ids=147 --photobuckets='High School Test' --job_item_name_description='Arizona - Professional License Type Expiring in the Coming Month (City - Month)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=766 --population_config_id=905 --story_section_ids=16 --story_tag_ids=34 --photobuckets='High School Test' --job_item_name_description='Arizona - Professional License Type Expiring in the Coming Month (City - Month)' -t --prod --where="stage.client_name like 'MM - %'"
+_________
+повторяем
+
+select * from story_export_configurations_v2 where tbl = 'ar_prof_license_type_exp_coming_month_city_m_staging' and export_name like '%production%' order by id DESC;
+
+
+______________________
+для построения таблицы
+______________________
+
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from ar_prof_license_type_exp_coming_month_city_m_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='ar_prof_license_type_exp_coming_month_city_m_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+
+
+__________________________
+PRODUCTION: EXPORT STORIES
+__________________________
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='348144'
+
+_____
+IF OK
+_____
+
+--threads_count=7 | 13140961 | 13140960
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='348144,348117,348134,348150,348132,348137,348168,348159,348139,348174,348158,348143,348153,348119,348127,348160,348129,348128,348146,348120,348176,348165,348140,348152,348126,348167,348164,348172,348175,348179,348163,348121,348169,348155,348131,348118,348125,348173,348130,348136,348162,348171,348122,348156,348142,348161,348154,348123,348148,348135,348141,348149,348170,348178,348157,348147,348124,348138,348177,348151,348133,348166,348145' --threads_count=7
+___________________________
+
+
+ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
+___________________________
+
+SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
+FROM story_export_configurations_v2
+WHERE tbl = "ar_prof_license_type_exp_coming_month_city_m_staging" AND
+      export_name LIKE '%production%';
+
+# pipeline-core-replica2.jnswire_prod query:
+
+SELECT headline, c.name AS publication, concat('https://pipeline.locallabs.com/stories/', s.id) AS url,
+       published_at, ji.name AS job_item, cc.name AS client
+FROM stories AS s
+JOIN communities AS c
+  ON s.community_id = c.id
+JOIN client_companies AS cc
+  ON c.client_company_id = cc.id
+JOIN data_entry_leads AS l
+  ON l.id = s.lead_id
+JOIN job_items AS ji
+  ON l.job_item_id=ji.id
+WHERE published_at >= '2020-07-29' AND
+      deleted = 0 AND
+      l.job_item_id IN (204642,204683,204658,204702,204648,204697,204669,204674,204676,204689,204661,204655,204681,204672,204654,204651,204659,204649,204667,204646,204684,204665,204677,204663,204664,204695,204660,204657,204644,204652,204687,204685,204666,204699,204668,204671,204645,204656,204679,204650,204698,204673,204682,204690,204691,204653,204696,204704,204700,204701,204675,204670,204678,204688,204692,204686,204680,204694,204643,204703,204693,204662,204647)
+ORDER BY c.name;
+
+
+
+
+REMINDER TOOL
+___________________________
+
+INSERT INTO loki_storycreator.hle_reminders
+    (
+        hle_assignments_number, story_type_name, story_type_stage_table,
+        dev_name, slack_handle, dev_email,
+        story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
+        last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
+        data_source_checker_on, data_source_host, data_source_db, data_source_update_query
+    )
+VALUES
+    (
+        952, 'Arizona - Professional License Type Expiring in the Coming Month (City - Month)', 'ar_prof_license_type_exp_coming_month_city_m_staging',
+        'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
+        'year', 1, 1, 'annually', 'The Dataset located on db01.usa_raw.ca_report_card_teacher_salaries%',
+        '2020-07-11', 0, 0, 0, 20000, 'annually', 0,
+         1, 'db1','usa_raw', 'select date(max(postedTime)) date from usa_raw.ca_report_card_teacher_salaries;'
+    );
+
+
+
+# Creator: Dmitry Suschinsky
+# Story type: Arizona - Professional License Type Expiring in the Coming Month (City - Month)
+# Template: https://docs.google.com/document/d/1VVOVqdsyilwIC5NZfjt6plqi1_1SS0lRmz7_iJxcrbY/edit?usp=sharing
+# Created: July 2020
+
+# tbl: ar_prof_license_type_exp_coming_month_city_m_staging
+# db01.usa_raw.ca_report_card_teacher_salaries & Class_Size.
+# branch: s976_arizona_professional_license_type_exp_coming_month_city_m_d_sushi
+# s976_arizona_professional_license_type_exp_coming_month_city_m.rb
+
+def arizona_professional_license_type_exp_coming_month_city_m_stage_population(line, arguments)
+  db02 = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
+  db02.client.query("use #{db02.stage_db}")
+
+  options = derive_options({})
+  message = ''
+  raise message if options['option'] == 'some_error'
+  year = 2019
+  m_biz_id = 120
+  location = 'California'
+  environment = 'production'
+  source, table, top_district_name,
+      top_district, top_super = source_query
+
+  counter = 0
+  dist_counter = 1
+
+  source.each_with_index do |row, index|
+    puts "#{index}/#{source.size} of #{dist_counter}. #{row['district']}".yellow
+    puts "PL Org ID: #{row['org_id']}".green
+    next if row['org_id'].nil?
+
+    m_biz_pubs = get_journal_from_org_id(row['org_id'], environment, m_biz_id)
+    m_biz_pubs   = m_biz_pubs.delete_if { |p| !p['publication_name'].match?('California') }
+    mm_st_pubs = Hle::Publications.mm_pubs_excluding_states(row['org_id'], environment, location)
+    publications = mm_st_pubs + m_biz_pubs
+    publications.each do |publication|
+      h = {}
+
+      h['organization_id'] = row['org_id']
+      h['publication_id'] = publication['id'].to_i
+      h['publication_name'] = publication['publication_name']
+      h['client_id'] = publication['client_id']
+      h['client_name'] = publication['client_name']
+      h['source_table_id'] = 21343
+
+      h['district'] = row['district']
+      h['max_super'] = row['max_super']
+      h['max_highest'] = row['max_highest']
+      h['top_district_name'] = top_district_name
+      h['top_district'] = top_district
+      h['top_super'] = top_super
+      h['year'] = year
+
+      info_array = [
+          {position: 'Beginning Teacher', value: Numbers.money(row['avg_beg']).gsub(/(\d\d?)\.0/, '\1')},
+          {position: 'Mid-range Teacher', value: Numbers.money(row['avg_mid']).gsub(/(\d\d?)\.0/, '\1')},
+          {position: 'Highest paid Teacher', value: Numbers.money(row['avg_highest']).gsub(/(\d\d?)\.0/, '\1')},
+          {position: 'Principal (Elementary School)', value: Numbers.money(row['avg_elementary']).gsub(/(\d\d?)\.0/, '\1')},
+          {position: 'Principal (Middle School)', value: Numbers.money(row['avg_middle']).gsub(/(\d\d?)\.0/, '\1')},
+          {position: 'Principal (High School)', value: Numbers.money(row['avg_high']).gsub(/(\d\d?)\.0/, '\1')},
+          {position: 'Superintendent', value: Numbers.money(row['avg_super']).gsub(/(\d\d?)\.0/, '\1')}
+      ]
+
+      info_table = StoryTable.new
+      info_table.header = ['Position', 'Salary']
+      info_table.content = []
+
+      info_array.each do |row|
+        info_table.content << [:position, :value]
+      end
+
+      h['info_table'] = info_table
+      h['story_table'] = table
+
+      rules = insert_ignore_rules(h.escaped)
+      query = "insert ignore into #{@config['target_table']}#{rules}"
+
+      db02.client.query(query)
+      counter += 1
+    end
+  end
+
+  puts "Source size: #{source.size}"
+  puts "Counter:     #{counter}"
+  db02.client.close if db02
+  'INVALID' # a very important string!!!
+end
+
+def arizona_professional_license_type_exp_coming_month_city_m_stage_creation(options)
+  count = @stage_selection.count
+  @stage_selection.each_with_index do |stage, i|
+    print "\n PROCESSING #{i+1}/#{count}\n"
+
+    table = StoryTable.new.from_json(stage['story_table']).to_html
+    info_table = StoryTable.new.from_json(stage['info_table']).to_html
+    year = (stage['year'] - 1).to_s + '-' + stage['year'].to_s.slice(2..-1)
+    max_highest_num = stage['max_highest']
+    max_super_num = stage['max_super']
+
+    difference_pct_max = ((max_highest_num - max_super_num) / max_super_num.to_f * 100).abs.round(1)
+
+    max_highest = Numbers.money(max_highest_num).gsub(/(\d\d?)\.0/, '\1')
+    max_super = Numbers.money(max_super_num).gsub(/(\d\d?)\.0/, '\1')
+    difference_salary = Numbers.money((max_highest_num.to_i - max_super_num.to_i).to_i.abs).gsub(/(\d\d?)\.0/, '\1')
+    more_less = (max_highest_num.to_i - max_super_num.to_i) > 0 ? 'more' : 'less'
+
+    top_district = stage['top_district_name']
+    top_salary = Numbers.money(stage['top_district']).to_s.gsub(/(\d\d?)\.0/, '\1')
+    top_super = Numbers.money(stage['top_super']).to_s.gsub(/(\d\d?)\.0/, '\1')
+    district = stage['district']
+
+    district_body = district == 'Santa Clara Unified' ? "Teachers in this district had the highest average pay in the state." : "The district that had the highest pay among its teachers was #{top_district} with a salary of #{top_salary} while the highest compensated superintendent made #{top_super}."
+    url_1 = "https://www.cde.ca.gov/"
+    url_2 = "https://blogs.edweek.org/teachers/teaching_now/2019/04/which_states_have_the_highest_and_lowest_teacher_salaries.html"
+    url_3 = "https://learningpolicyinstitute.org/product/interactive-map-understanding-teacher-shortages-california?utm_source=LPI+Master+List&utm_campaign=d4d19cd741-LPIMC_CATeacherShortageInteractive_20191205&utm_medium=email&utm_term=0_7e60dfa1d8-d4d19cd741-42305231"
+
+    export = {}
+    export['headline'] = <<~HEADER.squeeze(' ').chomp
+    Highest paid teacher in district makes #{difference_salary} #{more_less} than superintendent
+    HEADER
+    export['teaser'] = <<~TEASER.squeeze(' ').chomp
+    During the #{year} school year, the highest salary for a teacher at #{district} was #{max_highest}.
+    TEASER
+    output = <<~BODY.squeeze(' ').chomp
+    During the #{year} school year, the highest salary for a teacher at #{district} was #{max_highest}, according to the #{"California Department of Education.".to_link(url_1)} This was #{difference_pct_max} percent less than the Superintendents salary of #{max_super}.
+    #{district_body}
+
+    Salaries for teachers vary widely based on geographic region. According to the #{"National Education Association".to_link(url_2)}, there is roughly a $40,000 pay difference between teachers in California and Mississippi.
+    While California ranks second in average salaries according to the NEA, the #{"Learning Policy Institute".to_link(url_3)} estimates that 80 percent of its school districts are experiencing teacher shortages. Because of these shortages, 34 percent of newly-hired teachers have substandard teaching credentials.
+			#{"Pay per position in #{district} on average".to_table_title}#{info_table}\n
+			#{'Districts with the highest-paid teacher'.to_table_title}#{table}\n
+    BODY
+
+    prepare_output(stage, output, export, options)
+  end
+end
+
+def source_query
+  db01 = Route_noprefix.new(host: DB01, raw_db: 'usa_raw')
+  db01.client.query('use usa_raw;')
+  query = <<~SQL
+    select max_highest.max_highest as max_highest, max_super.max_super as max_super,
+           avg_beg, avg_mid, avg_highest, avg_elementary, avg_middle, avg_high, avg_super,
+           ds.district, ds.pl_production_org_id as org_id, year_2019.district_code
+    from usa_raw.ca_report_card_teacher_salaries year_2019
+             join (select district, district_code, pl_production_org_id from usa_raw.ca_report_card_district_contact_info group by district_code) ds
+                  on year_2019.district_code = ds.district_code
+             join (select MAX(district_amount) max_highest, district_code from usa_raw.ca_report_card_teacher_salaries WHERE category='Highest Teacher Salary' group by district_code) max_highest
+                  on year_2019.district_code = max_highest.district_code
+             join (select MAX(district_amount) max_super, district_code from usa_raw.ca_report_card_teacher_salaries WHERE category='Superintendent Salary' group by district_code) max_super
+                  on year_2019.district_code = max_super.district_code
+
+             left join (SELECT district_code,
+                               round(SUM(IF(category = 'Beginning Teacher Salary', district_amount, 0))/SUM(IF(category = 'Beginning Teacher Salary', 1, 0)), 0) as avg_beg,
+                               round(SUM(IF(category = 'Mid-Range Teacher Salary', district_amount, 0))/SUM(IF(category = 'Mid-Range Teacher Salary', 1, 0)), 0) as avg_mid,
+                               round(SUM(IF(category = 'Highest Teacher Salary', district_amount, 0))/SUM(IF(category = 'Highest Teacher Salary', 1, 0)), 0) as avg_highest,
+                               round(SUM(IF(category = 'Average Principal Salary (Elementary)', district_amount, 0))/SUM(IF(category = 'Average Principal Salary (Elementary)', 1, 0)), 0) as avg_elementary,
+                               round(SUM(IF(category = 'Average Principal Salary (Middle)', district_amount, 0))/SUM(IF(category = 'Average Principal Salary (Middle)', 1, 0)), 0) as avg_middle,
+                               round(SUM(IF(category = 'Average Principal Salary (High)', district_amount, 0))/SUM(IF(category = 'Average Principal Salary (High)', 1, 0)), 0) as avg_high,
+                               round(SUM(IF(category = 'Superintendent Salary', district_amount, 0))/SUM(IF(category = 'Superintendent Salary', 1, 0)), 0) as avg_super
+                   FROM usa_raw.ca_report_card_teacher_salaries
+                   WHERE school_year = '2018-19'
+                   group by district_code
+                  ) avg
+             on year_2019.district_code = avg.district_code
+    where year_2019.school_year = '2018-19' and
+        ds.pl_production_org_id IS NOT NULL and
+        max_highest.max_highest IS NOT NULL and
+        max_super.max_super IS NOT NULL
+    group by year_2019.district_code
+    order by max_highest desc;
+  SQL
+  result = db01.client.query(query).to_a.ranking_new!('max_highest')
+
+  top = result.first
+  top_district_name = top['district']
+  top_district = top['max_highest']
+  top_district_code = top['district_code']
+
+  query_super = <<~SQL
+    select MAX(district_amount) max_super from usa_raw.ca_report_card_teacher_salaries WHERE category='Superintendent Salary' AND district_code = #{top_district_code} AND school_year='2018-19';
+  SQL
+  top_super = db01.client.query(query_super).to_a.first['max_super']
+  db01.client.close
+
+  result.map { |el| el['max_highest_salary'] = Numbers.money(el['max_highest']).gsub(/(\d\d?)\.0/, '\1')}
+
+  table = StoryTable.new
+  table.header = ['Rank', 'District', 'Salary']
+  table.content = []
+
+  result.ranking!('max_highest').each do |row|
+    table.content << [row['rank'], Cleaner.person_clean(row['district']),
+                      row['max_highest_salary']]
+  end
+
+  table
+
+  [result, table, top_district_name, top_district, top_super]
+end
