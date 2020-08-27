@@ -187,83 +187,79 @@ VALUES
 # Creator: Dmitry Suschinsky
 # Story type: Arizona - Professional License Type Expiring in the Coming Month (City - Month)
 # Template: https://docs.google.com/document/d/1VVOVqdsyilwIC5NZfjt6plqi1_1SS0lRmz7_iJxcrbY/edit?usp=sharing
-# Created: July 2020
+# Created: August 2020
 
-# tbl: ar_prof_license_type_exp_coming_month_city_m_staging
-# db01.usa_raw.ca_report_card_teacher_salaries & Class_Size.
+# tbl: arizona_professional_license_type_exp_coming_month_city_m_staging
+# db01.usa_raw.arizona_professional_licenseing
 # branch: s976_arizona_professional_license_type_exp_coming_month_city_m_d_sushi
 # s976_arizona_professional_license_type_exp_coming_month_city_m.rb
 
 def arizona_professional_license_type_exp_coming_month_city_m_stage_population(line, arguments)
+  puts("\n!!!\nParameter year required \n!!!\n") unless (@options['year'])
+  return 'INVALID' unless @options['year']
+  year = @options['year']
+
+  puts("\n!!!\nParameter year required \n!!!\n") unless (@options['month'])
+  return 'INVALID' unless @options['month']
+  month = @options['month']
+
   db02 = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
   db02.client.query("use #{db02.stage_db}")
 
   options = derive_options({})
   message = ''
   raise message if options['option'] == 'some_error'
-  year = 2019
+  year = 2020
   m_biz_id = 120
-  location = 'California'
+  location = 'Arizona'
   environment = 'production'
-  source, table, top_district_name,
-      top_district, top_super = source_query
 
-  counter = 0
-  dist_counter = 1
+  db01 = Route_noprefix.new(host: DB01, raw_db: 'usa_raw')
+  db01.client.query('use usa_raw;')
+  query = <<~SQL
+    SELECT DISTINCT city FROM arizona_professional_licenseing WHERE city != '' ORDER BY city;
+  SQL
+  cities = db01.client.query(query).to_a
 
-  source.each_with_index do |row, index|
-    puts "#{index}/#{source.size} of #{dist_counter}. #{row['district']}".yellow
-    puts "PL Org ID: #{row['org_id']}".green
-    next if row['org_id'].nil?
+  cities.each do |city|
+    city = city['city'].strip!
+    source, table = source_query(city, month, year)
 
-    m_biz_pubs = get_journal_from_org_id(row['org_id'], environment, m_biz_id)
-    m_biz_pubs   = m_biz_pubs.delete_if { |p| !p['publication_name'].match?('California') }
-    mm_st_pubs = Hle::Publications.mm_pubs_excluding_states(row['org_id'], environment, location)
-    publications = mm_st_pubs + m_biz_pubs
-    publications.each do |publication|
-      h = {}
+    counter = 0
+    dist_counter = 1
 
-      h['organization_id'] = row['org_id']
-      h['publication_id'] = publication['id'].to_i
-      h['publication_name'] = publication['publication_name']
-      h['client_id'] = publication['client_id']
-      h['client_name'] = publication['client_name']
-      h['source_table_id'] = 21343
+    source.each_with_index do |row, index|
+      puts "#{index}/#{source.size} of #{dist_counter}. #{row['city']}".yellow
+      puts "PL Org ID: #{row['org_id']}".green
+      next if row['org_id'].nil?
 
-      h['district'] = row['district']
-      h['max_super'] = row['max_super']
-      h['max_highest'] = row['max_highest']
-      h['top_district_name'] = top_district_name
-      h['top_district'] = top_district
-      h['top_super'] = top_super
-      h['year'] = year
+      m_biz_pubs = get_journal_from_org_id(row['org_id'], environment, m_biz_id)
+      m_biz_pubs = m_biz_pubs.delete_if { |p| !p['publication_name'].match?('Arizona') }
+      mm_st_pubs = Hle::Publications.mm_pubs_excluding_states(row['org_id'], environment, location)
+      publications = mm_st_pubs + m_biz_pubs
+      publications.each do |publication|
+        h = {}
 
-      info_array = [
-          {position: 'Beginning Teacher', value: Numbers.money(row['avg_beg']).gsub(/(\d\d?)\.0/, '\1')},
-          {position: 'Mid-range Teacher', value: Numbers.money(row['avg_mid']).gsub(/(\d\d?)\.0/, '\1')},
-          {position: 'Highest paid Teacher', value: Numbers.money(row['avg_highest']).gsub(/(\d\d?)\.0/, '\1')},
-          {position: 'Principal (Elementary School)', value: Numbers.money(row['avg_elementary']).gsub(/(\d\d?)\.0/, '\1')},
-          {position: 'Principal (Middle School)', value: Numbers.money(row['avg_middle']).gsub(/(\d\d?)\.0/, '\1')},
-          {position: 'Principal (High School)', value: Numbers.money(row['avg_high']).gsub(/(\d\d?)\.0/, '\1')},
-          {position: 'Superintendent', value: Numbers.money(row['avg_super']).gsub(/(\d\d?)\.0/, '\1')}
-      ]
+        h['organization_id'] = row['org_id']
+        h['publication_id'] = publication['id'].to_i
+        h['publication_name'] = publication['publication_name']
+        h['client_id'] = publication['client_id']
+        h['client_name'] = publication['client_name']
+        h['source_table_id'] = 21862
 
-      info_table = StoryTable.new
-      info_table.header = ['Position', 'Salary']
-      info_table.content = []
+        h['city'] = city
+        h['count'] = row['count']
+        h['year'] = year
+        h['month'] = month
 
-      info_array.each do |row|
-        info_table.content << [:position, :value]
+        h['story_table'] = table
+
+        rules = insert_ignore_rules(h.escaped)
+        query = "insert ignore into #{@config['target_table']}#{rules}"
+
+        db02.client.query(query)
+        counter += 1
       end
-
-      h['info_table'] = info_table
-      h['story_table'] = table
-
-      rules = insert_ignore_rules(h.escaped)
-      query = "insert ignore into #{@config['target_table']}#{rules}"
-
-      db02.client.query(query)
-      counter += 1
     end
   end
 
@@ -322,66 +318,36 @@ def arizona_professional_license_type_exp_coming_month_city_m_stage_creation(opt
   end
 end
 
-def source_query
+def source_query(city, month, year)
   db01 = Route_noprefix.new(host: DB01, raw_db: 'usa_raw')
   db01.client.query('use usa_raw;')
   query = <<~SQL
-    select max_highest.max_highest as max_highest, max_super.max_super as max_super,
-           avg_beg, avg_mid, avg_highest, avg_elementary, avg_middle, avg_high, avg_super,
-           ds.district, ds.pl_production_org_id as org_id, year_2019.district_code
-    from usa_raw.ca_report_card_teacher_salaries year_2019
-             join (select district, district_code, pl_production_org_id from usa_raw.ca_report_card_district_contact_info group by district_code) ds
-                  on year_2019.district_code = ds.district_code
-             join (select MAX(district_amount) max_highest, district_code from usa_raw.ca_report_card_teacher_salaries WHERE category='Highest Teacher Salary' group by district_code) max_highest
-                  on year_2019.district_code = max_highest.district_code
-             join (select MAX(district_amount) max_super, district_code from usa_raw.ca_report_card_teacher_salaries WHERE category='Superintendent Salary' group by district_code) max_super
-                  on year_2019.district_code = max_super.district_code
-
-             left join (SELECT district_code,
-                               round(SUM(IF(category = 'Beginning Teacher Salary', district_amount, 0))/SUM(IF(category = 'Beginning Teacher Salary', 1, 0)), 0) as avg_beg,
-                               round(SUM(IF(category = 'Mid-Range Teacher Salary', district_amount, 0))/SUM(IF(category = 'Mid-Range Teacher Salary', 1, 0)), 0) as avg_mid,
-                               round(SUM(IF(category = 'Highest Teacher Salary', district_amount, 0))/SUM(IF(category = 'Highest Teacher Salary', 1, 0)), 0) as avg_highest,
-                               round(SUM(IF(category = 'Average Principal Salary (Elementary)', district_amount, 0))/SUM(IF(category = 'Average Principal Salary (Elementary)', 1, 0)), 0) as avg_elementary,
-                               round(SUM(IF(category = 'Average Principal Salary (Middle)', district_amount, 0))/SUM(IF(category = 'Average Principal Salary (Middle)', 1, 0)), 0) as avg_middle,
-                               round(SUM(IF(category = 'Average Principal Salary (High)', district_amount, 0))/SUM(IF(category = 'Average Principal Salary (High)', 1, 0)), 0) as avg_high,
-                               round(SUM(IF(category = 'Superintendent Salary', district_amount, 0))/SUM(IF(category = 'Superintendent Salary', 1, 0)), 0) as avg_super
-                   FROM usa_raw.ca_report_card_teacher_salaries
-                   WHERE school_year = '2018-19'
-                   group by district_code
-                  ) avg
-             on year_2019.district_code = avg.district_code
-    where year_2019.school_year = '2018-19' and
-        ds.pl_production_org_id IS NOT NULL and
-        max_highest.max_highest IS NOT NULL and
-        max_super.max_super IS NOT NULL
-    group by year_2019.district_code
-    order by max_highest desc;
+    SELECT COUNT(main.id), main.license_type, main.city FROM
+    (SELECT id, license_type, MAX(updated_at), expiry_date, city FROM arizona_professional_licenseing GROUP BY full_name) AS main
+    WHERE city = "#{city}" AND MONTH(main.expiry_date) = "#{month}" AND YEAR(main.expiry_date) = "#{year}"
+    GROUP BY license_type;
   SQL
-  result = db01.client.query(query).to_a.ranking_new!('max_highest')
-
-  top = result.first
-  top_district_name = top['district']
-  top_district = top['max_highest']
-  top_district_code = top['district_code']
+  result = db01.client.query(query).to_a
 
   query_super = <<~SQL
-    select MAX(district_amount) max_super from usa_raw.ca_report_card_teacher_salaries WHERE category='Superintendent Salary' AND district_code = #{top_district_code} AND school_year='2018-19';
+    SELECT main.full_name AS license_holder, main.license_type, main.expiry_date AS lapse_date, main.issue_date, main.city FROM
+    (SELECT full_name, license_type, MAX(updated_at), expiry_date, issue_date, city FROM arizona_professional_licenseing GROUP BY full_name, license_type) AS main
+    WHERE city = "#{city}" AND MONTH(main.expiry_date) = "#{month}" AND YEAR(main.expiry_date) = "#{year}"
+    GROUP BY full_name, license_type;
   SQL
-  top_super = db01.client.query(query_super).to_a.first['max_super']
+  table_records = db01.client.query(query_super).to_a
+
   db01.client.close
 
-  result.map { |el| el['max_highest_salary'] = Numbers.money(el['max_highest']).gsub(/(\d\d?)\.0/, '\1')}
-
   table = StoryTable.new
-  table.header = ['Rank', 'District', 'Salary']
+  table.header = ['License Holder', 'License Type', 'Lapse Date', 'Issued Date']
   table.content = []
 
-  result.ranking!('max_highest').each do |row|
-    table.content << [row['rank'], Cleaner.person_clean(row['district']),
-                      row['max_highest_salary']]
+  table_records.each do |row|
+    table.content << [row['license_holder'], row['license_type'], row['lapse_date'], row['issued_date']]
   end
 
   table
 
-  [result, table, top_district_name, top_district, top_super]
+  [result, table]
 end
