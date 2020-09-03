@@ -16,7 +16,7 @@ population_config_id: #760
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=760 -t --year='2020' --threads_count=1
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=760 -t --year='2020' --threads_count=1 --slack_id=UKYAGBYC9
 
 
 STORY CREATOR CONFIGURATION:
@@ -25,7 +25,7 @@ insert into storycreator_configurations (tbl, template, extension, export_argume
 creation_config_id: #640
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=640 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=640 -t --slack_id=UKYAGBYC9
 
 
 STAGING: STORY EXPORT CONFIGURATION
@@ -115,7 +115,7 @@ _____
 
 --threads_count=7 | 13140961 | 13140960
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='327979,327988,327985,327983,327984,327996,327989,327994,327995,327981,327980,327991,327986,327993,327992,327990,327987,327998,327982,327999,327997'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='327979,327988,327985,327983,327984,327996,327989,327994,327995,327981,327980,327991,327986,327993,327992,327990,327987,327998,327982,327999,327997' --threads_count=7
 ___________________________
 
 
