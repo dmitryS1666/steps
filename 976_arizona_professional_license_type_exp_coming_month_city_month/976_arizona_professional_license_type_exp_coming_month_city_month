@@ -50,6 +50,9 @@ bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=825 --popul
 
 STAGING: EXPORT STORIES
 bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=340619
+#/////#
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=363613  --slack_id=UKYAGBYC9 --threads_count=7
+
 
 
 
@@ -253,7 +256,7 @@ def arizona_professional_license_type_exp_coming_month_city_m_stage_creation(opt
     license_type       = stage['license_type'].downcase
     license_type = license_type_count.to_i == 1 ? "#{license_type.gsub(' license', '')} license" : "#{license_type} licenses"
     month              = stage['month']
-    city               = stage['city']
+    city               = stage['city'].split.each(&:capitalize!).join(' ')
     url_1 = "https://elicense.az.gov/ARDC_HomePage"
     url_2 = "https://www.sba.gov/sites/default/files/advocacy/2018-Small-Business-Profiles-AZ.pdf"
     url_3 = "http://www.civiceconomics.com/indie-impact.html"
@@ -272,7 +275,7 @@ def arizona_professional_license_type_exp_coming_month_city_m_stage_creation(opt
     TEASER
     output = <<~BODY.squeeze(' ').chomp
       There #{is_are} #{count_body} #{license_type} set to expire in #{city} during #{month}, according to the #{"State of Arizona".to_link(url_1)}.
-      More than 99 percent of Arizona's businesses are considered small with more than 40 percent of Arizona employees working for a small business, according to the #{"U.S. Small Business Administration".to_link(url_2)}.
+      More than 99 percent of Arizona's businesses are considered small with more than 40 percent of Arizona employees working for small businesses, according to the #{"U.S. Small Business Administration".to_link(url_2)}.
       A study by #{"Civic Economics".to_link(url_3)} found that when $100 is spent at a locally-owned business, that business puts $47 back into the local economy while the total is just $13 for non-local businesses.
       #{"#{license_type.capitalize} set to expire during #{month}".to_table_title}#{table}
     BODY
