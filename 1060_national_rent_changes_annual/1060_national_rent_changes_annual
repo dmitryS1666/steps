@@ -1,0 +1,345 @@
+National Rent - Rent Changes (Annual)
+https://docs.google.com/document/d/1SWHB7e1dK6GW7FftfUyOXI80PLcEamTrxOVMDzVIsUE/edit#heading=h.gjdgxs
+
+@john.putz
+First Export. Approved by James and Aby Yusuf
+Dev Name: Dmitry S.
+Story type Name: #1060 National Rent - Rent Changes (Annual)
+FCD: 
+Sample story: 
+Period: 
+Total Count: 
+Max Project Count by client:
+MB - 
+MM - 
+_____________________________________________________
+
+STAGE TABLE DEFINITION
+insert into stage_definition_configurations (tbl, definition) select 'national_rent_changes_annual_staging','{"year":"varchar(4)","num_bedrooms":"varchar(10)","city":"varchar(100)","median_price":"varchar(10)","monthly_change":"varchar(10)","yearly_change":"varchar(10)","month":"varchar(50)","story_table":"longtext"}';
+
+
+#864
+
+STAGE TABLE CREATION
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=864 -t
+
+STAGE POPULATION CONFIGURATION
+insert into stage_population_configurations(project_name, tbl, definition) select 'National Rent - Rent Changes (Annual)', 'national_rent_changes_annual_staging', '{"known_entities":{"project_name":"National Rent - Rent Changes (Annual)"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"hle_s1060_national_rent_changes_annual_population","arguments":{}}}}';
+
+population_config_id: #963
+
+STAGE POPULATION:
+$ cd ~/Loki/procedures
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=963 -t --slack_id=UKYAGBYC9
+
+
+STORY CREATOR CONFIGURATION:
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'national_rent_changes_annual_staging', 'hle_s1060_national_rent_changes_annual_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+
+creation_config_id: #847
+
+STORY CREATION COMMAND:
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=847 -t --slack_id=UKYAGBYC9
+
+
+STAGING: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=847 --population_config_id=963 --story_section_ids=2 --story_tag_ids=3 --photobuckets='real estate' --job_item_name_description='National Rent - Rent Changes (Annual)' -t --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=847 --population_config_id=963 --story_section_ids=16 --story_tag_ids=10 --photobuckets='real estate' --job_item_name_description='National Rent - Rent Changes (Annual)' -t --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=847 --population_config_id=963 --story_section_ids='2,16' --story_tag_ids=10 --photobuckets='real estate' --job_item_name_description='National Rent - Rent Changes (Annual)' -t --where="client_id = 91"
+
+STAGING: EXPORT STORIES
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids= --slack_id=UKYAGBYC9
+
+
+
+FIRST FEEDBACK
+________________________________________
+irb ->
+load 'Loki.rb'
+Hle::Story::Feedback.stories_feedback('511701546,511701553,511701552')
+
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511744449,511744447,511744446
+
+
+!!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
+________________________________________________________________________________________________________________________________________
+
+SCHEDULER:
+__________
+population_config_id: #963
+creation_config_id: #847
+
+tbl: national_rent_changes_annual_staging
+desc: National Rent - Rent Changes (Annual)
+
+config_id - population_config_id
+
+952 - 8/200/Aug 1
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=963 --limit=8 --start_date='2020-08-01' --total_days_till_end_date=200
+
+__________________________________________________
+чтоб проверить шедулер, что он "окейно" отработал:
+
+select publication_name, min(publish_on), max(publish_on), count(*) from 'national_rent_changes_annual_staging' group by publication_name;
+
+______________________________________
+PRODUCTION: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+______________________________________
+
+--where="client_name like 'MM - %'"
+
+РАЗБИВКА ПО КЛИНЕТАМ!!!
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=847 --population_config_id=963 --story_section_ids=2 --story_tag_ids=10 --photobuckets='High School Test' --job_item_name_description='National Rent - Rent Changes (Annual)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=847 --population_config_id=963 --story_section_ids=16 --story_tag_ids=3 --photobuckets='High School Test' --job_item_name_description='National Rent - Rent Changes (Annual)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+
+______________________________________
+
+select * from story_export_configurations_v2 where tbl = 'national_rent_changes_annual_staging' and export_name like '%production%' order by id DESC;
+
+______________________________________
+если все ок, то выполняем без --limit_config=1
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=847 --population_config_id=963 --story_section_ids=2 --story_tag_ids=10 --photobuckets='High School Test' --job_item_name_description='National Rent - Rent Changes (Annual)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=847 --population_config_id=963 --story_section_ids=16 --story_tag_ids=3 --photobuckets='High School Test' --job_item_name_description='National Rent - Rent Changes (Annual)' -t --prod --where="stage.client_name like 'MM - %'"
+_________
+повторяем
+
+select * from story_export_configurations_v2 where tbl = 'national_rent_changes_annual_staging' and export_name like '%production%' order by id DESC;
+
+
+______________________
+для построения таблицы
+______________________
+
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from national_rent_changes_annual_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='national_rent_changes_annual_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+
+
+__________________________
+PRODUCTION: EXPORT STORIES
+__________________________
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='348144'
+
+_____
+IF OK
+_____
+
+--threads_count=7 | 13140961 | 13140963
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='348144,348117,348134,348150,348132,348137,348168,348159,348139,348174,348158,348143,348153,348119,348127,348160,348129,348128,348146,348120,348176,348165,348140,348152,348126,348167,348164,348172,348175,348179,348163,348121,348169,348155,348131,348118,348125,348173,348130,348136,348162,348171,348122,348156,348142,348161,348154,348123,348148,348135,348141,348149,348170,348178,348157,348147,348124,348138,348177,348151,348133,348166,348145' --threads_count=7
+___________________________
+
+
+ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
+___________________________
+
+SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
+FROM story_export_configurations_v2
+WHERE tbl = 'national_rent_changes_annual_staging' AND
+      export_name LIKE '%production%';
+
+# pipeline-core-replica2.jnswire_prod query:
+
+SELECT headline, c.name AS publication, concat('https://pipeline.locallabs.com/stories/', s.id) AS url,
+       published_at, ji.name AS job_item, cc.name AS client
+FROM stories AS s
+JOIN communities AS c
+  ON s.community_id = c.id
+JOIN client_companies AS cc
+  ON c.client_company_id = cc.id
+JOIN data_entry_leads AS l
+  ON l.id = s.lead_id
+JOIN job_items AS ji
+  ON l.job_item_id=ji.id
+WHERE published_at >= '2020-07-29' AND
+      deleted = 0 AND
+      l.job_item_id IN (...)
+ORDER BY c.name;
+
+
+
+
+REMINDER TOOL
+___________________________
+
+INSERT INTO loki_storycreator.hle_reminders
+    (
+        hle_assignments_number, story_type_name, story_type_stage_table,
+        dev_name, slack_handle, dev_email,
+        story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
+        last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
+        data_source_checker_on, data_source_host, data_source_db, data_source_update_query
+    )
+VALUES
+    (
+        1060, 'National Rent - Rent Changes (Annual)', 'national_rent_changes_annual_staging',
+        'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
+        'year', 1, 1, 'annually', 'The Dataset located on db01.usa_raw.ca_report_card_teacher_salaries%',
+        '2020-07-11', 0, 0, 0, 20000, 'annually', 0,
+         1, 'db1','usa_raw', 'select date(max(postedTime)) date from usa_raw.ca_report_card_teacher_salaries;'
+    );
+
+
+
+# Creator: Dmitry Suschinsky
+# Story type: National Rent - Rent Changes (Annual)
+# Template: https://docs.google.com/document/d/1WecRMhwDxwIiT6zfOfpsylvz3-_UeycBGhki3agV1wI/edit
+# Created: September 2020
+
+# tbl: national_rent_changes_annual_staging
+# db01.usa_raw.national_rent_report_by_city
+# branch: s1060_national_rent_changes_annual_d_sushi
+# s1060_national_rent_changes_annual.rb
+
+def s1060_national_rent_changes_annual_stage_population(line, arguments)
+  counter     = 0
+  environment = 'production'
+  records = source_query
+
+  records.each_with_index do |rec, rec_num|
+    print 'Month: '
+    print "#{rec[:month]} ".yellow
+    print '| recs number: '
+    print "#{rec[:org_id]} ".green
+
+    # m_biz_pubs   = get_journal_from_org_id(rec[:org_id], environment, m_biz_id)
+    # mm_st_pubs   = Hle::Publications.mm_pubs_excluding_states(rec[:org_id], environment, location)
+    publications = all_pubs_for_clients
+    publications.each_with_index do |publication, pub_num|
+      publication.transform_keys!(&:to_sym)
+      puts publication
+      puts rec_num
+      puts pub_num
+      puts "#{rec_num * publications.size + pub_num + 1}/#{records.size * publications.size}".yellow
+
+      host = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
+      h    = {}
+
+      h['organization_id']           = rec[:org_id]
+      h['publication_id']            = publication[:id].to_i
+      h['publication_name']          = publication[:publication_name]
+      h['client_id']                 = publication[:client_id]
+      h['client_name']               = publication[:client_name]
+      h['source_table_id']           = 22454
+      h['year']                      = rec[:year]
+      h['month']                     = rec[:month]
+      h['num_bedrooms']              = rec[:num_bedrooms]
+      h['city']                      = rec[:city]
+      h['median_price']              = rec[:median_price]
+      h['monthly_change']            = rec[:monthly_change]
+      h['yearly_change']             = rec[:yearly_change]
+      h['story_table']               = rec[:table].to_json
+
+      h.transform_keys!(&:to_s)
+      rules = insert_ignore_rules(h.escaped)
+      query = "INSERT IGNORE INTO #{host.stage_db}.#{@config['target_table']}#{rules}"
+
+      host.client.query(query)
+      host.client.close
+      counter += 1
+    end
+  end
+
+  puts "Source size: #{records.length}"
+  puts "Counter:     #{counter}"
+
+  'INVALID' # a very important string!!!
+end
+
+def s1060_national_rent_changes_annual_stage_creation(options)
+  count = @stage_selection.count
+  @stage_selection.each_with_index do |stage, i|
+    print "\n PROCESSING #{i+1}/#{count}\n"
+
+    table              = StoryTable.new.from_json(stage['story_table']).to_html
+    month              = stage['month']
+    num_bedrooms       = stage['num_bedrooms']
+    median_price       = Numbers.money(stage['median_price'])
+    monthly_change     = stage['monthly_change']
+    yearly_change      = (stage['yearly_change'].to_f * 100).round(1).to_s.sub(/\.0$/,'')
+    city               = stage['city'].split.each(&:capitalize!).join(' ')
+
+    url_1 = "https://www.zumper.com/blog/zumper-national-rent-report-september-2020/"
+    url_2 = "https://www.realpage.com/analytics/u-s-apartment-market-performance-deteriorates-may/"
+    url_3 = "https://www.noradarealestate.com/blog/housing-market-predictions/"
+
+    puts 'monthly_change: ', monthly_change
+
+    if monthly_change.include?('-') && monthly_change.to_f != 0.0
+      growth_type_head_line = "decreases by #{(monthly_change.to_f * 100).round(1).abs.to_s.sub(/\.0$/,'') + '%'}"
+      growth_type = "decreased by #{(monthly_change.to_f * 100).round(1).abs.to_s.sub(/\.0$/,'') + ' percent'}"
+    elsif !monthly_change.include?('-') && monthly_change.to_f != 0.0
+      growth_type_head_line = "increases by #{(monthly_change.to_f * 100).round(1).to_s.sub(/\.0$/,'') + '%'}"
+      growth_type = "increased by #{(monthly_change.to_f * 100).round(1).to_s.sub(/\.0$/,'') + ' percent'}"
+    elsif monthly_change.to_f == 0.0
+      growth_type_head_line = "remains stable"
+      growth_type = "remained stable"
+    end
+
+
+    export = {}
+    export['headline'] = <<~HEADER.squeeze(' ').chomp
+      #{city} #{num_bedrooms}-bedroom rent #{growth_type_head_line} month over month
+    HEADER
+    export['teaser'] = <<~TEASER.squeeze(' ').chomp
+      #{city} #{num_bedrooms}-bedroom rent #{growth_type} month over month, according to Zumper.
+    TEASER
+    output = <<~BODY.squeeze(' ').chomp
+      #{city} #{num_bedrooms}-bedroom rent #{growth_type} month over month, according to #{"Zumper".to_link(url_1)}.
+      The average price for a #{num_bedrooms}-bedroom in #{city} was #{median_price} and the yearly price change was #{yearly_change} percent.
+      According to #{"RealPage".to_link(url_2)}, May of 2020 saw the first year over year decline in asking rents since 2010. While in September of 2020, the average home price on Realtor.com was over $350,000, up over 10 percent from the previous year according to #{"Norada".to_link(url_3)}.
+      #{"Single Bedroom Pricing".to_table_title}#{table}
+    BODY
+    prepare_output(stage, output, export, options)
+  end
+end
+
+def source_query
+  db01 = Route_noprefix.new(host: DB01, raw_db: 'usa_raw')
+  db01.client.query('use usa_raw;')
+
+  query = <<~SQL
+    SELECT main.year, main.month, main.city, main.state, main.num_bedrooms, main.median_price, main.monthly_change, main.yearly_change, org.pl_production_org_id AS org_id
+    FROM usa_raw.national_rent_report_by_city AS main
+        join usa_raw.usa_administrative_division_states state on state.short_name = main.state
+        join usa_raw.usa_administrative_division_counties_places_matching org on main.city = org.short_name and org.state_name = state.name
+    WHERE year = 2020
+    GROUP BY month, year, city, num_bedrooms
+    LIMIT 10;
+  SQL
+
+  source_1 = db01.client.query(query).to_a
+
+  records = []
+  source_1.each do |el|
+    record = {
+        year: el['year'], month: el['month'], city: el['city'], num_bedrooms: el['num_bedrooms'], median_price: el['median_price'], monthly_change: el['monthly_change'], yearly_change: el['yearly_change'], org_id: el['org_id'],
+        table: StoryTable.new(header: ['City Name', 'Median Price', 'Monthly Change %', 'Annual Change %'], content: get_table_data(db01, el['city'], el['year'], el['month'], el['state']))
+    }
+
+    records << record
+  end
+  db01.client.close
+
+  records
+end
+
+def get_table_data(db01, city, year, month, state)
+  query = <<~SQL
+    SELECT city, median_price, monthly_change, yearly_change
+    FROM usa_raw.national_rent_report_by_city AS main
+        join usa_raw.usa_administrative_division_states state on state.short_name = "#{state}"
+        join usa_raw.usa_administrative_division_counties_places_matching org on main.city = org.short_name and org.state_name = state.name
+    WHERE main.city = "#{city}" AND main.year = "#{year}" AND main.month = "#{month}" AND main.num_bedrooms = 1;
+  SQL
+  res = []
+  db01.client.query(query).to_a.each do |el|
+    res << [el['city'], Numbers.money(el['median_price']), (el['monthly_change'].to_f * 100).round(1).to_s.sub(/\.0$/,''), (el['yearly_change'].to_f * 100).round(1).to_s.sub(/\.0$/,'')]
+  end
+  puts res
+  res
+end
