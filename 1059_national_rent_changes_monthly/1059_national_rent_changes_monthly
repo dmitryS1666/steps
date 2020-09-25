@@ -24,7 +24,7 @@ STAGE TABLE CREATION
 bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=861 -t
 
 STAGE POPULATION CONFIGURATION
-insert into stage_population_configurations(project_name, tbl, definition) select 'National Rent - Rent Changes (Monthly)', 'national_rent_changes_monthly_staging', '{"known_entities":{"project_name":"National Rent - Rent Changes (Monthly)"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"s1059_national_rent_changes_monthly_population","arguments":{}}}}';
+{"known_entities":{"project_name":"National Rent - Rent Changes (Monthly)"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"hle_s1059_national_rent_changes_monthly_population","arguments":{}}}}
 
 population_config_id: #960
 
@@ -190,7 +190,7 @@ VALUES
 # Template: https://docs.google.com/document/d/1WecRMhwDxwIiT6zfOfpsylvz3-_UeycBGhki3agV1wI/edit
 # Created: September 2020
 
-# tbl: ar_prof_license_type_exp_coming_week_city_w_staging
+# tbl: national_rent_changes_monthly_staging
 # db01.usa_raw.national_rent_report_by_city
 # branch: s1059_national_rent_changes_monthly_d_sushi
 # s1059_national_rent_changes_monthly.rb

@@ -78,8 +78,8 @@ desc: Arizona - Professional License Type Expiring in the Coming Month (Zip - Mo
 
 config_id - population_config_id
 
-952 - 8/200/Aug 1
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=948 --limit=8 --start_date='2020-08-01' --total_days_till_end_date=200
+977 -- 25/10/Sept 20
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=948 --limit=25 --start_date='2020-09-20' --total_days_till_end_date=10
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -132,7 +132,7 @@ _____
 
 --threads_count=7 | 13140961 | 13140960
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='348144,348117,348134,348150,348132,348137,348168,348159,348139,348174,348158,348143,348153,348119,348127,348160,348129,348128,348146,348120,348176,348165,348140,348152,348126,348167,348164,348172,348175,348179,348163,348121,348169,348155,348131,348118,348125,348173,348130,348136,348162,348171,348122,348156,348142,348161,348154,348123,348148,348135,348141,348149,348170,348178,348157,348147,348124,348138,348177,348151,348133,348166,348145' --threads_count=7
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='364265,364277,364278,364271,364274,364266,364267,364268,364275,364270,364272,364279,364276,364273,364269' --threads_count=7
 ___________________________
 
 
@@ -141,7 +141,7 @@ ___________________________
 
 SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
 FROM story_export_configurations_v2
-WHERE tbl = "ar_prof_license_type_exp_coming_month_zip_m_staging" AND
+WHERE tbl = 'ar_prof_license_type_exp_coming_month_zip_m_staging' AND
       export_name LIKE '%production%';
 
 # pipeline-core-replica2.jnswire_prod query:
@@ -157,9 +157,9 @@ JOIN data_entry_leads AS l
   ON l.id = s.lead_id
 JOIN job_items AS ji
   ON l.job_item_id=ji.id
-WHERE published_at >= '2020-07-29' AND
+WHERE published_at >= '2020-09-20' AND
       deleted = 0 AND
-      l.job_item_id IN (204642,204683,204658,204702,204648,204697,204669,204674,204676,204689,204661,204655,204681,204672,204654,204651,204659,204649,204667,204646,204684,204665,204677,204663,204664,204695,204660,204657,204644,204652,204687,204685,204666,204699,204668,204671,204645,204656,204679,204650,204698,204673,204682,204690,204691,204653,204696,204704,204700,204701,204675,204670,204678,204688,204692,204686,204680,204694,204643,204703,204693,204662,204647)
+      l.job_item_id IN (216931,216932,216940,216936,216942,216933,216939,216938,216934,216935,216943,216937,216941,216945,216944)
 ORDER BY c.name;
 
 
@@ -178,7 +178,7 @@ INSERT INTO loki_storycreator.hle_reminders
     )
 VALUES
     (
-        952, 'Arizona - Professional License Type Expiring in the Coming Month (Zip - Month)', 'ar_prof_license_type_exp_coming_month_zip_m_staging',
+        977, 'Arizona - Professional License Type Expiring in the Coming Month (Zip - Month)', 'ar_prof_license_type_exp_coming_month_zip_m_staging',
         'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
         'year', 1, 1, 'annually', 'The Dataset located on db01.usa_raw.ca_report_card_teacher_salaries%',
         '2020-07-11', 0, 0, 0, 20000, 'annually', 0,
