@@ -45,8 +45,8 @@ bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=8
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=835 --population_config_id=951 --story_section_ids=2 --story_tag_ids=34 --photobuckets='High School Test' --job_item_name_description='Arizona - Professional License Type Expiring in the Coming Quarter (City - Quarter)' -t --where="client_id = 120" --slack_id=UKYAGBYC9
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=835 --population_config_id=951 --story_section_ids=16 --story_tag_ids=147 --photobuckets='High School Test' --job_item_name_description='Arizona - Professional License Type Expiring in the Coming Quarter (City - Quarter)' -t --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=835 --population_config_id=951 --story_section_ids=2 --story_tag_ids=34 --photobuckets='General Business - 1000x667' --job_item_name_description='Arizona - Professional License Type Expiring in the Coming Quarter (City - Quarter)' -t --where="client_id = 120" --slack_id=UKYAGBYC9
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=835 --population_config_id=951 --story_section_ids=16 --story_tag_ids=3 --photobuckets='General Business - 1000x667' --job_item_name_description='Arizona - Professional License Type Expiring in the Coming Quarter (City - Quarter)' -t --where="stage.client_name like 'MM - %'"
 
 STAGING: EXPORT STORIES
 bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -creator='Dmitry Suschinsky' --stage_tbl_org --threads_count=7 --config_id=340619 --slack_id=UKYAGBYC9
@@ -75,8 +75,8 @@ desc: Arizona - Professional License Type Expiring in the Coming Quarter (City -
 
 config_id - population_config_id
 
-952 - 8/200/Aug 1
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=951 --limit=8 --start_date='2020-08-01' --total_days_till_end_date=200
+978 -- 30/20/Sept 22 backdate any others to Sept 15
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=951 --limit=30 --start_date='2020-09-25' --total_days_till_end_date=20
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -92,8 +92,8 @@ ______________________________________
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=835 --population_config_id=951 --story_section_ids=2 --story_tag_ids=147 --photobuckets='High School Test' --job_item_name_description='Arizona - Professional License Type Expiring in the Coming Quarter (City - Quarter)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=835 --population_config_id=951 --story_section_ids=16 --story_tag_ids=34 --photobuckets='High School Test' --job_item_name_description='Arizona - Professional License Type Expiring in the Coming Quarter (City - Quarter)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=835 --population_config_id=951 --story_section_ids=2 --story_tag_ids=3 --photobuckets='General Business - 1000x667' --job_item_name_description='Arizona - Professional License Type Expiring in the Coming Quarter (City - Quarter)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=835 --population_config_id=951 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Arizona - Professional License Type Expiring in the Coming Quarter (City - Quarter)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
@@ -102,8 +102,8 @@ select * from story_export_configurations_v2 where tbl = 'ar_prof_license_type_e
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=835 --population_config_id=951 --story_section_ids=2 --story_tag_ids=147 --photobuckets='High School Test' --job_item_name_description='Arizona - Professional License Type Expiring in the Coming Quarter (City - Quarter)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=835 --population_config_id=951 --story_section_ids=16 --story_tag_ids=34 --photobuckets='High School Test' --job_item_name_description='Arizona - Professional License Type Expiring in the Coming Quarter (City - Quarter)' -t --prod --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=835 --population_config_id=951 --story_section_ids=2 --story_tag_ids=3 --photobuckets='General Business - 1000x667' --job_item_name_description='Arizona - Professional License Type Expiring in the Coming Quarter (City - Quarter)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=835 --population_config_id=951 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Arizona - Professional License Type Expiring in the Coming Quarter (City - Quarter)' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
 
@@ -121,7 +121,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='348144'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='369678'
 
 _____
 IF OK
@@ -129,7 +129,7 @@ _____
 
 --threads_count=7 | 13140961 | 13140960
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='348144,348117,348134,348150,348132,348137,348168,348159,348139,348174,348158,348143,348153,348119,348127,348160,348129,348128,348146,348120,348176,348165,348140,348152,348126,348167,348164,348172,348175,348179,348163,348121,348169,348155,348131,348118,348125,348173,348130,348136,348162,348171,348122,348156,348142,348161,348154,348123,348148,348135,348141,348149,348170,348178,348157,348147,348124,348138,348177,348151,348133,348166,348145' --threads_count=7
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org -creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='369678,369687,369689,369690,369685,369693,369684,369679,369682,369691,369681,369692,369688,369686,369680,369683' --threads_count=7
 ___________________________
 
 
@@ -166,22 +166,21 @@ REMINDER TOOL
 ___________________________
 
 INSERT INTO loki_storycreator.hle_reminders
-    (
-        hle_assignments_number, story_type_name, story_type_stage_table,
-        dev_name, slack_handle, dev_email,
-        story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
-        last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
-        data_source_checker_on, data_source_host, data_source_db, data_source_update_query
-    )
+(
+    hle_assignments_number, story_type_name, story_type_stage_table,
+    dev_name, slack_handle, dev_email,
+    story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
+    last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
+    data_source_checker_on, data_source_host, data_source_db, data_source_update_query
+)
 VALUES
-    (
-        978, 'Arizona - Professional License Type Expiring in the Coming Quarter (City - Quarter)', 'ar_prof_license_type_exp_coming_quarter_city_q_staging',
-        'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-        'year', 1, 1, 'annually', 'The Dataset located on db01.usa_raw.ca_report_card_teacher_salaries%',
-        '2020-07-11', 0, 0, 0, 20000, 'annually', 0,
-         1, 'db1','usa_raw', 'select date(max(postedTime)) date from usa_raw.ca_report_card_teacher_salaries;'
-    );
-
+(
+    979, 'Arizona - Professional License Type Expiring in the Coming Quarter (City - Quarter)', 'ar_prof_license_type_exp_coming_quarter_city_q_staging',
+    'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
+    'quarter', 1, 1, 'quarterly', 'The Dataset located on db01.usa_raw.arizona_professional_licenseing%',
+    '2020-07-11', 0, 0, 0, 20000, 'quarterly', 0,
+    1, 'db1','usa_raw', 'select date(max(postedTime)) date from usa_raw.arizona_professional_licenseing;'
+);
 
 
 # Creator: Dmitry Suschinsky
