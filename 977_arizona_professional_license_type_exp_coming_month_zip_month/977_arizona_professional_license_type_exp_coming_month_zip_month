@@ -188,160 +188,172 @@ VALUES
 
 
 # Creator: Dmitry Suschinsky
-# Story type: Arizona - Professional License Type Expiring in the Coming Month (Zip - Month)
-# Template: https://docs.google.com/document/d/1VVOVqdsyilwIC5NZfjt6plqi1_1SS0lRmz7_iJxcrbY/edit?usp=sharing
+# Story type: National Rent - Rent Changes (Annual)
+# Template: https://docs.google.com/document/d/1WecRMhwDxwIiT6zfOfpsylvz3-_UeycBGhki3agV1wI/edit
 # Created: September 2020
 
-# tbl: arizona_professional_license_type_exp_coming_month_zip_m_staging
-# db01.usa_raw.arizona_professional_licenseing
-# branch: s977_arizona_professional_license_type_exp_coming_month_zip_m_d_sushi
-# s977_arizona_professional_license_type_exp_coming_month_zip_m.rb
+# tbl: national_rent_changes_annual_staging
+# db01.usa_raw.national_rent_report_by_city
+# branch: s1060_national_rent_changes_annual_d_sushi
+# s1060_national_rent_changes_annual.rb
 
-def arizona_professional_license_type_exp_coming_month_zip_m_stage_population(line, arguments)
-  db01 = Route_noprefix.new(host: DB01, raw_db: 'usa_raw')
-  db01.client.query('use usa_raw;')
-  db02 = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
-  db02.client.query("use #{db02.stage_db}")
-  m_biz_id    = 120
-  location    = 'Arizona'
+def s1060_national_rent_changes_annual_stage_population(line, arguments)
   counter     = 0
   environment = 'production'
-  licenses = source_query(db01)
+  records = source_query
 
-  licenses.each do |license|
+  records.each_with_index do |rec, rec_num|
     print 'Month: '
-    print "#{license[:month]} ".yellow
-    print '| licenses number: '
-    print "#{license[:license_type_count]} ".green
+    print "#{rec[:month]} ".yellow
+    print '| recs number: '
+    print "#{rec[:org_id]} ".green
 
-    m_biz_pubs   = get_journal_from_org_id(license[:org_id], environment, m_biz_id)
-    mm_st_pubs   = Hle::Publications.mm_pubs_excluding_states(license[:org_id], environment, location)
-    publications = mm_st_pubs + m_biz_pubs
-    publications.each do |publication|
+    # MM
+    # Metro Business Network 120
+    # LGIS 91
+    # publications = []
+    mm_pubs = Hle::Publications.mm_pubs_excluding_states(rec[:org_id], 'production')
+    m_biz_pubs = get_journal_from_org_id(rec[:org_id], 'production', 120) rescue nil
+    lgis_pubs = get_journal_from_org_id(rec[:org_id], 'production', 91) rescue nil
+    publications = mm_pubs + m_biz_pubs + lgis_pubs
 
+    publications.each_with_index do |publication, pub_num|
+      publication.transform_keys!(&:to_sym)
+      puts publication
+      puts "#{rec_num} / #{pub_num}"
+      puts "#{rec_num * publications.size + pub_num + 1}/#{records.size * publications.size}".yellow
+
+      host = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
       h    = {}
-      h['organization_id']           = license[:org_id]
-      h['publication_id']            = publication['id'].to_i
-      h['publication_name']          = publication['publication_name']
-      h['client_id']                 = publication['client_id']
-      h['client_name']               = publication['client_name']
-      h['source_table_id']           = 22072
-      h['month']                     = license[:month]
-      h['zip']                       = license[:zip]
-      h['license_type']              = license[:license_type]
-      h['license_type_count']        = license[:license_type_count]
-      h['story_table1']               = license[:table].to_json
 
+      h['organization_id']           = rec[:org_id]
+      h['publication_id']            = publication[:id].to_i
+      h['publication_name']          = publication[:publication_name]
+      h['client_id']                 = publication[:client_id]
+      h['client_name']               = publication[:client_name]
+      h['source_table_id']           = 22454
+      h['year']                      = rec[:year]
+      h['month']                     = rec[:month]
+      h['num_bedrooms']              = rec[:num_bedrooms]
+      h['city']                      = rec[:city]
+      h['median_price']              = rec[:median_price]
+      h['monthly_change']            = rec[:monthly_change]
+      h['yearly_change']             = rec[:yearly_change]
+      h['story_table']               = rec[:table].to_json
+
+      h.transform_keys!(&:to_s)
       rules = insert_ignore_rules(h.escaped)
-      query = "insert ignore into #{@config['target_table']}#{rules}"
+      query = "INSERT IGNORE INTO #{host.stage_db}.#{@config['target_table']}#{rules}"
 
-      db02.client.query(query)
+      host.client.query(query)
+      host.client.close
       counter += 1
     end
   end
 
-  puts "Source size: #{licenses.length}"
+  puts "Source size: #{records.length}"
   puts "Counter:     #{counter}"
 
   'INVALID' # a very important string!!!
 end
 
-def arizona_professional_license_type_exp_coming_month_zip_m_stage_creation(options)
+def s1060_national_rent_changes_annual_stage_creation(options)
   count = @stage_selection.count
   @stage_selection.each_with_index do |stage, i|
     print "\n PROCESSING #{i+1}/#{count}\n"
 
-    table              = StoryTable.new.from_json(stage['story_table1']).to_html
-    license_type_count = stage['license_type_count']
-    license_type       = stage['license_type'].downcase
-    license_type = license_type_count.to_i == 1 ? "#{license_type.gsub(' license', '')} license" : "#{license_type} licenses"
+    table              = StoryTable.new.from_json(stage['story_table']).to_html
     month              = stage['month']
-    zip               = stage['zip'].split.each(&:capitalize!).join(' ')
-    url_1 = "https://elicense.az.gov/ARDC_HomePage"
-    url_2 = "https://www.sba.gov/sites/default/files/advocacy/2018-Small-Business-Profiles-AZ.pdf"
-    url_3 = "http://www.civiceconomics.com/indie-impact.html"
+    year               = stage['year']
+    num_bedrooms       = stage['num_bedrooms']
+    median_price       = Numbers.money(stage['median_price'])
+    monthly_change     = (stage['monthly_change'].to_f * 100).round(1).to_s.sub(/\.0$/,'')
+    yearly_change      = (stage['yearly_change'].to_f * 100).round(1).to_s.sub(/\.0$/,'')
+    city               = stage['city'].split.each(&:capitalize!).join(' ')
 
-    is_are = license_type_count.to_i > 1 ? 'are' : 'is'
+    url_1 = "https://www.zumper.com/blog/zumper-national-rent-report-september-2020/"
+    url_2 = "https://www.realpage.com/analytics/u-s-apartment-market-performance-deteriorates-may/"
+    url_3 = "https://www.noradarealestate.com/blog/housing-market-predictions/"
 
-    count = Numbers.num_to_words(license_type_count).class == String ? Numbers.num_to_words(license_type_count) : Numbers.num_to_words(license_type_count)
+    if monthly_change.include?('-') && monthly_change.to_f != 0.0
+      increase_decrease_monthly_change = "a #{monthly_change.to_f.abs} percent decrease"
+    elsif !monthly_change.include?('-') && monthly_change.to_f != 0.0
+      increase_decrease_monthly_change = "a #{monthly_change} percent increase"
+    else
+      increase_decrease_monthly_change = 'no change'
+    end
+
+    puts 'monthly_change: ', monthly_change
+
+    if yearly_change.include?('-') && yearly_change.to_f != 0.0
+      growth_type_head_line = "decreases by #{yearly_change.to_f.abs}%"
+      growth_type = "decreased by #{yearly_change.to_f.abs} percent"
+    elsif !yearly_change.include?('-') && yearly_change.to_f != 0.0
+      growth_type_head_line = "increases by #{yearly_change}%"
+      growth_type = "increased by #{yearly_change} percent"
+    elsif yearly_change.to_f == 0.0
+      growth_type_head_line = "remains stable"
+      growth_type = "remained stable"
+    end
+
 
     export = {}
     export['headline'] = <<~HEADER.squeeze(' ').chomp
-      #{license_type_count} #{license_type} #{is_are} set to expire in zip code #{zip} during #{month}
+      #{city} #{num_bedrooms}-bedroom rent #{growth_type_head_line} in #{month}
     HEADER
     export['teaser'] = <<~TEASER.squeeze(' ').chomp
-      There #{is_are} #{count} #{license_type} set to expire in zip code #{zip} during #{month}, according to the State of Arizona.
+      Rental prices for #{num_bedrooms}-bedroom units in #{city} #{growth_type} compared to #{month} of last year, according to Zumper.
     TEASER
     output = <<~BODY.squeeze(' ').chomp
-      There #{is_are} #{count} #{license_type} set to expire in zip code #{zip} during #{month}, according to the #{"State of Arizona".to_link(url_1)}.
-      More than 99 percent of Arizona's businesses are considered small with more than 40 percent of Arizona employees working for small businesses, according to the #{"U.S. Small Business Administration".to_link(url_2)}.
-      A study by #{"Civic Economics".to_link(url_3)} found that when $100 is spent at a locally-owned business, that business puts $47 back into the local economy while the total is just $13 for non-local businesses.
-      #{"#{license_type.capitalize} set to expire during #{month}".to_table_title}#{table}
+      Rental prices for #{num_bedrooms}-bedroom units in #{city} #{growth_type} compared to #{month} of last year, according to #{"Zumper".to_link(url_1)}.
+      The average price for a #{num_bedrooms}-bedroom in #{city} was #{median_price}, representing #{increase_decrease_monthly_change} over the previous month.
+      According to #{"RealPage".to_link(url_2)}, May of 2020 saw the first year over year decline in asking rents since 2010. While in September of 2020, the average home price on Realtor.com was over $350,000, up over 10 percent from the previous year according to #{"Norada".to_link(url_3)}.
+      #{"Single Bedroom Pricing".to_table_title}#{table}
     BODY
     prepare_output(stage, output, export, options)
   end
 end
 
-def source_query(db01)
-  query_1 = <<~SQL
-    select
-        COUNT(main.id) as count,
-        DATE_FORMAT(main.expiry_date, '%M') as month,
-        main.issue_date as issue_date,
-        main.expiry_date as expiry_date,
-        main.license_type as license_type,
-        main.zip as zip,
-        main.state as state,
-        org.pl_production_org_id as org_id
-    from usa_raw.arizona_professional_licenseing AS main
-             left join (select name, name_cleaned from usa_raw.arizona_professional_licenseing__individuals_clean) individuals
-                       on main.full_name = individuals.name
-             join usa_raw.usa_administrative_division_states state on state.short_name = main.state
-             join usa_raw.usa_administrative_division_counties_places_matching org
-                 on org.short_name = (SELECT primary_city FROM zipcode_data WHERE zip_char = main.zip AND state = 'AZ') and org.state_name = state.name
-    where (main.state like 'AZ%' OR main.state like 'Arizona%') and
-            month(expiry_date) = MONTH(NOW()) + 1 and
-            year(expiry_date) = year(now()) and
-        zip is not null and
-        expiry_date is not null
-    group by main.zip, main.license_type
-    order by count DESC
-    limit 30;
+def source_query
+  db01 = Route_noprefix.new(host: DB01, raw_db: 'usa_raw')
+  db01.client.query('use usa_raw;')
+
+  query = <<~SQL
+    SELECT main.year, main.month, main.city, main.state, main.num_bedrooms, main.median_price, main.monthly_change, main.yearly_change, org.pl_production_org_id AS org_id
+    FROM usa_raw.national_rent_report_by_city AS main
+        join usa_raw.usa_administrative_division_states state on state.short_name = main.state
+        join usa_raw.usa_administrative_division_counties_places_matching org on main.city = org.short_name and org.state_name = state.name
+    WHERE year = 2020
+    GROUP BY month, year, city, num_bedrooms;
   SQL
 
-  source_1 = db01.client.query(query_1).to_a
+  source_1 = db01.client.query(query).to_a
 
-  licenses = []
-
+  records = []
   source_1.each do |el|
-    license = {month: el['month'], zip: el['zip'], license_type: el['license_type'], license_type_count: el['count'], org_id: el['org_id'],
-               table: StoryTable.new(header: ['License Holder', 'License Type', 'Lapse Date', 'Issued Date'], content: get_table_data(db01, el['zip'], el['license_type'], el['count']))}
+    record = {
+        year: el['year'], month: el['month'], city: el['city'], num_bedrooms: el['num_bedrooms'], median_price: el['median_price'], monthly_change: el['monthly_change'], yearly_change: el['yearly_change'], org_id: el['org_id'],
+        table: StoryTable.new(header: ['Metro Area', 'Median Price', 'Monthly Change %', 'Annual Change %'], content: get_table_data(db01, el['city'], el['year'], el['state'], el['month']))
+    }
 
-    licenses << license
+    records << record
   end
   db01.client.close
 
-  licenses
+  records
 end
 
-def get_table_data(db01, zip, license_type, count)
-  query_2 = <<~SQL
-    select individuals.name_cleaned as name_cleaned,
-       main.license_type as license_type,
-       main.expiry_date as expiry_date,
-       main.issue_date as issue_date
-    from usa_raw.arizona_professional_licenseing AS main
-        left join (select name, name_cleaned from usa_raw.arizona_professional_licenseing__individuals_clean) individuals
-        on main.full_name = individuals.name
-    where (main.state like 'AZ%' OR main.state like 'Arizona%') and
-          year(expiry_date) = year(now()) and
-          month(expiry_date) = MONTH(NOW()) + 1 and zip = "#{zip}" and license_type = "#{license_type}" and expiry_date is not null and name_cleaned is not null;
+def get_table_data(db01, city, year, state, month)
+  query = <<~SQL
+    SELECT city, median_price, monthly_change, yearly_change
+    FROM usa_raw.national_rent_report_by_city AS main
+        join usa_raw.usa_administrative_division_states state on state.short_name = "#{state}"
+        join usa_raw.usa_administrative_division_counties_places_matching org on main.city = org.short_name and org.state_name = state.name
+    WHERE main.city = "#{city}" AND main.year = "#{year}" AND main.month = "#{month}"  AND main.num_bedrooms = 1;
   SQL
   res = []
-  db01.client.query(query_2).to_a.each do |el|
-    res << [el['name_cleaned'], el['license_type'], el['expiry_date'], el['issue_date']]
+  db01.client.query(query).to_a.each do |el|
+    res << [el['city'], Numbers.money(el['median_price']), (el['monthly_change'].to_f * 100).round(1).to_s.sub(/\.0$/,''), (el['yearly_change'].to_f * 100).round(1).to_s.sub(/\.0$/,'')]
   end
-
-  raise "Wrong number counts holder licenses!" if count != res.length
   res
 end

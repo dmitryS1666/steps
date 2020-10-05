@@ -5,13 +5,14 @@ https://docs.google.com/document/d/1SWHB7e1dK6GW7FftfUyOXI80PLcEamTrxOVMDzVIsUE/
 First Export. Approved by James and Aby Yusuf
 Dev Name: Dmitry S.
 Story type Name: #1059 National Rent - Rent Changes (Monthly)
-FCD: 
-Sample story: 
-Period: 
-Total Count: 
+FCD: https://docs.google.com/document/d/1RTZGceHX3xRmopEUNZy5Dmy9nrV6RDdQbbEPN40xTG0/edit
+Sample story: https://pipeline-staging.locallabs.com/stories/511744709
+Period: April 2020 - September 2020
+Total Count: 8966
 Max Project Count by client:
-MB - 
-MM - 
+MB - 481
+MM - 241
+LGIS - 41
 _____________________________________________________
 
 STAGE TABLE DEFINITION
@@ -50,7 +51,7 @@ bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=844 --popul
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=844 --population_config_id=960 --story_section_ids='2,16' --story_tag_ids=10 --photobuckets='real estate' --job_item_name_description='National Rent - Rent Changes (Monthly)' -t --where="client_id = 91"
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids= --slack_id=UKYAGBYC9
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids= --slack_id=UKYAGBYC9 --threads_count=15
 
 
 
