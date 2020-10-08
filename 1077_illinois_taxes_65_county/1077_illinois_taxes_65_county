@@ -5,13 +5,13 @@ https://docs.google.com/document/d/17Ro6-5Gfh05LYCIVYCH4nUjqhVVOk6KDey6nVwmDRKQ/
 First Export. Approved by James and Aby Yusuf
 Dev Name: Dmitry S.
 Story type Name: #1077 Illinois Taxes - 65+ County
-FCD:
-Sample story:
+FCD: https://docs.google.com/document/d/1QMB3ar3xDfqt6Vu0Mmln5LCl8GHh0GZp0u9kLT8gS34/edit#heading=h.k6qix21hg7yw
+Sample story: https://pipeline-staging.locallabs.com/stories/511745326
 Period: Once
-Total Count:
+Total Count: 212
 Max Project Count by client:
-MB -
-LGIS -
+MB - 102
+LGIS - 12
 _____________________________________________________
 
 STAGE TABLE DEFINITION
@@ -59,7 +59,7 @@ irb ->
 load 'Loki.rb'
 Hle::Story::Feedback.stories_feedback('511701546,511701553,511701552')
 
-bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511745227,511745222,511745221
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511745326,511745329,511745330
 
 
 !!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
@@ -75,8 +75,8 @@ desc: Illinois Taxes - 65+ County
 
 config_id - population_config_id
 
-1077 -- 10/30/Oct 3 backdate the rest to Sept. 30
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=976 --limit=10 --start_date='2020-10-03' --total_days_till_end_date=30
+1077 - 10/20/Oct. 9
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=976 --limit=10 --start_date='2020-10-09' --total_days_till_end_date=20
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -121,7 +121,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='372937'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='376309'
 
 _____
 IF OK
@@ -129,7 +129,7 @@ _____
 
 --threads_count=7 | 13140961 | 13140976
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='372937,372959,372958,372976,372949,372941,372945,372950,372963,372934,372947,372953,372964,372951,372942,372952,372960,372940,372939,372936,372938,372956,372955,372962,372948,372933,372966,372943,372961,372954,372965,372967,372968,372935,372944,372946,372957' --threads_count=1 --slack_id=UKYAGBYC9
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='376309,376326,376305,376308,376302,376314,376316,376296,376297,376324,376317,376327,376315,376298,376321,376322,376295,376328,376318,376306,376300,376310,376304,376313,376325,376301,376303,376299,376319,376312,376323,376311,376320,376307' --threads_count=10 --slack_id=UKYAGBYC9
 ___________________________
 
 
@@ -186,8 +186,8 @@ VALUES
 
 # Creator: Dmitry Suschinsky
 # Story type: Illinois Taxes - 65+ County
-# Template:
-# Created: September 2020
+# Template: https://docs.google.com/document/d/17Ro6-5Gfh05LYCIVYCH4nUjqhVVOk6KDey6nVwmDRKQ/edit#
+# Created: October 2020
 
 # tbl: illinois_taxes_65_county_staging
 # db01.usa_raw.national_rent_report_by_county
@@ -201,14 +201,17 @@ def s1077_illinois_taxes_65_county_stage_population(line, arguments)
   environment = 'production'
   records = source_query
   table = get_table
+
   records.each_with_index do |rec, rec_num|
-    print 'Month: '
-    print "#{rec[:month]} ".yellow
-    print '| recs number: '
+    print '| org_id: '
     print "#{rec[:org_id]} ".green
+    print '| county: '
+    print "#{rec[:county]} ".green
+
+    next unless rec
 
     mb_pubs   = get_journal_from_org_id(rec[:org_id], environment, mb_id)
-    lgis_pubs   = get_journal_from_org_id(rec[:org_id], environment, lgis_id)
+    lgis_pubs = get_journal_from_org_id(rec[:org_id], environment, lgis_id)
     publications = mb_pubs + lgis_pubs
     publications.each_with_index do |publication, pub_num|
       publication.transform_keys!(&:to_sym)
@@ -224,7 +227,7 @@ def s1077_illinois_taxes_65_county_stage_population(line, arguments)
       h['client_name']               = publication[:client_name]
       h['source_table_id']           = 19407
       h['value']                     = rec[:value]
-      h['county']                      = rec[:county]
+      h['county']                    = rec[:county]
       h['story_table']               = table.to_json
 
       h.transform_keys!(&:to_s)
@@ -249,7 +252,7 @@ def s1077_illinois_taxes_65_county_stage_creation(options)
     print "\n PROCESSING #{i+1}/#{count}\n"
 
     table    = StoryTable.new.from_json(stage['story_table']).to_html
-    county     = stage['county']
+    county   = stage['county']
     value    = Numbers.money((stage['value'].to_i * 0.093).to_i)
 
     url_1 = "https://www.illinoispolicy.org/every-state-with-a-progressive-tax-also-taxes-retirement-income/"
@@ -266,7 +269,7 @@ def s1077_illinois_taxes_65_county_stage_creation(options)
     output = <<~BODY.squeeze(' ').chomp
       The Pritzker Tax Hike Amendment would increase the average retiree's income tax in #{county} by up to #{value}, a 9.3-percent tax increase.
       Currently, retirees in Illinois are not subject to paying state income tax. With Governor Pritzker’s new proposal, retirees on average would have to pay an income tax of 4.7 percent while some will have to pay as much as 9.3 percent. According to #{"Illinoispolicy.org".to_link(url_1)}, retirees are one of the groups that has been least likely to leave the state. If their income is threatened by a new tax, that could change.
-      While claiming the progressive tax is not a retirement tax, #{"VoteForFairness".to_link(url_2)} invited Daniel Biss to speak at their virtual rally. In 2018, Biss said, “I would only consider taxing retirement income once we’ve amended the Illinois Constitution to allow for a progressive income tax." #{"Smartasset.com".to_link(url_3)} states that while Illinois currently has no tax on retirement income, the sales and property taxes are among the highest in the country.
+      While claiming the progressive tax is not a retirement tax, #{"Vote Yes For Fairness".to_link(url_2)} invited Daniel Biss to speak at their virtual rally. In 2018, Biss said, “I would only consider taxing retirement income once we’ve amended the Illinois Constitution to allow for a progressive income tax." #{"Smartasset.com".to_link(url_3)} states that while Illinois currently has no tax on retirement income, the sales and property taxes are among the highest in the country.
       #{"Potential tax implications".to_table_title}#{table}
     BODY
     prepare_output(stage, output, export, options)
@@ -278,21 +281,23 @@ def source_query
   db06.client.query('use voters_2016;')
 
   query = <<~SQL
-    SELECT *, IFNULL(geo_name_only, geo_name) AS county FROM census_details c
+    SELECT *, county_name AS county FROM census_details c
     JOIN census_details_uniq_geos g ON c.match_id = g.id
     WHERE concept = 'MEDIAN HOUSEHOLD INCOME IN THE PAST 12 MONTHS (IN 2018 INFLATION-ADJUSTED DOLLARS) BY AGE OF HOUSEHOLDER' AND
           label = 'Estimate!!Median household income in the past 12 months (in 2018 inflation-adjusted dollars) --!!Householder 65 years and over' AND
-          state = 17 AND c.geo_type = 'place' AND value > 0;
+          state = 17 AND c.geo_type = 'county' AND value > 0;
   SQL
 
   source_1 = db06.client.query(query).to_a
 
   records = []
   source_1.each do |el|
-    record = {
-        county: el['county'], value: el['value'], org_id: el['pl_production_org_id']
-    }
-    records << record
+    get_org_id_by_county(el['county']).each do |org|
+      record = {
+          county: el['county'], value: el['value'], org_id: org['org_id']
+      }
+      records << record
+    end
   end
   db06.client.close
 
@@ -317,4 +322,18 @@ def get_table
     table.content << [row[:income], Numbers.money(row[:value] * 0.047), Numbers.money(row[:value] * 0.093)]
   end
   table
+end
+
+def get_org_id_by_county(county)
+  db01 = Route_noprefix.new(host: DB01, raw_db: 'usa_raw')
+  db01.client.query('use usa_raw;')
+
+  query = <<~SQL
+    SELECT pl_production_org_id AS org_id, place_name
+    FROM usa_raw.usa_administrative_division_counties_places_matching
+    WHERE county_name = "#{county}" AND state_name='Illinois' AND pl_production_org_id IS NOT NULL
+    GROUP BY org_id;
+  SQL
+
+  db01.client.query(query).to_a
 end
