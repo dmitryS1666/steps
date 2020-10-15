@@ -77,6 +77,9 @@ desc: National Rent - Rent Changes (Monthly)
 
 config_id - population_config_id
 
+1059 - Jan - 10/30/Oct 3 (Backdate the rest to Oct 15)
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=960 --limit=10 --start_date='2020-10-03' --total_days_till_end_date=30
+
 952 - 8/200/Aug 1
 bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=960 --limit=8 --start_date='2020-08-01' --total_days_till_end_date=200
 
@@ -94,8 +97,9 @@ ______________________________________
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=844 --population_config_id=960 --story_section_ids=2 --story_tag_ids=10 --photobuckets='High School Test' --job_item_name_description='National Rent - Rent Changes (Monthly)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=844 --population_config_id=960 --story_section_ids=16 --story_tag_ids=3 --photobuckets='High School Test' --job_item_name_description='National Rent - Rent Changes (Monthly)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=844 --population_config_id=960 --story_section_ids=2 --story_tag_ids=3 --photobuckets='real estate' --job_item_name_description='National Rent - Rent Changes (Monthly)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=844 --population_config_id=960 --story_section_ids=16 --story_tag_ids=10 --photobuckets='real estate' --job_item_name_description='National Rent - Rent Changes (Monthly)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=844 --population_config_id=960 --story_section_ids='2,16' --story_tag_ids=10 --photobuckets='real estate' --job_item_name_description='National Rent - Rent Changes (Monthly)' -t --prod --limit_config=1 --where="client_id = 91"
 
 ______________________________________
 
@@ -104,8 +108,9 @@ select * from story_export_configurations_v2 where tbl = 'national_rent_changes_
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=844 --population_config_id=960 --story_section_ids=2 --story_tag_ids=10 --photobuckets='High School Test' --job_item_name_description='National Rent - Rent Changes (Monthly)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=844 --population_config_id=960 --story_section_ids=16 --story_tag_ids=3 --photobuckets='High School Test' --job_item_name_description='National Rent - Rent Changes (Monthly)' -t --prod --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=844 --population_config_id=960 --story_section_ids=2 --story_tag_ids=3 --photobuckets='real estate' --job_item_name_description='National Rent - Rent Changes (Monthly)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=844 --population_config_id=960 --story_section_ids=16 --story_tag_ids=10 --photobuckets='real estate' --job_item_name_description='National Rent - Rent Changes (Monthly)' -t --prod --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=844 --population_config_id=960 --story_section_ids='2,16' --story_tag_ids=10 --photobuckets='real estate' --job_item_name_description='National Rent - Rent Changes (Monthly)' -t --prod --where="client_id = 91"
 _________
 повторяем
 
@@ -123,7 +128,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='348144'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='379032'
 
 _____
 IF OK
@@ -131,7 +136,7 @@ _____
 
 --threads_count=7 | 13140961 | 13140960
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='348144,348117,348134,348150,348132,348137,348168,348159,348139,348174,348158,348143,348153,348119,348127,348160,348129,348128,348146,348120,348176,348165,348140,348152,348126,348167,348164,348172,348175,348179,348163,348121,348169,348155,348131,348118,348125,348173,348130,348136,348162,348171,348122,348156,348142,348161,348154,348123,348148,348135,348141,348149,348170,348178,348157,348147,348124,348138,348177,348151,348133,348166,348145' --threads_count=7
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='379032,378999,379003,379011,379035,379037,379039,379040,379041,379042,379002,379060,379111,379049,379050,379092,379006,379053,379054,379055,379056,379057,379000,379058,379065,379036,379059,379017,379062,379061,379005,379047,379064,379015,379031,379066,379038,379025,379067,379071,379068,379069,379078,379008,379079,379080,379007,379009,379081,379082,379016,379083,379084,379022,379019,379097,379074,379102,379020,379018,379023,379001,379010,379087,379085,379012,379052,379033,379063,379086,379077,378998,379088,379024,379089,379026,379090,379044,379045,379091,379093,379094,379095,379027,379096,379098,379099,379101,379072,379075,379073,379076,379034,379070,379043,379103,379104,379100,379048,379105,379051,379106,379107,379013,379004,379108,379109,379028,379014,379029,379030,379110,379021,379046' --threads_count=7
 ___________________________
 
 
@@ -140,7 +145,7 @@ ___________________________
 
 SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
 FROM story_export_configurations_v2
-WHERE tbl = "national_rent_changes_monthly_staging" AND
+WHERE tbl = 'national_rent_changes_monthly_staging' AND
       export_name LIKE '%production%';
 
 # pipeline-core-replica2.jnswire_prod query:
@@ -156,9 +161,9 @@ JOIN data_entry_leads AS l
   ON l.id = s.lead_id
 JOIN job_items AS ji
   ON l.job_item_id=ji.id
-WHERE published_at >= '2020-07-29' AND
+WHERE published_at >= '2020-10-01' AND
       deleted = 0 AND
-      l.job_item_id IN (204642,204683,204658,204702,204648,204697,204669,204674,204676,204689,204661,204655,204681,204672,204654,204651,204659,204649,204667,204646,204684,204665,204677,204663,204664,204695,204660,204657,204644,204652,204687,204685,204666,204699,204668,204671,204645,204656,204679,204650,204698,204673,204682,204690,204691,204653,204696,204704,204700,204701,204675,204670,204678,204688,204692,204686,204680,204694,204643,204703,204693,204662,204647)
+      l.job_item_id IN (224715,224690,224701,224707,224801,224694,224705,224688,224693,224692,224696,224695,224721,224698,224697,224699,224712,224709,224710,224708,224713,224706,224691,224700,224702,224714,224716,224717,224718,224704,224719,224720,224711,224703,224729,224773,224770,224747,224753,224792,224733,224734,224798,224735,224736,224793,224795,224755,224780,224772,224797,224781,224750,224746,224774,224756,224748,224689,224740,224739,224742,224727,224744,224751,224754,224791,224782,224743,224749,224769,224758,224785,224759,224725,224786,224738,224724,224800,224784,224745,224726,224741,224777,224771,224757,224737,224730,224775,224794,224779,224760,224722,224790,224783,224761,224768,224723,224762,224728,224752,224763,224764,224789,224765,224766,224767,224731,224778,224799,224732,224787,224776,224788,224796)
 ORDER BY c.name;
 
 
