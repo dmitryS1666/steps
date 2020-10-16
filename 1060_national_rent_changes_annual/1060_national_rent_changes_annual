@@ -77,6 +77,12 @@ desc: National Rent - Rent Changes (Annual)
 
 config_id - population_config_id
 
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=963 --limit=5 --start_date='2020-10-16' --total_days_till_end_date=30 --where="month='March'"
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=963 --limit=5 --start_date='2020-11-01' --total_days_till_end_date=30 --where="month='April'"
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=963 --limit=5 --start_date='2020-11-15' --total_days_till_end_date=30 --where="month='May'"
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=963 --limit=5 --start_date='2020-11-25' --total_days_till_end_date=30 --where="month='June'"
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=963 --limit=5 --start_date='2020-12-10' --total_days_till_end_date=30 --where="month='July'"
+
 952 - 8/200/Aug 1
 bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=963 --limit=8 --start_date='2020-08-01' --total_days_till_end_date=200
 
@@ -94,8 +100,9 @@ ______________________________________
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=847 --population_config_id=963 --story_section_ids=2 --story_tag_ids=10 --photobuckets='High School Test' --job_item_name_description='National Rent - Rent Changes (Annual)' -t --prod --limit_config=1 --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=847 --population_config_id=963 --story_section_ids=16 --story_tag_ids=3 --photobuckets='High School Test' --job_item_name_description='National Rent - Rent Changes (Annual)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=847 --population_config_id=963 --story_section_ids=2 --story_tag_ids=3 --photobuckets='real estate' --job_item_name_description='National Rent - Rent Changes (Annual)' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=847 --population_config_id=963 --story_section_ids=16 --story_tag_ids=10 --photobuckets='real estate' --job_item_name_description='National Rent - Rent Changes (Annual)' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=847 --population_config_id=963 --story_section_ids='2,16' --story_tag_ids=10 --photobuckets='real estate' --job_item_name_description='National Rent - Rent Changes (Annual)' -t --prod --limit_config=1 --where="client_id = 91"
 
 ______________________________________
 
@@ -104,8 +111,9 @@ select * from story_export_configurations_v2 where tbl = 'national_rent_changes_
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=847 --population_config_id=963 --story_section_ids=2 --story_tag_ids=10 --photobuckets='High School Test' --job_item_name_description='National Rent - Rent Changes (Annual)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=847 --population_config_id=963 --story_section_ids=16 --story_tag_ids=3 --photobuckets='High School Test' --job_item_name_description='National Rent - Rent Changes (Annual)' -t --prod --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=847 --population_config_id=963 --story_section_ids=2 --story_tag_ids=3 --photobuckets='real estate' --job_item_name_description='National Rent - Rent Changes (Annual)' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=847 --population_config_id=963 --story_section_ids=16 --story_tag_ids=10 --photobuckets='real estate' --job_item_name_description='National Rent - Rent Changes (Annual)' -t --prod --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=847 --population_config_id=963 --story_section_ids='2,16' --story_tag_ids=10 --photobuckets='real estate' --job_item_name_description='National Rent - Rent Changes (Annual)' -t --prod --where="client_id = 91"
 _________
 повторяем
 
@@ -123,7 +131,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='348144'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='379305'
 
 _____
 IF OK
@@ -131,7 +139,7 @@ _____
 
 --threads_count=7 | 13140961 | 13140963
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='348144,348117,348134,348150,348132,348137,348168,348159,348139,348174,348158,348143,348153,348119,348127,348160,348129,348128,348146,348120,348176,348165,348140,348152,348126,348167,348164,348172,348175,348179,348163,348121,348169,348155,348131,348118,348125,348173,348130,348136,348162,348171,348122,348156,348142,348161,348154,348123,348148,348135,348141,348149,348170,348178,348157,348147,348124,348138,348177,348151,348133,348166,348145' --threads_count=7
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='379305,379304,379308,379316,379307,379337,379311,379322,379310,379320,379336,379330,379313,379312,379314,379321,379327,379324,379325,379323,379328,379306,379315,379317,379338,379303,379329,379331,379332,379318,379309,379333,379319,379334,379335,379326' --threads_count=7
 ___________________________
 
 
@@ -156,9 +164,9 @@ JOIN data_entry_leads AS l
   ON l.id = s.lead_id
 JOIN job_items AS ji
   ON l.job_item_id=ji.id
-WHERE published_at >= '2020-07-29' AND
+WHERE published_at >= '2020-10-01' AND
       deleted = 0 AND
-      l.job_item_id IN (...)
+      l.job_item_id IN (224918,224904,224910,224925,224897,224908,224888,224896,224895,224899,224898,224924,224901,224900,224902,224915,224912,224913,224911,224916,224909,224893,224903,224905,224917,224919,224920,224921,224907,224922,224923,224914,224906,224889,224892)
 ORDER BY c.name;
 
 
