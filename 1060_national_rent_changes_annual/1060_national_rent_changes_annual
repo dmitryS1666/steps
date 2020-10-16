@@ -137,6 +137,22 @@ _____
 IF OK
 _____
 
+SELECT headline, c.name AS publication, concat('https://pipeline.locallabs.com/stories/', s.id) AS url,
+       published_at, ji.name AS job_item, cc.name AS client
+FROM stories AS s
+         JOIN communities AS c
+              ON s.community_id = c.id
+         JOIN client_companies AS cc
+              ON c.client_company_id = cc.id
+         JOIN data_entry_leads AS l
+              ON l.id = s.lead_id
+         JOIN job_items AS ji
+              ON l.job_item_id=ji.id
+WHERE published_at >= '2020-09-29' AND
+        deleted = 0 AND
+        l.job_item_id IN (224918,224904,224910,224925,224897,224908,224888,224896,224895,224899,224898,224924,224901,224900,224902,224915,224912,224913,224911,224916,224909,224893,224903,224905,224917,224919,224920,224921,224907,224922,224923,224914,224906,224889,224892,224926)
+ORDER BY c.name;
+
 --threads_count=7 | 13140961 | 13140963
 
 bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='379305,379304,379308,379316,379307,379337,379311,379322,379310,379320,379336,379330,379313,379312,379314,379321,379327,379324,379325,379323,379328,379306,379315,379317,379338,379303,379329,379331,379332,379318,379309,379333,379319,379334,379335,379326' --threads_count=7
