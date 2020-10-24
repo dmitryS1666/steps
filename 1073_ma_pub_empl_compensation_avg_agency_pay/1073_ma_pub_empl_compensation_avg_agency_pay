@@ -1,0 +1,563 @@
+MA Public Employee Compensation - Average agency pay
+https://docs.google.com/document/d/1w-cn1oAEVB80KnjgDz_bej5X_WC_aP3awSShFg1Wvus/edit?usp=sharing
+
+@john.putz
+First Export. Approved by James and Aby Yusuf
+Dev Name: Dmitry S.
+Story type Name: #1073 MA Public Employee Compensation - Average agency pay
+FCD: https://docs.google.com/document/d/1FUx5L10KnITlFOlZB3a9r6WwqA_kMD1SXzG0u_GQuhY/edit#
+Sample story: https://pipeline-staging.locallabs.com/stories/511744931
+Period: Once
+Total Count:
+Max Project Count by client:
+MB -
+LGIS -
+_____________________________________________________
+
+STAGE TABLE DEFINITION
+insert into stage_definition_configurations (tbl, definition) select 'ma_pub_empl_compensation_avg_agency_pay_staging','{"department_division":"varchar(256)","avg":"varchar(30)","avg_total":"varchar(30)","top_employee":"varchar(30)","top_first_name":"varchar(30)","top_last_name":"varchar(30)","top_position_title":"varchar(30)","story_table":"longtext"}';
+
+
+#901
+
+STAGE TABLE CREATION
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=901 -t
+
+STAGE POPULATION CONFIGURATION
+insert into stage_population_configurations(project_name, tbl, definition) select 'MA Public Employee Compensation - Average agency pay', 'ma_pub_empl_compensation_avg_agency_pay_staging', '{"known_entities":{"project_name":"MA Public Employee Compensation - Average agency pay"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"s1073_ma_pub_empl_compensation_avg_agency_pay_population","arguments":{}}}}';
+
+population_config_id: #1003
+
+STAGE POPULATION:
+$ cd ~/Loki/procedures
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=1003 -t --slack_id=UKYAGBYC9
+
+
+STORY CREATOR CONFIGURATION:
+insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'ma_pub_empl_compensation_avg_agency_pay_staging', 's1073_ma_pub_empl_compensation_avg_agency_pay_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
+
+creation_config_id: #883
+
+STORY CREATION COMMAND:
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=883 -t --slack_id=UKYAGBYC9
+
+
+STAGING: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=883 --population_config_id=1003 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation - Average agency pay' -t --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=883 --population_config_id=1003 --story_section_ids=16 --story_tag_ids=8 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation - Average agency pay' -t --where="stage.client_name like 'MM - %'"
+
+
+STAGING: EXPORT STORIES
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids= --slack_id=UKYAGBYC9 --threads_count=15
+
+
+
+FIRST FEEDBACK
+________________________________________
+irb ->
+load 'Loki.rb'
+Hle::Story::Feedback.stories_feedback('511701546,511701553,511701552')
+
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511746508,511746510,511746506
+
+
+!!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
+________________________________________________________________________________________________________________________________________
+
+SCHEDULER:
+__________
+population_config_id: #1003
+creation_config_id: #883
+
+tbl: ma_pub_empl_compensation_avg_agency_pay_staging
+desc: MA Public Employee Compensation - Average agency pay
+
+config_id - population_config_id
+
+1076 -- 10/30/Oct 3 backdate the rest to Sept. 30
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=1003 --limit=10 --start_date='2020-10-03' --total_days_till_end_date=30
+
+__________________________________________________
+чтоб проверить шедулер, что он "окейно" отработал:
+
+select publication_name, min(publish_on), max(publish_on), count(*) from 'ma_pub_empl_compensation_avg_agency_pay_staging' group by publication_name;
+
+______________________________________
+PRODUCTION: STORY EXPORT CONFIGURATION
+см файл ‘annual sources and output’
+______________________________________
+
+--where="client_name like 'MM - %'"
+
+РАЗБИВКА ПО КЛИНЕТАМ!!!
+LGIS + MB
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=883 --population_config_id=1003 --story_section_ids=2 --story_tag_ids=126 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation - Average agency pay' -t --prod --limit_config=1 --where="client_id = 91"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=883 --population_config_id=1003 --story_section_ids=16 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation - Average agency pay' -t --prod --limit_config=1 --where="client_id = 120"
+
+______________________________________
+
+select * from story_export_configurations_v2 where tbl = 'ma_pub_empl_compensation_avg_agency_pay_staging' and export_name like '%production%' order by id DESC;
+
+______________________________________
+если все ок, то выполняем без --limit_config=1
+
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=883 --population_config_id=1003 --story_section_ids=2 --story_tag_ids=126 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation - Average agency pay' -t --prod --where="client_id = 91"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=883 --population_config_id=1003 --story_section_ids=16 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation - Average agency pay' -t --prod --where="client_id = 120"
+_________
+повторяем
+
+select * from story_export_configurations_v2 where tbl = 'ma_pub_empl_compensation_avg_agency_pay_staging' and export_name like '%production%' order by id DESC;
+
+
+______________________
+для построения таблицы
+______________________
+
+select s.client_name, s.publication_name, s.publication_id as project_id, ec.id as config_id, s.max_publish_on, s.total_stories from (select client_name, publication_name, publication_id, max(publish_on) as max_publish_on, count(*) as total_stories from ma_pub_empl_compensation_avg_agency_pay_staging group by publication_name) s join (select * from story_export_configurations_v2 where tbl ='ma_pub_empl_compensation_avg_agency_pay_staging' and export_name like '%production%') ec on ec.community_id = s.publication_id order by s.publication_name;
+
+
+__________________________
+PRODUCTION: EXPORT STORIES
+__________________________
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='372937'
+
+_____
+IF OK
+_____
+
+--threads_count=7 | 13140961 | 131401003
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='372937,372959,372958,3721003,372949,372941,372945,372950,372963,372934,372947,372953,372964,372951,372942,372952,372960,372940,372939,372936,372938,372956,372955,372962,372948,372933,372966,372943,372961,372954,372965,372967,372968,372935,372944,372946,372957' --threads_count=1 --slack_id=UKYAGBYC9
+___________________________
+
+
+ФИНАЛЬНАЯ ТАБЛИЦА ДЛЯ ДЖОНА
+___________________________
+
+SELECT CONVERT(GROUP_CONCAT(job_item_id SEPARATOR ',') USING utf8)
+FROM story_export_configurations_v2
+WHERE tbl = 'ma_pub_empl_compensation_avg_agency_pay_staging' AND
+      export_name LIKE '%production%';
+
+# pipeline-core-replica2.jnswire_prod query:
+
+SELECT headline, c.name AS publication, concat('https://pipeline.locallabs.com/stories/', s.id) AS url,
+       published_at, ji.name AS job_item, cc.name AS client
+FROM stories AS s
+JOIN communities AS c
+  ON s.community_id = c.id
+JOIN client_companies AS cc
+  ON c.client_company_id = cc.id
+JOIN data_entry_leads AS l
+  ON l.id = s.lead_id
+JOIN job_items AS ji
+  ON l.job_item_id=ji.id
+WHERE published_at >= '2020-07-29' AND
+      deleted = 0 AND
+      l.job_item_id IN (...)
+ORDER BY c.name;
+
+
+
+
+REMINDER TOOL
+___________________________
+
+INSERT INTO loki_storycreator.hle_reminders
+    (
+        hle_assignments_number, story_type_name, story_type_stage_table,
+        dev_name, slack_handle, dev_email,
+        story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
+        last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
+        data_source_checker_on, data_source_host, data_source_db, data_source_update_query
+    )
+VALUES
+    (
+        1076, 'MA Public Employee Compensation - Average agency pay', 'ma_pub_empl_compensation_avg_agency_pay_staging',
+        'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
+        'year', 1, 1, 'annually', 'The Dataset located on db06.voters_2016.census_details%',
+        '2020-07-11', 0, 0, 0, 20000, 'annually', 0,
+         1, 'db06','voters_2016', 'select date(max(postedTime)) date from usa_raw.census_details;'
+    );
+
+
+
+# Creator: Dmitry Suschinsky
+# Story type: MA Public Employee Compensation - Average agency pay
+# Template: https://docs.google.com/document/d/1zL21sYRjNEsmGoAibrDc_43zXS5oEmFjMhj4pEU3xOo/edit#
+# Created: October 2020
+
+# tbl: ma_pub_empl_compensation_avg_agency_pay_staging
+# db01.usa_raw.ma_public_employee_salaries
+# branch: ma_pub_empl_compensation_avg_agency_pay_d_sushi
+# ma_pub_empl_compensation_avg_agency_pay.rb
+
+def get_percentage_diff(data1, data2)
+  (((data1 - data2) / data1) * 100).abs.round(1)
+end
+
+def get_percentage_change(value1, value2)
+  return 'error' if value1.to_f.zero?
+
+  change = ((value2.to_f - value1.to_f) / value1.to_f.abs) * 100
+  return 0 if change.abs < 0.1
+
+  return change.round(1)
+end
+
+def get_percent(value, total)
+  if ((value.to_f * 100) / total.to_f).round(1) > 0.0
+    format_percentage(((value.to_f * 100) / total.to_f).round(1))
+  else
+    'less than 0.1'
+  end
+end
+
+def format_percentage(value, symbol = false)
+  value = "#{('%.1f' % value.to_f).to_s.sub(/\.0$/, '')}#{symbol ? '%' : ''}"
+  value = '-' if value.match(/NaN/)
+  value
+end
+
+def separate_comma(number)
+  whole, decimal = number.to_s.split(".")
+  whole_with_commas = whole.chars.to_a.reverse.each_slice(3).map(&:join).join(",").reverse
+  [whole_with_commas, decimal].compact.join(".")
+end
+
+def normalize_to_positive_percentage(value)
+  value = value.to_f * -1 if value.to_f < 0
+  value = "#{('%.1f' % value.to_f).to_s.sub(/\.0$/, '')}"
+end
+
+def escape(str)
+  str = str.to_s.strip.squeeze(' ')
+  return if str == ''
+
+  str.gsub("'","\\\\'").gsub('"',"\\\\\"")
+end
+
+def insert(db, tab, h, ignore = false, log=false)
+  query = "insert #{ignore ? 'ignore ' : ''}into #{tab} (#{h.keys.map{|e| "`#{e}`"}.join(', ')}) values (#{h.values.map{|e|"'#{escape(e)}'"}.join(', ')})"
+  p query if log
+  db.client.query(query)
+end
+
+def get_record_list(year)
+  route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+  route.client.query("use #{route.stage_db}")
+  query = <<~SQL
+    SELECT count(CASE WHEN pay_total_actual <= 10000 THEN 1 END) as count_less_10,
+                 count(CASE WHEN pay_total_actual BETWEEN 10000.01 AND 25000 THEN 1 END) as count_10_25,
+                 count(CASE WHEN pay_total_actual BETWEEN 25000.01 AND 50000 THEN 1 END) as count_25_50,
+                 count(CASE WHEN pay_total_actual BETWEEN 50000.01 AND 75000 THEN 1 END) as count_50_75,
+                 count(CASE WHEN pay_total_actual BETWEEN 75000.01 AND 100000 THEN 1 END) as count_75_100,
+                 count(CASE WHEN pay_total_actual > 100000 THEN 1 END) as more_than_100k,
+                 ma_total.total, ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division,
+                 ma_clean.pl_production_org_id AS org_id
+     FROM ma_public_employee_salaries AS ma
+     LEFT JOIN ma_public_employee_salaries_department_division_clean ma_clean
+            ON ma_clean.DEPARTMENT_DIVISION = ma.department_division
+     LEFT JOIN
+         (SELECT COUNT(*) AS total, department_division
+          FROM ma_public_employee_salaries
+          WHERE year = #{year} AND pay_total_actual > 1 GROUP BY department_division
+        ) ma_total
+           ON ma_total.department_division = ma.department_division
+     WHERE year = #{year} AND ma.pay_total_actual > 1
+     GROUP BY ma_clean.DEPARTMENT_DIVISION_CLEAN;
+  SQL
+  puts query
+  result = route.client.query(query).to_a
+  route.client.close
+  result
+end
+
+def get_table_records(year)
+  route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+  route.client.query("use #{route.stage_db}")
+  # query = <<~SQL
+  #   SELECT ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division, ma_max.max_salary AS salary
+  #   FROM ma_public_employee_salaries_department_division_clean AS ma_clean
+  #   INNER JOIN (SELECT department_division, MAX(pay_total_actual) AS max_salary
+  #               FROM ma_public_employee_salaries WHERE year = #{year}
+  #               GROUP BY department_division
+  #             ) ma_max
+  #   ON ma_clean.DEPARTMENT_DIVISION = ma_max.department_division
+  #   ORDER BY max_salary DESC;
+  # SQL
+  query = <<~SQL
+    SELECT CONCAT(ma.first_name, ' ', ma.last_name) AS employee, ma.pay_total_actual AS salary, ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division
+    FROM ma_public_employee_salaries ma
+         INNER JOIN (SELECT department_division, MAX(pay_total_actual) AS max_salary
+                     FROM ma_public_employee_salaries
+                     GROUP BY department_division
+         ) max_ma
+         ON ma.department_division = max_ma.department_division AND ma.pay_total_actual = max_ma.max_salary AND ma.year = #{year}
+        LEFT JOIN ma_public_employee_salaries_department_division_clean ma_clean ON ma_clean.DEPARTMENT_DIVISION = ma.department_division
+    ORDER BY ma.pay_total_actual DESC
+    LIMIT 100;
+  SQL
+  puts query
+  result = route.client.query(query).to_a
+  route.client.close
+  result
+end
+
+def get_max_employer(year, department_division)
+  route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+  route.client.query("use #{route.stage_db}")
+  query = <<~SQL
+    SELECT CONCAT(ma.first_name, ' ', ma.last_name) AS employer, ma.pay_total_actual AS max_pay_total_actual, ma.department_division
+    FROM ma_public_employee_salaries ma
+        INNER JOIN (SELECT department_division, MAX(pay_total_actual) AS max_salary
+                    FROM ma_public_employee_salaries
+                    GROUP BY department_division) max_ma
+        ON ma.department_division = max_ma.department_division AND ma.pay_total_actual = max_ma.max_salary AND ma.year = #{year}
+    WHERE ma.department_division LIKE '%#{department_division}%'
+    ORDER BY ma.pay_total_actual DESC;
+  SQL
+  puts query
+  result = route.client.query(query).to_a
+  route.client.close
+  result
+end
+
+def get_max_record(year)
+  route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+  route.client.query("use #{route.stage_db}")
+  query = <<~SQL
+    SELECT ma_clean.DEPARTMENT_DIVISION_CLEAN AS department, MAX(pay_total_actual) AS salary
+    FROM ma_public_employee_salaries ma
+             LEFT JOIN ma_public_employee_salaries_department_division_clean ma_clean
+                       ON ma_clean.DEPARTMENT_DIVISION = ma.department_division
+    WHERE year = #{year};
+  SQL
+  puts query
+  result = route.client.query(query).to_a
+  route.client.close
+  result
+end
+
+def table_from_data(records)
+  table = []
+  records.each do |rec|
+    puts 'rec: ', rec
+    table << {
+        :Department => rec['department_division'],
+        :Employee => rec['employee'],
+        :Salary => number_to_money(rec['salary'])
+    }
+  end
+  table
+end
+
+def number_to_money(value)
+  "#{Numbers.money(value.to_f.round).to_s.sub(/\.00$/, '')}"
+end
+
+def get_max(hash)
+  hash.each { |k, v| return k, v if v == hash.values.max }
+end
+
+def ma_pub_empl_compensation_avg_agency_pay_stage_population(line, argument)
+  begin
+    puts("\n!!!\nParameter year required \n!!!\n") unless (@options['year'])
+    return 'INVALID' unless @options['year']
+    year = @options['year']
+    return 'INVALID' unless year.to_s.match(/^\d{4}$/)
+
+    records = get_record_list(year)
+    table_records = get_table_records(year)
+    table = table_from_data(table_records)
+    employer = get_max_employer(year, table_records[0]['department_division'])
+
+    reasons = {
+        not_all_data: [],
+        publications: [],
+    }
+
+    require 'bigdecimal'
+    require 'bigdecimal/util'
+
+    threads_count = @options['threads_count'].to_i || 3
+
+    @semaphore = Mutex.new
+    threads = Array.new(threads_count) do
+      Thread.new do
+        delivery = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
+        delivery.client.query("use #{delivery.stage_db}")
+        thread_route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+        thread_route.client.query("use #{thread_route.stage_db}")
+        loop do
+          rec = nil
+          @semaphore.synchronize {
+            rec = records.pop
+          }
+          break if rec.class == NilClass
+
+          puts 'rec: ', rec
+          next if rec['org_id'] == nil
+          next if (rec['more_than_100k'] * 100 / rec['total'].to_f).abs.round(1) < 0.5
+
+          # Metro Business Network
+          # MM-Massachusetts
+          publications = []
+          publications << Hle::Publications.mm_pubs_excluding_states(rec['org_id'], 'production', 'Massachusetts')
+          publications << get_journal_from_org_id(rec['org_id'], 'production', 120) rescue nil
+
+          next if publications.empty?
+          publications.each do |publication|
+            hash = {}
+
+            if publication.empty? || publication[0].empty? || publication[0]['publication_name'].empty?
+              reasons[:publications] << "org_id: #{rec['org_id']} - Publication name is empty"
+              next
+            end
+            hash['publication_name'] = publication[0]['publication_name']
+
+            hash['publication_id'] = publication[0]['id'].to_i
+            hash['source_table_id'] = 21418
+
+            hash['organization_id'] = rec['org_id']
+            hash['client_id'] = publication[0]['client_id']
+            hash['client_name'] = publication[0]['client_name']
+
+            hash['department_division'] = rec['department_division']
+            hash['total'] = rec['total']
+            hash['more_than_100k'] = rec['more_than_100k']
+            hash['count_10_25'] = rec['count_10_25']
+            hash['count_25_50'] = rec['count_25_50']
+            hash['count_50_75'] = rec['count_50_75']
+            hash['count_75_100'] = rec['count_75_100']
+            hash['count_less_10'] = rec['count_less_10']
+            hash['max_department'] = table_records[0]['department_division']
+            hash['max_amount'] = table_records[0]['salary']
+            hash['max_employer'] = employer[0]['employer']
+            hash['year'] = year
+
+            hash['story_table'] = table.to_json
+
+            puts ' HASH'.red.on_cyan
+            puts JSON.pretty_generate(hash).cyan
+            insert(delivery, @config['target_table'], hash, true)
+          end
+        end
+      rescue => e
+        print "#{e.to_s} ~> #{e.backtrace.join("\n")}\n"
+      ensure
+        delivery.client.close
+        thread_route.client.close
+      end
+    end
+    threads.each(&:join)
+    'INVALID'
+  end
+end
+
+def ma_pub_empl_compensation_avg_agency_pay_stage_creation(options, mail_sender = false)
+  total = @stage_selection.count
+
+  @stage_selection.each_with_index do |stage, index|
+    p "\r#{index + 1}/#{total}: \n"
+    export = {}
+
+    table = JSON.parse(stage['story_table'])
+    table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
+
+    agency_name = stage['department_division']
+    if agency_name.scan(/\(\w+\)/)[0]
+      substring = agency_name.scan(/\(\w+\)/)[0].gsub(/\(|\)/, '')
+      agency_name = agency_name.gsub(agency_name.scan(/\(\w+\)/)[0], substring.slice(0,1).capitalize + substring.slice(1..-1))
+    end
+
+    year = stage['year']
+    max_amount = number_to_money(stage['max_amount'])
+    max_department = stage['max_department']
+    max_employer = stage['max_employer']
+
+    total = stage['total'].to_i
+    more_than_100k = stage['more_than_100k'].to_i
+
+    percent = (more_than_100k * 100 / total.to_f).abs.round(1)
+    parts = percent.to_s.split(".")
+    percent = parts[1] == "0" ? percent.to_i : percent
+
+    more_than_100k = stage['more_than_100k']
+    count_10_25 = stage['count_10_25']
+    count_25_50 = stage['count_25_50']
+    count_50_75 = stage['count_50_75']
+    count_75_100 = stage['count_75_100']
+    count_less_10 = stage['count_less_10']
+
+    hash = {count_10_25: count_10_25, count_25_50: count_25_50, count_50_75: count_50_75, count_75_100: count_75_100, count_less_10: count_less_10, more_than_100k: more_than_100k}
+    made_between = get_max(hash)
+
+    case made_between[0]
+    when :count_10_25
+      made_between_str = "between $10,000-$25,000"
+      more_than_2nd = made_between[1]
+    when :count_25_50
+      made_between_str = "between $25,000-$50,000"
+      more_than_2nd = made_between[1]
+    when :count_50_75
+      made_between_str = "between $50,000-$75,000"
+      more_than_2nd = made_between[1]
+    when :count_75_100
+      made_between_str = "between $75,000-$100,000"
+      more_than_2nd = made_between[1]
+    when :count_less_10
+      made_between_str = "less than $10,000"
+      more_than_2nd = made_between[1]
+    when :more_than_100k
+      made_between_str = "more than $100,000"
+      more_than_2nd = made_between[1]
+    else
+      made_between_str = "---"
+    end
+
+    percent_2nd = (more_than_2nd * 100 / total.to_f).abs.round(1)
+    parts_2nd = percent_2nd.to_s.split(".")
+    percent_2nd = parts_2nd[1] == "0" ? percent_2nd.to_i : percent_2nd
+
+    # second_sentence = made_between[0] != :more_than_100k ? " Most employees at #{agency_name} made #{made_between_str}." : ""
+    second_sentence = made_between[0] != :more_than_100k ? "#{percent_2nd} percent of employees at #{agency_name} made #{made_between_str}." : ""
+
+    if agency_name.include?('College') || agency_name.include?('University')
+      agency_name = "at #{agency_name}"
+    elsif agency_name.include? 'Attorney'
+      agency_name = "at the #{agency_name.gsub('Attorney', 'Attorney\'s Office')}"
+    else
+      agency_name = "at the #{agency_name}"
+    end
+
+    headline = <<~HEADLINE.chomp
+      #{percent}% of employees #{agency_name} made more than $100,000 in #{year}
+    HEADLINE
+
+    percent_str = Numbers.num_to_words(percent).class.name == 'String' ? Numbers.num_to_words(percent).capitalize : Numbers.num_to_words(percent)
+
+    teaser = <<~TEASER.chomp
+      #{percent_str} percent of employees #{agency_name} made more than $100,000 in #{year}
+    TEASER
+
+    export['headline'] = headline.squeeze(' ').strip
+
+    export['teaser'] = "#{teaser}.".squeeze(' ')
+
+    output = <<~HEREDOC
+      #{teaser}, according to <a href='https://cthru.data.socrata.com/dataset/Commonwealth-Of-Massachusetts-Payrollv2/rxhc-k6iz'>CTHRU</a>. That’s #{more_than_100k} of employees out of #{total}.\n
+      #{second_sentence}\n
+      The national median hourly wage is $19.14 according to the most recent data from the <a href='https://www.bls.gov/oes/current/oes_nat.htm#00-0000'>Bureau of Labor Statistics</a>. According to the <a href='https://data.oecd.org/earnwage/average-wages.htm#indicator-chart'>OECD</a>, the average yearly wage in the US is more than $60,000.\n
+      The employee with the highest salary in #{year} was #{max_employer} at the #{max_department} earning #{max_amount}.\n
+    HEREDOC
+
+    output << "<div style=\"font-size:18px\"><strong>Top Salaries By Department</strong></div>"
+    output << table
+
+    export = prepare_output(stage, output.squeeze(' '), export, options)
+  end
+end

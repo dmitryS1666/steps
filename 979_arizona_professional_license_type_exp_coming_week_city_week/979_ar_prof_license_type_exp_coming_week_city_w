@@ -129,7 +129,7 @@ _____
 
 --threads_count=7 | 13140961 | 13140960
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='369694,369703,369701,369704,369705,369702,369695,369696,369699,369700,369706,369698,369707,369697' --threads_count=7
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='369694,369703,369701,369704,369705,369702,369695,369696,369699,369700,369706,369698,369707,369697,379564,379565' --threads_count=7
 ___________________________
 
 
