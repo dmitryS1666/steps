@@ -80,6 +80,8 @@ config_id - population_config_id
 
 976 -- 20/10/Sept 20
 bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=905 --limit=20 --start_date='2020-09-20' --total_days_till_end_date=10
+976 -- 10/30/Oct. 29
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=905 --limit=10 --start_date='2020-10-29' --total_days_till_end_date=30
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
