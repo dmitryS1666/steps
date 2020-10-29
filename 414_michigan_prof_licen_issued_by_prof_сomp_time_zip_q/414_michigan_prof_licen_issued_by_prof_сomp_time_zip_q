@@ -1,3 +1,15 @@
+@john.putz
+Follow-up Export
+Dev Name: Dmitry S.
+Story type Name: #414 Michigan - Professional Licenses Issued By Profession Compared to same time LY (Zip - QUARTER)
+FCD: https://docs.google.com/document/d/1qXPRXMPyanyxSodLJzztAL-ZJr2TazDdhhAXQ4EcWH0/edit#
+Sample story: https://pipeline-staging.locallabs.com/stories/511661949
+Period: Q3 2020
+Total Count: 315
+Max Project Count by client:
+MB - 196
+MM - 76
+
 STAGE TABLE DEFINITION
 insert into stage_definition_configurations (tbl, definition) select 'michigan_prof_licen_issued_by_prof_comp_time_zip_q_staging', '{"client_id":"int","client_name":"varchar(255)","publication_id":"int","publication_name":"varchar(255)","organization_id":"bigint(20)","zip":"varchar(255)","profession":"varchar(512)","quarter":"varchar(255)","quarter_val":"int(11)","quarter_val_last_year":"int(11)","table":"longtext"}';
 
@@ -14,7 +26,7 @@ population_config_id: #535
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=535 -t --number_quarter=2
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=535 -t --number_quarter=2 --slack_id=UKYAGBYC9
 
 
 STORY CREATOR CONFIGURATION:
@@ -23,7 +35,7 @@ insert into storycreator_configurations (tbl, template, extension, export_argume
 creation_config_id: #416
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=416 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=416 -t --slack_id=UKYAGBYC9
 
 
 STAGING: STORY EXPORT CONFIGURATION
@@ -33,7 +45,7 @@ bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=416 --popul
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='188361,188363,188364'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='188361,188363,188364' --slack_id=UKYAGBYC9
 
 
 
@@ -111,7 +123,7 @@ _____
 IF OK
 _____
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='205845,205807,205838,205847,205869,205818,205857,205834,205820,205843,205852,205860,205851,205826,205854,205825,205862,205835,205814,205811,205829,205861,205846,205828,205822,205858,205859,205832,205842,205823,205819,205812,205830,205815,205866,205840,205871,205831,205839,205837,205806,205850,205821,205824,205849,205856,205810,205833,205841,205809,205870,205868,205848,205865,205863,205872,205827,205816,205853,205855,205864,205817,205808,205836,205867,205844,205813' --threads_count=7
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='205845,205807,205838,205847,205869,205818,205857,205834,205820,205843,205852,205860,205851,205826,205854,205825,205862,205835,205814,205811,205829,205861,205846,205828,205822,205858,205859,205832,205842,205823,205819,205812,205830,205815,205866,205840,205871,205831,205839,205837,205806,205850,205821,205824,205849,205856,205810,205833,205841,205809,205870,205868,205848,205865,205863,205872,205827,205816,205853,205855,205864,205817,205808,205836,205867,205844,205813'  --slack_id=UKYAGBYC9 --threads_count=7
 ___________________________
 
 
