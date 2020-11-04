@@ -76,8 +76,9 @@ desc: MA Public Employee Compensation - Average agency pay
 
 config_id - population_config_id
 
-1076 -- 10/30/Oct 3 backdate the rest to Sept. 30
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=1003 --limit=10 --start_date='2020-10-03' --total_days_till_end_date=30
+
+1073 -- 2/90/Nov 4
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=1003 --limit=2 --start_date='2020-11-04' --total_days_till_end_date=90
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -92,9 +93,9 @@ ______________________________________
 --where="client_name like 'MM - %'"
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-LGIS + MB
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=883 --population_config_id=1003 --story_section_ids=2 --story_tag_ids=126 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation - Average agency pay' -t --prod --limit_config=1 --where="client_id = 91"
+MB + MM
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=883 --population_config_id=1003 --story_section_ids=16 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation - Average agency pay' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=883 --population_config_id=1003 --story_section_ids=2 --story_tag_ids=8 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation - Average agency pay' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
@@ -103,8 +104,8 @@ select * from story_export_configurations_v2 where tbl = 'ma_pub_empl_compensati
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=883 --population_config_id=1003 --story_section_ids=2 --story_tag_ids=126 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation - Average agency pay' -t --prod --where="client_id = 91"
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=883 --population_config_id=1003 --story_section_ids=16 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation - Average agency pay' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=883 --population_config_id=1003 --story_section_ids=2 --story_tag_ids=8 --photobuckets='Economy' --job_item_name_description='MA Public Employee Compensation - Average agency pay' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
 
@@ -130,7 +131,7 @@ _____
 
 --threads_count=7 | 13140961 | 131401003
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='372937,372959,372958,3721003,372949,372941,372945,372950,372963,372934,372947,372953,372964,372951,372942,372952,372960,372940,372939,372936,372938,372956,372955,372962,372948,372933,372966,372943,372961,372954,372965,372967,372968,372935,372944,372946,372957' --threads_count=1 --slack_id=UKYAGBYC9
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='379826,379829,379831,379825,379836,379832,379830,379835,379833,379837,379828,379834,379827' --threads_count=5 --slack_id=UKYAGBYC9
 ___________________________
 
 
@@ -155,9 +156,9 @@ JOIN data_entry_leads AS l
   ON l.id = s.lead_id
 JOIN job_items AS ji
   ON l.job_item_id=ji.id
-WHERE published_at >= '2020-07-29' AND
+WHERE published_at >= '2020-11-02' AND
       deleted = 0 AND
-      l.job_item_id IN (...)
+      l.job_item_id IN (225508,225517,225510,225518,225513,225520,225519,225515,225512,225511,225514,225509,225516)
 ORDER BY c.name;
 
 
@@ -167,21 +168,21 @@ REMINDER TOOL
 ___________________________
 
 INSERT INTO loki_storycreator.hle_reminders
-    (
-        hle_assignments_number, story_type_name, story_type_stage_table,
-        dev_name, slack_handle, dev_email,
-        story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
-        last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
-        data_source_checker_on, data_source_host, data_source_db, data_source_update_query
-    )
+(
+    hle_assignments_number, story_type_name, story_type_stage_table,
+    dev_name, slack_handle, dev_email,
+    story_frequency, reminders_on, manual_export_required, reminder_frequency, reminder_message,
+    last_manual_export, manual_export_blocked, on_cron, warnings_on, warning_count_min, warning_frequency, warning_fix_blocked,
+    data_source_checker_on, data_source_host, data_source_db, data_source_update_query
+)
 VALUES
-    (
-        1076, 'MA Public Employee Compensation - Average agency pay', 'ma_pub_empl_compensation_avg_agency_pay_staging',
-        'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
-        'year', 1, 1, 'annually', 'The Dataset located on db06.voters_2016.census_details%',
-        '2020-07-11', 0, 0, 0, 20000, 'annually', 0,
-         1, 'db06','voters_2016', 'select date(max(postedTime)) date from usa_raw.census_details;'
-    );
+(
+    1073, 'MA Public Employee Compensation - Average agency pay', 'ma_pub_empl_compensation_avg_agency_pay_staging',
+    'Dmitiry Suschinsky', '@dmitiry.suschinsky', 'dsuschinsky@gmail.com',
+    'year', 1, 1, 'annually', 'The Dataset located on db01.usa_raw.ma_public_employee_salaries%',
+    '2020-11-02', 0, 0, 0, 20000, 'annually', 0,
+    1, 'db01','usa_raw', 'select date(max(postedTime)) date from usa_raw.ma_public_employee_salaries;'
+);
 
 
 
