@@ -188,275 +188,64 @@ VALUES
 
 # Creator: Dmitry Suschinsky
 # Story type: MA Public Employee Compensation - Average agency pay
-# Template: https://docs.google.com/document/d/1zL21sYRjNEsmGoAibrDc_43zXS5oEmFjMhj4pEU3xOo/edit#
+# Template: https://docs.google.com/document/d/1w-cn1oAEVB80KnjgDz_bej5X_WC_aP3awSShFg1Wvus/edit?usp=sharing
 # Created: October 2020
 
 # tbl: ma_pub_empl_compensation_avg_agency_pay_staging
 # db01.usa_raw.ma_public_employee_salaries
-# branch: ma_pub_empl_compensation_avg_agency_pay_d_sushi
-# ma_pub_empl_compensation_avg_agency_pay.rb
-
-def get_percentage_diff(data1, data2)
-  (((data1 - data2) / data1) * 100).abs.round(1)
-end
-
-def get_percentage_change(value1, value2)
-  return 'error' if value1.to_f.zero?
-
-  change = ((value2.to_f - value1.to_f) / value1.to_f.abs) * 100
-  return 0 if change.abs < 0.1
-
-  return change.round(1)
-end
-
-def get_percent(value, total)
-  if ((value.to_f * 100) / total.to_f).round(1) > 0.0
-    format_percentage(((value.to_f * 100) / total.to_f).round(1))
-  else
-    'less than 0.1'
-  end
-end
-
-def format_percentage(value, symbol = false)
-  value = "#{('%.1f' % value.to_f).to_s.sub(/\.0$/, '')}#{symbol ? '%' : ''}"
-  value = '-' if value.match(/NaN/)
-  value
-end
-
-def separate_comma(number)
-  whole, decimal = number.to_s.split(".")
-  whole_with_commas = whole.chars.to_a.reverse.each_slice(3).map(&:join).join(",").reverse
-  [whole_with_commas, decimal].compact.join(".")
-end
-
-def normalize_to_positive_percentage(value)
-  value = value.to_f * -1 if value.to_f < 0
-  value = "#{('%.1f' % value.to_f).to_s.sub(/\.0$/, '')}"
-end
-
-def escape(str)
-  str = str.to_s.strip.squeeze(' ')
-  return if str == ''
-
-  str.gsub("'","\\\\'").gsub('"',"\\\\\"")
-end
-
-def insert(db, tab, h, ignore = false, log=false)
-  query = "insert #{ignore ? 'ignore ' : ''}into #{tab} (#{h.keys.map{|e| "`#{e}`"}.join(', ')}) values (#{h.values.map{|e|"'#{escape(e)}'"}.join(', ')})"
-  p query if log
-  db.client.query(query)
-end
-
-def get_record_list(year)
-  route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
-  route.client.query("use #{route.stage_db}")
-  query = <<~SQL
-    SELECT count(CASE WHEN pay_total_actual <= 10000 THEN 1 END) as count_less_10,
-                 count(CASE WHEN pay_total_actual BETWEEN 10000.01 AND 25000 THEN 1 END) as count_10_25,
-                 count(CASE WHEN pay_total_actual BETWEEN 25000.01 AND 50000 THEN 1 END) as count_25_50,
-                 count(CASE WHEN pay_total_actual BETWEEN 50000.01 AND 75000 THEN 1 END) as count_50_75,
-                 count(CASE WHEN pay_total_actual BETWEEN 75000.01 AND 100000 THEN 1 END) as count_75_100,
-                 count(CASE WHEN pay_total_actual > 100000 THEN 1 END) as more_than_100k,
-                 ma_total.total, ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division,
-                 ma_clean.pl_production_org_id AS org_id
-     FROM ma_public_employee_salaries AS ma
-     LEFT JOIN ma_public_employee_salaries_department_division_clean ma_clean
-            ON ma_clean.DEPARTMENT_DIVISION = ma.department_division
-     LEFT JOIN
-         (SELECT COUNT(*) AS total, department_division
-          FROM ma_public_employee_salaries
-          WHERE year = #{year} AND pay_total_actual > 1 GROUP BY department_division
-        ) ma_total
-           ON ma_total.department_division = ma.department_division
-     WHERE year = #{year} AND ma.pay_total_actual > 1
-     GROUP BY ma_clean.DEPARTMENT_DIVISION_CLEAN;
-  SQL
-  puts query
-  result = route.client.query(query).to_a
-  route.client.close
-  result
-end
-
-def get_table_records(year)
-  route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
-  route.client.query("use #{route.stage_db}")
-  # query = <<~SQL
-  #   SELECT ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division, ma_max.max_salary AS salary
-  #   FROM ma_public_employee_salaries_department_division_clean AS ma_clean
-  #   INNER JOIN (SELECT department_division, MAX(pay_total_actual) AS max_salary
-  #               FROM ma_public_employee_salaries WHERE year = #{year}
-  #               GROUP BY department_division
-  #             ) ma_max
-  #   ON ma_clean.DEPARTMENT_DIVISION = ma_max.department_division
-  #   ORDER BY max_salary DESC;
-  # SQL
-  query = <<~SQL
-    SELECT CONCAT(ma.first_name, ' ', ma.last_name) AS employee, ma.pay_total_actual AS salary, ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division
-    FROM ma_public_employee_salaries ma
-         INNER JOIN (SELECT department_division, MAX(pay_total_actual) AS max_salary
-                     FROM ma_public_employee_salaries
-                     GROUP BY department_division
-         ) max_ma
-         ON ma.department_division = max_ma.department_division AND ma.pay_total_actual = max_ma.max_salary AND ma.year = #{year}
-        LEFT JOIN ma_public_employee_salaries_department_division_clean ma_clean ON ma_clean.DEPARTMENT_DIVISION = ma.department_division
-    ORDER BY ma.pay_total_actual DESC
-    LIMIT 100;
-  SQL
-  puts query
-  result = route.client.query(query).to_a
-  route.client.close
-  result
-end
-
-def get_max_employer(year, department_division)
-  route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
-  route.client.query("use #{route.stage_db}")
-  query = <<~SQL
-    SELECT CONCAT(ma.first_name, ' ', ma.last_name) AS employer, ma.pay_total_actual AS max_pay_total_actual, ma.department_division
-    FROM ma_public_employee_salaries ma
-        INNER JOIN (SELECT department_division, MAX(pay_total_actual) AS max_salary
-                    FROM ma_public_employee_salaries
-                    GROUP BY department_division) max_ma
-        ON ma.department_division = max_ma.department_division AND ma.pay_total_actual = max_ma.max_salary AND ma.year = #{year}
-    WHERE ma.department_division LIKE '%#{department_division}%'
-    ORDER BY ma.pay_total_actual DESC;
-  SQL
-  puts query
-  result = route.client.query(query).to_a
-  route.client.close
-  result
-end
-
-def get_max_record(year)
-  route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
-  route.client.query("use #{route.stage_db}")
-  query = <<~SQL
-    SELECT ma_clean.DEPARTMENT_DIVISION_CLEAN AS department, MAX(pay_total_actual) AS salary
-    FROM ma_public_employee_salaries ma
-             LEFT JOIN ma_public_employee_salaries_department_division_clean ma_clean
-                       ON ma_clean.DEPARTMENT_DIVISION = ma.department_division
-    WHERE year = #{year};
-  SQL
-  puts query
-  result = route.client.query(query).to_a
-  route.client.close
-  result
-end
-
-def table_from_data(records)
-  table = []
-  records.each do |rec|
-    puts 'rec: ', rec
-    table << {
-        :Department => rec['department_division'],
-        :Employee => rec['employee'],
-        :Salary => number_to_money(rec['salary'])
-    }
-  end
-  table
-end
-
-def number_to_money(value)
-  "#{Numbers.money(value.to_f.round).to_s.sub(/\.00$/, '')}"
-end
-
-def get_max(hash)
-  hash.each { |k, v| return k, v if v == hash.values.max }
-end
+# branch: s1073_ma_pub_empl_compensation_avg_agency_pay_d_sushi
+# s1073_ma_pub_empl_compensation_avg_agency_pay.rb
 
 def ma_pub_empl_compensation_avg_agency_pay_stage_population(line, argument)
-  begin
-    puts("\n!!!\nParameter year required \n!!!\n") unless (@options['year'])
-    return 'INVALID' unless @options['year']
-    year = @options['year']
-    return 'INVALID' unless year.to_s.match(/^\d{4}$/)
+  counter     = 0
+  mb_id       = 120
+  environment = 'production'
+  records = source_query
+  records.each_with_index do |rec, rec_num|
+    puts 'rec: ', rec
+    next if rec[:org_id] == nil
 
-    records = get_record_list(year)
-    table_records = get_table_records(year)
-    table = table_from_data(table_records)
-    employer = get_max_employer(year, table_records[0]['department_division'])
+    # Metro Business Network
+    # MM-Massachusetts
+    mm_pubs = Hle::Publications.mm_pubs_excluding_states(rec[:org_id], environment, 'Massachusetts')
+    mb_pubs = get_journal_from_org_id(rec[:org_id], environment, mb_id)
+    publications = mb_pubs + mm_pubs
+    publications.each_with_index do |publication, pub_num|
+      publication.transform_keys!(&:to_sym)
+      puts "#{rec_num * publications.size + pub_num + 1}/#{records.size * publications.size}".yellow
 
-    reasons = {
-        not_all_data: [],
-        publications: [],
-    }
+      host = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
+      h    = {}
 
-    require 'bigdecimal'
-    require 'bigdecimal/util'
+      h['organization_id']           = rec[:org_id]
+      h['publication_id']            = publication[:id].to_i
+      h['publication_name']          = publication[:publication_name]
+      h['client_id']                 = publication[:client_id]
+      h['client_name']               = publication[:client_name]
+      h['source_table_id']           = 21418
 
-    threads_count = @options['threads_count'].to_i || 3
+      h['department_division']     = rec[:department_division]
+      h['avg']                     = rec[:avg]
+      h['avg_total']               = rec[:avg_total]
+      h['top_employee']            = rec[:top_employee]
+      h['top_first_name']          = rec[:top_first_name]
+      h['top_last_name']           = rec[:top_last_name]
+      h['top_position_title']      = rec[:top_position_title]
+      h['story_table']             = rec[:table].to_json
 
-    @semaphore = Mutex.new
-    threads = Array.new(threads_count) do
-      Thread.new do
-        delivery = Route_noprefix.new(host: DB02, stage_db: 'loki_storycreator')
-        delivery.client.query("use #{delivery.stage_db}")
-        thread_route = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
-        thread_route.client.query("use #{thread_route.stage_db}")
-        loop do
-          rec = nil
-          @semaphore.synchronize {
-            rec = records.pop
-          }
-          break if rec.class == NilClass
+      h.transform_keys!(&:to_s)
+      rules = insert_ignore_rules(h.escaped)
+      query = "INSERT IGNORE INTO #{host.stage_db}.#{@config['target_table']}#{rules}"
 
-          puts 'rec: ', rec
-          next if rec['org_id'] == nil
-          next if (rec['more_than_100k'] * 100 / rec['total'].to_f).abs.round(1) < 0.5
-
-          # Metro Business Network
-          # MM-Massachusetts
-          publications = []
-          publications << Hle::Publications.mm_pubs_excluding_states(rec['org_id'], 'production', 'Massachusetts')
-          publications << get_journal_from_org_id(rec['org_id'], 'production', 120) rescue nil
-
-          next if publications.empty?
-          publications.each do |publication|
-            hash = {}
-
-            if publication.empty? || publication[0].empty? || publication[0]['publication_name'].empty?
-              reasons[:publications] << "org_id: #{rec['org_id']} - Publication name is empty"
-              next
-            end
-            hash['publication_name'] = publication[0]['publication_name']
-
-            hash['publication_id'] = publication[0]['id'].to_i
-            hash['source_table_id'] = 21418
-
-            hash['organization_id'] = rec['org_id']
-            hash['client_id'] = publication[0]['client_id']
-            hash['client_name'] = publication[0]['client_name']
-
-            hash['department_division'] = rec['department_division']
-            hash['total'] = rec['total']
-            hash['more_than_100k'] = rec['more_than_100k']
-            hash['count_10_25'] = rec['count_10_25']
-            hash['count_25_50'] = rec['count_25_50']
-            hash['count_50_75'] = rec['count_50_75']
-            hash['count_75_100'] = rec['count_75_100']
-            hash['count_less_10'] = rec['count_less_10']
-            hash['max_department'] = table_records[0]['department_division']
-            hash['max_amount'] = table_records[0]['salary']
-            hash['max_employer'] = employer[0]['employer']
-            hash['year'] = year
-
-            hash['story_table'] = table.to_json
-
-            puts ' HASH'.red.on_cyan
-            puts JSON.pretty_generate(hash).cyan
-            insert(delivery, @config['target_table'], hash, true)
-          end
-        end
-      rescue => e
-        print "#{e.to_s} ~> #{e.backtrace.join("\n")}\n"
-      ensure
-        delivery.client.close
-        thread_route.client.close
-      end
+      host.client.query(query)
+      host.client.close
+      counter += 1
     end
-    threads.each(&:join)
-    'INVALID'
   end
+  puts "Source size: #{records.length}"
+  puts "Counter:     #{counter}"
+
+  'INVALID'
 end
 
 def ma_pub_empl_compensation_avg_agency_pay_stage_creation(options, mail_sender = false)
@@ -466,99 +255,137 @@ def ma_pub_empl_compensation_avg_agency_pay_stage_creation(options, mail_sender 
     p "\r#{index + 1}/#{total}: \n"
     export = {}
 
-    table = JSON.parse(stage['story_table'])
-    table = "#{graph_from_json(table.to_json)}" unless table.eql?([])
+    table = StoryTable.new.from_json(stage['story_table']).to_html
 
-    agency_name = stage['department_division']
-    if agency_name.scan(/\(\w+\)/)[0]
-      substring = agency_name.scan(/\(\w+\)/)[0].gsub(/\(|\)/, '')
-      agency_name = agency_name.gsub(agency_name.scan(/\(\w+\)/)[0], substring.slice(0,1).capitalize + substring.slice(1..-1))
-    end
-
-    year = stage['year']
-    max_amount = number_to_money(stage['max_amount'])
-    max_department = stage['max_department']
-    max_employer = stage['max_employer']
-
-    total = stage['total'].to_i
-    more_than_100k = stage['more_than_100k'].to_i
-
-    percent = (more_than_100k * 100 / total.to_f).abs.round(1)
-    parts = percent.to_s.split(".")
-    percent = parts[1] == "0" ? percent.to_i : percent
-
-    more_than_100k = stage['more_than_100k']
-    count_10_25 = stage['count_10_25']
-    count_25_50 = stage['count_25_50']
-    count_50_75 = stage['count_50_75']
-    count_75_100 = stage['count_75_100']
-    count_less_10 = stage['count_less_10']
-
-    hash = {count_10_25: count_10_25, count_25_50: count_25_50, count_50_75: count_50_75, count_75_100: count_75_100, count_less_10: count_less_10, more_than_100k: more_than_100k}
-    made_between = get_max(hash)
-
-    case made_between[0]
-    when :count_10_25
-      made_between_str = "between $10,000-$25,000"
-      more_than_2nd = made_between[1]
-    when :count_25_50
-      made_between_str = "between $25,000-$50,000"
-      more_than_2nd = made_between[1]
-    when :count_50_75
-      made_between_str = "between $50,000-$75,000"
-      more_than_2nd = made_between[1]
-    when :count_75_100
-      made_between_str = "between $75,000-$100,000"
-      more_than_2nd = made_between[1]
-    when :count_less_10
-      made_between_str = "less than $10,000"
-      more_than_2nd = made_between[1]
-    when :more_than_100k
-      made_between_str = "more than $100,000"
-      more_than_2nd = made_between[1]
-    else
-      made_between_str = "---"
-    end
-
-    percent_2nd = (more_than_2nd * 100 / total.to_f).abs.round(1)
-    parts_2nd = percent_2nd.to_s.split(".")
-    percent_2nd = parts_2nd[1] == "0" ? percent_2nd.to_i : percent_2nd
-
-    # second_sentence = made_between[0] != :more_than_100k ? " Most employees at #{agency_name} made #{made_between_str}." : ""
-    second_sentence = made_between[0] != :more_than_100k ? "#{percent_2nd} percent of employees at #{agency_name} made #{made_between_str}." : ""
+    avg                     = stage['avg']
+    avg_total               = stage['avg_total']
+    top_employee            = stage['top_employee']
+    top_first_name          = stage['top_first_name']
+    top_last_name           = stage['top_last_name']
+    top_position_title      = stage['top_position_title']
+    agency_name             = stage['department_division']
+    year = 2019
 
     if agency_name.include?('College') || agency_name.include?('University')
-      agency_name = "at #{agency_name}"
+      agency_name_str = "at #{agency_name}"
     elsif agency_name.include? 'Attorney'
-      agency_name = "at the #{agency_name.gsub('Attorney', 'Attorney\'s Office')}"
+      agency_name_srt = "at the #{agency_name.gsub('Attorney', 'Attorney\'s Office')}"
     else
-      agency_name = "at the #{agency_name}"
+      agency_name_str = "at the #{agency_name}"
     end
 
-    headline = <<~HEADLINE.chomp
-      #{percent}% of employees #{agency_name} made more than $100,000 in #{year}
-    HEADLINE
+    avg_num = avg.gsub('$','').gsub(',','').to_i
+    avg_total_num = avg_total.gsub('$','').gsub(',','').to_i
 
-    percent_str = Numbers.num_to_words(percent).class.name == 'String' ? Numbers.num_to_words(percent).capitalize : Numbers.num_to_words(percent)
+    if avg_num > avg_total_num
+      more_less_same = 'more'
+    elsif avg_num < avg_total_num
+      more_less_same = 'less'
+    else
+      more_less_same = 'same'
+    end
 
-    teaser = <<~TEASER.chomp
-      #{percent_str} percent of employees #{agency_name} made more than $100,000 in #{year}
+    export = {}
+    export['headline'] = <<~HEADER.squeeze(' ').chomp
+      The average worker earned #{avg} at the #{agency_name} during #{year}
+    HEADER
+    export['teaser'] = <<~TEASER.squeeze(' ').chomp
+      The average worker earns #{avg} at the #{agency_name} during #{year}
     TEASER
 
-    export['headline'] = headline.squeeze(' ').strip
-
-    export['teaser'] = "#{teaser}.".squeeze(' ')
-
-    output = <<~HEREDOC
-      #{teaser}, according to <a href='https://cthru.data.socrata.com/dataset/Commonwealth-Of-Massachusetts-Payrollv2/rxhc-k6iz'>CTHRU</a>. That’s #{more_than_100k} of employees out of #{total}.\n
-      #{second_sentence}\n
+    output = <<~BODY.squeeze(' ').chomp
+      The average worker earns #{avg} at the #{agency_name} during #{year}, this is #{more_less_same} than the public employee average of #{avg_total}, according to <a href='https://cthru.data.socrata.com/dataset/Commonwealth-Of-Massachusetts-Payrollv2/rxhc-k6iz'>CTHRU</a>.\n
       The national median hourly wage is $19.14 according to the most recent data from the <a href='https://www.bls.gov/oes/current/oes_nat.htm#00-0000'>Bureau of Labor Statistics</a>. According to the <a href='https://data.oecd.org/earnwage/average-wages.htm#indicator-chart'>OECD</a>, the average yearly wage in the US is more than $60,000.\n
-      The employee with the highest salary in #{year} was #{max_employer} at the #{max_department} earning #{max_amount}.\n
-    HEREDOC
-
-    output << "<div style=\"font-size:18px\"><strong>Top Salaries By Department</strong></div>"
-    output << table
-
-    export = prepare_output(stage, output.squeeze(' '), export, options)
+      #{"The 100 highest earners at #{agency_name} in #{year}".to_table_title}#{table}
+    BODY
+    export = prepare_output(stage, output, export, options)
   end
+end
+
+def source_query
+  db01 = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+  db01.client.query("use #{db01.stage_db}")
+
+  query_1 = <<~SQL
+    SELECT ma_clean.DEPARTMENT_DIVISION_CLEAN AS department_division_clean,
+           ma_clean.DEPARTMENT_DIVISION AS department_division,
+           ma_top.max AS top_employee, ma_top.first_name AS top_first_name, ma_top.last_name AS top_last_name, ma_top.position_title AS top_position_title,
+           ma_total.total, ma_clean.pl_production_org_id AS org_id
+    FROM ma_public_employee_salaries AS ma
+         LEFT JOIN ma_public_employee_salaries_department_division_clean ma_clean
+                   ON ma_clean.DEPARTMENT_DIVISION = ma.department_division
+         LEFT JOIN (SELECT ROUND(AVG(pay_total_actual)) AS total, department_division
+            FROM ma_public_employee_salaries
+            WHERE year = 2019 AND pay_total_actual > 1 GROUP BY department_division
+         ) ma_total
+         ON ma_total.department_division = ma.department_division
+         JOIN (SELECT MAX(pay_total_actual) AS max, first_name, last_name, position_title, department_division
+            FROM ma_public_employee_salaries
+            WHERE year = 2019 AND pay_total_actual > 1
+         ) ma_top
+    WHERE year = 2019 AND ma.pay_total_actual > 1
+    GROUP BY ma_clean.DEPARTMENT_DIVISION_CLEAN;
+  SQL
+
+  source_1 = db01.client.query(query_1).to_a
+
+  query_2 = <<~SQL
+    SELECT ROUND(AVG(pay_total_actual)) AS avg_all
+    FROM ma_public_employee_salaries
+    WHERE year = 2019 AND pay_total_actual > 1
+  SQL
+  source_2 = db01.client.query(query_2).to_a
+
+  db01.client.close
+
+  records = []
+  source_1.each_with_index do |el, index|
+    table = get_table(el['department_division'])
+
+    record = {
+        department_division: el['department_division_clean'], avg: Numbers.money(el['total'].to_f.round).to_s.sub(/\.00$/, ''), org_id: el['org_id'],
+        avg_total: Numbers.money(source_2[0]['avg_all'].to_f.round).to_s.sub(/\.00$/, ''), top_employee: Numbers.money(el['top_employee'].to_f.round).to_s.sub(/\.00$/, ''), top_first_name: el['top_first_name'],
+        top_last_name: el['top_last_name'], top_position_title: el['top_position_title'],
+        table: table
+    }
+    puts 'index: '
+    puts index
+    puts record
+
+    records << record
+  end
+
+  records
+end
+
+def get_table(department_division)
+  db01 = Route_noprefix.new(host: DB01, stage_db: 'usa_raw')
+  db01.client.query("use #{db01.stage_db}")
+
+  query_3 = <<~SQL
+    SELECT ma_employee.first_name, ma_employee.last_name, ma_employee.pay_total_actual
+    FROM ma_public_employee_salaries AS ma
+      LEFT JOIN (SELECT * FROM ma_public_employee_salaries) ma_employee
+      ON ma_employee.department_division = ma.department_division
+    WHERE ma.year = 2019 AND ma.pay_total_actual > 1 AND ma.department_division = "#{department_division}"
+    GROUP BY ma_employee.first_name, ma_employee.last_name
+    ORDER BY ma_employee.pay_total_actual DESC
+    LIMIT 100;
+  SQL
+
+  source_table = db01.client.query(query_3).to_a.ranking_new!('pay_total_actual')
+  db01.client.close
+
+  table = StoryTable.new
+  table.header = ['Rank', 'Employee', 'Amount Earned']
+  table.content = []
+
+  source_table.each do |row|
+    table.content << [row['rank'], row['first_name'] + ' ' + row['last_name'], Numbers.money(row['pay_total_actual'].to_f.round).to_s.sub(/\.00$/, '')]
+  end
+  p 'department_division: '
+  p department_division
+  p 'source_table: '
+  p table
+  table
 end

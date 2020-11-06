@@ -13,8 +13,12 @@ population_config_id: #607
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=607 -t --date='2019-12-15' --threads_count=10 +
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=607 -t --date='2019-09-15' --threads_count=10 +
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=607 -t --date='2020-09-15' --slack_id=UKYAGBYC9
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=607 -t --date='2020-06-15' --slack_id=UKYAGBYC9
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=607 -t --date='2020-03-15' --slack_id=UKYAGBYC9
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=607 -t --date='2019-12-15' --slack_id=UKYAGBYC9
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=607 -t --date='2019-09-15' --slack_id=UKYAGBYC9
 
 
 STORY CREATOR CONFIGURATION:
@@ -23,17 +27,17 @@ insert into storycreator_configurations (tbl, template, extension, export_argume
 creation_config_id: #485
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=485 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=485 -t --slack_id=UKYAGBYC9
 
 
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=485 --population_config_id=607 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Quarter)' -t
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=485 --population_config_id=607 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Michigan - Professional Licenses Expiring by Profession Compared to prev period (County - Quarter)' -t --slack_id=UKYAGBYC9
 
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='217248,217249,217255,217306'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids='217248,217249,217255,217306' --slack_id=UKYAGBYC9
 
 
 

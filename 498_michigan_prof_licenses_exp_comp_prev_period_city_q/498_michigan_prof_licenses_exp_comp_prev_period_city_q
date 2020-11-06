@@ -13,10 +13,14 @@ population_config_id: #645
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=645 -t --date='2019-12-15' --threads_count=5 +
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=645 -t --date='2019-09-15' --threads_count=10 +
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=645 -t --date='2019-06-15' --threads_count=10 +
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=645 -t --date='2019-03-15' --threads_count=10
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=645 -t --date='2020-09-15' --slack_id=UKYAGBYC9
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=645 -t --date='2020-06-15' --slack_id=UKYAGBYC9
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=645 -t --date='2020-03-15' --slack_id=UKYAGBYC9
+
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=645 -t --date='2019-12-15' --slack_id=UKYAGBYC9
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=645 -t --date='2019-09-15' --slack_id=UKYAGBYC9
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=645 -t --date='2019-06-15' --slack_id=UKYAGBYC9
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=645 -t --date='2019-03-15' --slack_id=UKYAGBYC9
 
 
 STORY CREATOR CONFIGURATION:
