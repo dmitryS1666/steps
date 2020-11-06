@@ -59,7 +59,7 @@ irb ->
 load 'Loki.rb'
 Hle::Story::Feedback.stories_feedback('511701546,511701553,511701552')
 
-bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511747847,511747846,511747841
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511747892,511747891,511747887
 
 
 !!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
