@@ -18,35 +18,35 @@ STAGE TABLE DEFINITION
 insert into stage_definition_configurations (tbl, definition) select 'mi_voters_100_over_staging','{"city":"varchar(100)","zip":"varchar(10)","main_count":"varchar(10)","oldest":"varchar(256)","count_more_105":"varchar(100)","oldest_by_state":"varchar(256)","oldest_than":"varchar(100)","story_table":"longtext"}';
 
 
-#908
+#909
 
 STAGE TABLE CREATION
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=908 -t
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_definition' --task='create_tbl' --config_id=909 -t
 
 STAGE POPULATION CONFIGURATION
 insert into stage_population_configurations(project_name, tbl, definition) select 'MI Voters - 100 and over', 'mi_voters_100_over_staging', '{"known_entities":{"project_name":"MI Voters - 100 and over"},"resources":{":root":{"host":"db02","db":"loki_storycreator","tbl":"sort_by_once","identifier":"id","mapping":{}}},"stage_derivations":{"source_id":{"method":"as_int","arguments":{"raw_field":"id"}},"staging":{"stage_fields":["EMPTYSET"],"method":"hle_s1112_mi_voters_100_over_population","arguments":{}}}}';
 
-population_config_id: #1010
+population_config_id: #1011
 
 STAGE POPULATION:
 $ cd ~/Loki/procedures
-bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=1010 -t --slack_id=UKYAGBYC9
+bundle exec ruby Loki.rb :hle@hle_router --switch='stage_population' --config_id=1011 -t --slack_id=UKYAGBYC9
 
 
 STORY CREATOR CONFIGURATION:
 insert into storycreator_configurations (tbl, template, extension, export_arguments) select 'mi_voters_100_over_staging', 'hle_s1112_mi_voters_100_over_creation', 'stories', 'where (story_created != 1 or story_created is null) and publication_name is not null and publication_name != ""';
 
-creation_config_id: #891
+creation_config_id: #892
 
 STORY CREATION COMMAND:
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=891 -t --slack_id=UKYAGBYC9
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_creation' --config_id=892 -t --slack_id=UKYAGBYC9
 
 
 STAGING: STORY EXPORT CONFIGURATION
 см файл ‘annual sources and output’
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=891 --population_config_id=1010 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Vote' --job_item_name_description='MI Voters - 100 and over' -t --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=891 --population_config_id=1010 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Vote' --job_item_name_description='MI Voters - 100 and over' -t --where="stage.client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=892 --population_config_id=1011 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Vote' --job_item_name_description='MI Voters - 100 and over' -t --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=892 --population_config_id=1011 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Vote' --job_item_name_description='MI Voters - 100 and over' -t --where="stage.client_name like 'MM - %'"
 
 STAGING: EXPORT STORIES
 bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids= --slack_id=UKYAGBYC9 --threads_count=15
@@ -59,7 +59,7 @@ irb ->
 load 'Loki.rb'
 Hle::Story::Feedback.stories_feedback('511701546,511701553,511701552')
 
-bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511747731,511747717,511747727
+bundle exec ruby Loki.rb :hle_tools@stories_feedback -t --story_pl_ids=511747847,511747846,511747841
 
 
 !!!!!!!!!!!!!!FCD!!!!!!!!!!!!!!!!!!!!
@@ -67,8 +67,8 @@ ________________________________________________________________________________
 
 SCHEDULER:
 __________
-population_config_id: #1010
-creation_config_id: #891
+population_config_id: #1011
+creation_config_id: #892
 
 tbl: mi_voters_100_over_staging
 desc: MI Voters - 100 and over
@@ -76,7 +76,7 @@ desc: MI Voters - 100 and over
 config_id - population_config_id
 
 1112 - 10/20/Oct. 9
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=1010 --limit=10 --start_date='2020-10-09' --total_days_till_end_date=20
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=1011 --limit=10 --start_date='2020-10-09' --total_days_till_end_date=20
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -92,8 +92,8 @@ ______________________________________
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
 LGIS + MB
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=891 --population_config_id=1010 --story_section_ids=2 --story_tag_ids=126 --photobuckets='Economy' --job_item_name_description='MI Voters - 100 and over' -t --prod --limit_config=1 --where="client_id = 91"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=891 --population_config_id=1010 --story_section_ids=16 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='MI Voters - 100 and over' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=892 --population_config_id=1011 --story_section_ids=2 --story_tag_ids=126 --photobuckets='Economy' --job_item_name_description='MI Voters - 100 and over' -t --prod --limit_config=1 --where="client_id = 91"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=892 --population_config_id=1011 --story_section_ids=16 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='MI Voters - 100 and over' -t --prod --limit_config=1 --where="client_id = 120"
 
 ______________________________________
 
@@ -102,8 +102,8 @@ select * from story_export_configurations_v2 where tbl = 'mi_voters_100_over_sta
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=891 --population_config_id=1010 --story_section_ids=2 --story_tag_ids=126 --photobuckets='Economy' --job_item_name_description='MI Voters - 100 and over' -t --prod --where="client_id = 91"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=891 --population_config_id=1010 --story_section_ids=16 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='MI Voters - 100 and over' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=892 --population_config_id=1011 --story_section_ids=2 --story_tag_ids=126 --photobuckets='Economy' --job_item_name_description='MI Voters - 100 and over' -t --prod --where="client_id = 91"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=892 --population_config_id=1011 --story_section_ids=16 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='MI Voters - 100 and over' -t --prod --where="client_id = 120"
 _________
 повторяем
 
@@ -127,7 +127,7 @@ _____
 IF OK
 _____
 
---threads_count=7 | 13140961 | 131401010
+--threads_count=7 | 13140961 | 131401011
 
 bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='376309,376326,376305,376308,376302,376314,376316,376296,376297,376324,376317,376327,376315,376298,376321,376322,376295,376328,376318,376306,376300,376310,376304,376313,376325,376301,376303,376299,376319,376312,376323,376311,376320,376307' --threads_count=10 --slack_id=UKYAGBYC9
 ___________________________
@@ -273,13 +273,14 @@ def s1112_mi_voters_100_over_stage_creation(options)
     oldest_by_state_age   = stage['oldest_by_state'][/\d+/].to_i
 
     oldest_than       = stage['oldest_than'].to_i
-    percent           = (count_more_105 * 100 / main_count).abs.round(1)
+    voters            = main_count == 1 ? 'voter' : 'voters'
+    is_are            = main_count == 1 ? 'is' : 'are'
 
     url_1 = "https://www.asaging.org/blog/global-look-oldest-old-and-centenarians-it-genes-diet-luck-or-all-combined"
     url_2 = "http://supercentenarian-research-foundation.org/TableE.aspx"
 
     if count_more_105 > 1 && count_more_105 > 0
-      second_sentence = "The oldest of these voters, #{oldest_name}, is #{oldest_age} years old. #{count_more_105} voters were over 105 years old, making up #{percent} percent of the registered voters in the zip code. According to the #{"American Society on Aging".to_link(url_1)}, there are an estimated 80,000 centenarians in the United States."
+      second_sentence = "The oldest of these voters, #{oldest_name}, is #{oldest_age} years old. There are #{Numbers.num_to_words(count_more_105)} registered voters over the age of 105 in the zip code. According to the #{"American Society on Aging".to_link(url_1)}, there are an estimated 80,000 centenarians in the United States."
     elsif count_more_105 > 1 && count_more_105 < 1
       second_sentence = "The oldest of these voters, #{oldest_name}, is #{oldest_age} years old. According to the #{"American Society on Aging".to_link(url_1)}, there are an estimated 80,000 centenarians in the United States."
     else
@@ -288,15 +289,15 @@ def s1112_mi_voters_100_over_stage_creation(options)
 
     export = {}
     export['headline'] = <<~HEADER.squeeze(' ').chomp
-      #{main_count} registered voters in zip code #{zip} are over 100 years old
+      #{main_count} registered #{voters} in zip code #{zip} #{is_are} over 100 years old
     HEADER
     export['teaser'] = <<~TEASER.squeeze(' ').chomp
-      In zip code #{zip}, there are # registered voters over the age of 100, according to the Michigan Secretary of State.
+      In zip code #{zip}, there #{is_are} #{Numbers.num_to_words(main_count)} registered #{voters} over the age of 100, according to the Wisconsin Secretary of State.
     TEASER
     output = <<~BODY.squeeze(' ').chomp
-      In zip code #{zip}, # voters over the age of 100 are registered to vote, according to the Michigan Secretary of State.
+      In zip code #{zip}, #{Numbers.num_to_words(main_count)} #{voters} over the age of 100 #{is_are} registered to vote, according to the Wisconsin Secretary of State.
       #{second_sentence}
-      Statewide, the oldest voter is #{oldest_by_state_name} at #{oldest_by_state_age} years old. There are #{oldest_than} individuals on Michigan voter rolls who are currently listed as having been born before the oldest living person in the United States, Hester Ford. Ford was born August 15, 1905, according to the #{"Supercentenarian Research Foundation".to_link(url_2)}. This could indicate that the state's voter registration data is outdated or that deceased voters are not being removed from the registry and someone is voting in their name.
+      Statewide, the oldest voter is #{oldest_by_state_name} at #{oldest_by_state_age} years old. There are #{oldest_than} individuals on Wisconsin voter rolls who are currently listed as having been born before the oldest living person in the United States, Hester Ford. Ford was born August 15, 1905, according to the #{"Supercentenarian Research Foundation".to_link(url_2)}. This could indicate that the state's voter registration data is outdated or that deceased voters are not being removed from the registry and someone is voting in their name.
       #{"Voters over the age of 100 in zip code #{zip}".to_table_title}#{table}
     BODY
     prepare_output(stage, output, export, options)
@@ -327,9 +328,6 @@ def source_query
           count_more_105: get_count_more_105(el['zip'])['count'], oldest_by_state: oldest_by_state['name'] + '/' + (Time.now.year.to_i - Date.parse("#{oldest_by_state['birthDate']}").strftime("%Y").to_i).to_s, oldest_than: get_oldest_than['count'], org_id: org['org_id'],
           table: get_table(oldest)
       }
-      puts 'record: '
-      puts record
-      puts '=-------------------------='
       records << record
     end
   end
@@ -345,25 +343,10 @@ def get_table(result)
 
   result.each do |row|
     table.content << [
-        row['name'], row['address'], row['birthdate'], row['voter_id']
+        row['name'], Address.abbreviated_streets(row['address']), row['birthDate'], row['voter_id']
     ]
   end
   table
-end
-
-def get_table_data(db01, city, year, state, month)
-  query = <<~SQL
-    SELECT city, median_price, monthly_change, yearly_change
-    FROM usa_raw.national_rent_report_by_city AS main
-        join usa_raw.usa_administrative_division_states state on state.short_name = "#{state}"
-        join usa_raw.usa_administrative_division_counties_places_matching org on main.city = org.short_name and org.state_name = state.name
-    WHERE main.city = "#{city}" AND main.year = "#{year}" AND main.month = "#{month}"  AND main.num_bedrooms = 1;
-  SQL
-  res = []
-  db01.client.query(query).to_a.each do |el|
-    res << [el['city'], Numbers.money(el['median_price']), (el['monthly_change'].to_f * 100).round(1).to_s.sub(/\.0$/,''), (el['yearly_change'].to_f * 100).round(1).to_s.sub(/\.0$/,'')]
-  end
-  res
 end
 
 def get_count_by_zip(zip)
@@ -449,7 +432,7 @@ def get_org_id_by_county(city)
   query = <<~SQL
     SELECT pl_production_org_id AS org_id, place_name
     FROM usa_raw.usa_administrative_division_counties_places_matching
-    WHERE short_name = "#{city}" AND state_name = 'Michigan' AND pl_production_org_id IS NOT NULL
+    WHERE short_name = "#{city}" AND state_name = 'Wisconsin' AND pl_production_org_id IS NOT NULL
     GROUP BY org_id;
   SQL
 
