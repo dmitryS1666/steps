@@ -289,15 +289,15 @@ def s1112_mi_voters_100_over_stage_creation(options)
 
     export = {}
     export['headline'] = <<~HEADER.squeeze(' ').chomp
-      #{main_count} registered #{voters} in zip code #{zip} #{is_are} over 100 years old
+      #{main_count} #{voters} in zip code #{zip} #{is_are} over 100 years old
     HEADER
     export['teaser'] = <<~TEASER.squeeze(' ').chomp
-      In zip code #{zip}, there #{is_are} #{Numbers.num_to_words(main_count)} registered #{voters} over the age of 100, according to the Wisconsin Secretary of State.
+      In zip code #{zip}, there #{is_are} #{Numbers.num_to_words(main_count)} #{voters} over the age of 100, according to the Michigan Secretary of State.
     TEASER
     output = <<~BODY.squeeze(' ').chomp
-      In zip code #{zip}, #{Numbers.num_to_words(main_count)} #{voters} over the age of 100 #{is_are} registered to vote, according to the Wisconsin Secretary of State.
+      In zip code #{zip}, there #{is_are} #{Numbers.num_to_words(main_count)} #{voters} over the age of 100, according to the Michigan Secretary of State.
       #{second_sentence}
-      Statewide, the oldest voter is #{oldest_by_state_name} at #{oldest_by_state_age} years old. There are #{oldest_than} individuals on Wisconsin voter rolls who are currently listed as having been born before the oldest living person in the United States, Hester Ford. Ford was born August 15, 1905, according to the #{"Supercentenarian Research Foundation".to_link(url_2)}. This could indicate that the state's voter registration data is outdated or that deceased voters are not being removed from the registry and someone is voting in their name.
+      Statewide, the oldest voter is #{oldest_by_state_name} at #{oldest_by_state_age} years old. There are #{Numbers.numbers_add_commas(oldest_than)} individuals on Michigan voter rolls who are currently listed as born before the oldest living person in the United States, Hester Ford. Ford was born August 15, 1905, according to the #{"Supercentenarian Research Foundation".to_link(url_2)}. This could indicate that the state's voter registration data is outdated or that deceased voters are not being removed from the registry and someone is voting in their name.
       #{"Voters over the age of 100 in zip code #{zip}".to_table_title}#{table}
     BODY
     prepare_output(stage, output, export, options)
@@ -305,18 +305,19 @@ def s1112_mi_voters_100_over_stage_creation(options)
 end
 
 def source_query
-  db15 = Route_noprefix.new(host: DB15, raw_db: 'voters_wi_stage')
-  db15.client.query('use voters_wi_stage;')
+  counter     = 0
+
+  db14 = Route_noprefix.new(host: DB14, raw_db: 'voters_mi_stage')
+  db14.client.query('use voters_mi_stage;')
 
   query = <<~SQL
-    select a.zip, a.city from voters_wi_stage.voters v
-    join voters_wi_stage.addresses a on v.voter_id = a.voter_id
+    select a.zip, a.city from voters_mi_stage.voters v
+    join voters_mi_stage.addresses a on v.voter_id = a.voter_id
     WHERE v.BirthDate <= '1920-11-05' and v.BirthDate > '0000-00-00'
-    GROUP BY a.zip
-    LIMIT 70;
+    GROUP BY a.zip;
   SQL
 
-  source_1 = db15.client.query(query).to_a
+  source_1 = db14.client.query(query).to_a
 
   records = []
   source_1.each do |el|
@@ -329,9 +330,12 @@ def source_query
           table: get_table(oldest)
       }
       records << record
+      counter += 1
+      print 'record: '
+      print "#{counter} ".green
     end
   end
-  db15.client.close
+  db14.client.close
 
   records
 end
@@ -350,78 +354,76 @@ def get_table(result)
 end
 
 def get_count_by_zip(zip)
-  db15 = Route_noprefix.new(host: DB15, raw_db: 'voters_wi_stage')
-  db15.client.query('use voters_wi_stage;')
+  db14 = Route_noprefix.new(host: DB14, raw_db: 'voters_mi_stage')
+  db14.client.query('use voters_mi_stage;')
 
   query = <<~SQL
-    select COUNT(v.id) AS count from voters_wi_stage.voters v
-    join voters_wi_stage.addresses a on v.voter_id = a.voter_id
+    select COUNT(v.id) AS count from voters_mi_stage.voters v
+    join voters_mi_stage.addresses a on v.voter_id = a.voter_id
     WHERE v.BirthDate <= '1920-11-05' and v.BirthDate > '0000-00-00' AND a.zip = "#{zip}";
   SQL
 
-  db15.client.query(query).to_a[0]
+  db14.client.query(query).to_a[0]
 end
 
 def get_oldest(zip)
-  db15_1 = Route_noprefix.new(host: DB15, raw_db: 'voters_wi_stage')
-  db15_1.client.query('use voters_wi_stage;')
+  db14_1 = Route_noprefix.new(host: DB14, raw_db: 'voters_mi_stage')
+  db14_1.client.query('use voters_mi_stage;')
 
   query = <<~SQL
-    select CONCAT(v.FirstName, ' ', v.MiddleName, ' ', v.LastName) as name, a.address, v.BirthDate as birthDate, v.voter_id from voters_wi_stage.voters v
-    join voters_wi_stage.addresses a on v.voter_id = a.voter_id
+    select CONCAT(v.FirstName, ' ', v.MiddleName, ' ', v.LastName) as name, a.address, v.BirthDate as birthDate, v.voter_id from voters_mi_stage.voters v
+    join voters_mi_stage.addresses a on v.voter_id = a.voter_id
     WHERE v.BirthDate <= '1920-11-05' and v.BirthDate > '0000-00-00' AND a.zip = "#{zip}"
     ORDER BY v.BirthDate;
   SQL
 
-  source = db15_1.client.query(query).to_a
-  db15_1.client.close
+  source = db14_1.client.query(query).to_a
+  db14_1.client.close
   source
 end
 
 def get_oldest_by_state
-  db15_2 = Route_noprefix.new(host: DB15, raw_db: 'voters_wi_stage')
-  db15_2.client.query('use voters_wi_stage;')
+  db14_2 = Route_noprefix.new(host: DB14, raw_db: 'voters_mi_stage')
+  db14_2.client.query('use voters_mi_stage;')
 
   query = <<~SQL
-    select CONCAT(v.FirstName, ' ', v.MiddleName, ' ', v.LastName) as name, v.BirthDate as birthDate from voters_wi_stage.voters v
-    join voters_wi_stage.addresses a on v.voter_id = a.voter_id
+    select CONCAT(v.FirstName, ' ', v.MiddleName, ' ', v.LastName) as name, v.BirthDate as birthDate from voters_mi_stage.voters v
     WHERE v.BirthDate <= '1920-11-05' and v.BirthDate > '0000-00-00'
     ORDER BY v.BirthDate
     LIMIT 1;
   SQL
 
-  source = db15_2.client.query(query).to_a
-  db15_2.client.close
+  source = db14_2.client.query(query).to_a
+  db14_2.client.close
   source
 end
 
 def get_count_more_105(zip)
-  db15_3 = Route_noprefix.new(host: DB15, raw_db: 'voters_wi_stage')
-  db15_3.client.query('use voters_wi_stage;')
+  db14_3 = Route_noprefix.new(host: DB14, raw_db: 'voters_mi_stage')
+  db14_3.client.query('use voters_mi_stage;')
 
   query = <<~SQL
-    select COUNT(v.id) AS count from voters_wi_stage.voters v
-    join voters_wi_stage.addresses a on v.voter_id = a.voter_id
+    select COUNT(v.id) AS count from voters_mi_stage.voters v
+    join voters_mi_stage.addresses a on v.voter_id = a.voter_id
     WHERE v.BirthDate <= '1915-11-05' and v.BirthDate > '0000-00-00' AND a.zip = "#{zip}";
   SQL
 
-  source = db15_3.client.query(query).to_a[0]
-  db15_3.client.close
+  source = db14_3.client.query(query).to_a[0]
+  db14_3.client.close
   source
 end
 
 def get_oldest_than
-  db15_4 = Route_noprefix.new(host: DB15, raw_db: 'voters_wi_stage')
-  db15_4.client.query('use voters_wi_stage;')
+  db14_4 = Route_noprefix.new(host: DB14, raw_db: 'voters_mi_stage')
+  db14_4.client.query('use voters_mi_stage;')
 
   query = <<~SQL
-    select COUNT(v.id) AS count from voters_wi_stage.voters v
-    join voters_wi_stage.addresses a on v.voter_id = a.voter_id
-    WHERE v.BirthDate <= '1905-08-15' and v.BirthDate > '0000-00-00';
+    select COUNT(v.id) AS count from voters_mi_stage.voters v
+    WHERE v.BirthDate <= '1905-08-14' and v.BirthDate > '0000-00-00';
   SQL
 
-  source = db15_4.client.query(query).to_a[0]
-  db15_4.client.close
+  source = db14_4.client.query(query).to_a[0]
+  db14_4.client.close
   source
 end
 
@@ -432,7 +434,7 @@ def get_org_id_by_county(city)
   query = <<~SQL
     SELECT pl_production_org_id AS org_id, place_name
     FROM usa_raw.usa_administrative_division_counties_places_matching
-    WHERE short_name = "#{city}" AND state_name = 'Wisconsin' AND pl_production_org_id IS NOT NULL
+    WHERE short_name = "#{city}" AND state_name = 'Michigan' AND pl_production_org_id IS NOT NULL
     GROUP BY org_id;
   SQL
 

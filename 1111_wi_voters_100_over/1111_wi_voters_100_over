@@ -49,7 +49,7 @@ bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=891 --popul
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=891 --population_config_id=1010 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Vote' --job_item_name_description='WI Voters - 100 and over' -t --where="stage.client_name like 'MM - %'"
 
 STAGING: EXPORT STORIES
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_ids= --slack_id=UKYAGBYC9 --threads_count=15
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' -t -creator='Dmitry Suschinsky' --stage_tbl_org --config_id=379912 --slack_id=UKYAGBYC9 --threads_count=15
 
 
 
@@ -273,13 +273,14 @@ def s1111_wi_voters_100_over_stage_creation(options)
     oldest_by_state_age   = stage['oldest_by_state'][/\d+/].to_i
 
     oldest_than       = stage['oldest_than'].to_i
-    percent           = (count_more_105 * 100 / main_count).abs.round(1)
+    voters            = main_count == 1 ? 'voter' : 'voters'
+    is_are            = main_count == 1 ? 'is' : 'are'
 
     url_1 = "https://www.asaging.org/blog/global-look-oldest-old-and-centenarians-it-genes-diet-luck-or-all-combined"
     url_2 = "http://supercentenarian-research-foundation.org/TableE.aspx"
 
     if count_more_105 > 1 && count_more_105 > 0
-      second_sentence = "The oldest of these voters, #{oldest_name}, is #{oldest_age} years old. #{count_more_105} voters were over 105 years old, making up #{percent} percent of the registered voters in the zip code. According to the #{"American Society on Aging".to_link(url_1)}, there are an estimated 80,000 centenarians in the United States."
+      second_sentence = "The oldest of these voters, #{oldest_name}, is #{oldest_age} years old. There are #{Numbers.num_to_words(count_more_105)} registered voters over the age of 105 in the zip code. According to the #{"American Society on Aging".to_link(url_1)}, there are an estimated 80,000 centenarians in the United States."
     elsif count_more_105 > 1 && count_more_105 < 1
       second_sentence = "The oldest of these voters, #{oldest_name}, is #{oldest_age} years old. According to the #{"American Society on Aging".to_link(url_1)}, there are an estimated 80,000 centenarians in the United States."
     else
@@ -288,15 +289,15 @@ def s1111_wi_voters_100_over_stage_creation(options)
 
     export = {}
     export['headline'] = <<~HEADER.squeeze(' ').chomp
-      #{main_count} registered voters in zip code #{zip} are over 100 years old
+      #{main_count} registered #{voters} in zip code #{zip} #{is_are} over 100 years old
     HEADER
     export['teaser'] = <<~TEASER.squeeze(' ').chomp
-      In zip code #{zip}, there are # registered voters over the age of 100, according to the Wisconsin Secretary of State.
+      In zip code #{zip}, there #{is_are} #{Numbers.num_to_words(main_count)} registered #{voters} over the age of 100, according to the Wisconsin Secretary of State.
     TEASER
     output = <<~BODY.squeeze(' ').chomp
-      In zip code #{zip}, # voters over the age of 100 are registered to vote, according to the Wisconsin Secretary of State.
+      In zip code #{zip}, there #{is_are} #{Numbers.num_to_words(main_count)} registered #{voters} over the age of 100, according to the Wisconsin Secretary of State.
       #{second_sentence}
-      Statewide, the oldest voter is #{oldest_by_state_name} at #{oldest_by_state_age} years old. There are #{oldest_than} individuals on Wisconsin voter rolls who are currently listed as having been born before the oldest living person in the United States, Hester Ford. Ford was born August 15, 1905, according to the #{"Supercentenarian Research Foundation".to_link(url_2)}. This could indicate that the state's voter registration data is outdated or that deceased voters are not being removed from the registry and someone is voting in their name.
+      Statewide, the oldest voter is #{oldest_by_state_name} at #{oldest_by_state_age} years old. There are #{Numbers.numbers_add_commas(oldest_than)} individuals on Wisconsin voter rolls who are currently listed as born before the oldest living person in the United States, Hester Ford. Ford was born August 15, 1905, according to the #{"Supercentenarian Research Foundation".to_link(url_2)}. This could indicate that the state's voter registration data is outdated or that deceased voters are not being removed from the registry and someone is voting in their name.
       #{"Voters over the age of 100 in zip code #{zip}".to_table_title}#{table}
     BODY
     prepare_output(stage, output, export, options)
@@ -304,6 +305,8 @@ def s1111_wi_voters_100_over_stage_creation(options)
 end
 
 def source_query
+  counter     = 0
+
   db15 = Route_noprefix.new(host: DB15, raw_db: 'voters_wi_stage')
   db15.client.query('use voters_wi_stage;')
 
@@ -311,8 +314,7 @@ def source_query
     select a.zip, a.city from voters_wi_stage.voters v
     join voters_wi_stage.addresses a on v.voter_id = a.voter_id
     WHERE v.BirthDate <= '1920-11-05' and v.BirthDate > '0000-00-00'
-    GROUP BY a.zip
-    LIMIT 70;
+    GROUP BY a.zip;
   SQL
 
   source_1 = db15.client.query(query).to_a
@@ -327,10 +329,10 @@ def source_query
           count_more_105: get_count_more_105(el['zip'])['count'], oldest_by_state: oldest_by_state['name'] + '/' + (Time.now.year.to_i - Date.parse("#{oldest_by_state['birthDate']}").strftime("%Y").to_i).to_s, oldest_than: get_oldest_than['count'], org_id: org['org_id'],
           table: get_table(oldest)
       }
-      puts 'record: '
-      puts record
-      puts '=-------------------------='
       records << record
+      counter += 1
+      print 'record: '
+      print "#{counter} ".green
     end
   end
   db15.client.close
@@ -345,25 +347,10 @@ def get_table(result)
 
   result.each do |row|
     table.content << [
-        row['name'], row['address'], row['birthdate'], row['voter_id']
+        row['name'], Address.abbreviated_streets(row['address']), row['birthDate'], row['voter_id']
     ]
   end
   table
-end
-
-def get_table_data(db01, city, year, state, month)
-  query = <<~SQL
-    SELECT city, median_price, monthly_change, yearly_change
-    FROM usa_raw.national_rent_report_by_city AS main
-        join usa_raw.usa_administrative_division_states state on state.short_name = "#{state}"
-        join usa_raw.usa_administrative_division_counties_places_matching org on main.city = org.short_name and org.state_name = state.name
-    WHERE main.city = "#{city}" AND main.year = "#{year}" AND main.month = "#{month}"  AND main.num_bedrooms = 1;
-  SQL
-  res = []
-  db01.client.query(query).to_a.each do |el|
-    res << [el['city'], Numbers.money(el['median_price']), (el['monthly_change'].to_f * 100).round(1).to_s.sub(/\.0$/,''), (el['yearly_change'].to_f * 100).round(1).to_s.sub(/\.0$/,'')]
-  end
-  res
 end
 
 def get_count_by_zip(zip)
@@ -401,7 +388,6 @@ def get_oldest_by_state
 
   query = <<~SQL
     select CONCAT(v.FirstName, ' ', v.MiddleName, ' ', v.LastName) as name, v.BirthDate as birthDate from voters_wi_stage.voters v
-    join voters_wi_stage.addresses a on v.voter_id = a.voter_id
     WHERE v.BirthDate <= '1920-11-05' and v.BirthDate > '0000-00-00'
     ORDER BY v.BirthDate
     LIMIT 1;
@@ -433,7 +419,6 @@ def get_oldest_than
 
   query = <<~SQL
     select COUNT(v.id) AS count from voters_wi_stage.voters v
-    join voters_wi_stage.addresses a on v.voter_id = a.voter_id
     WHERE v.BirthDate <= '1905-08-15' and v.BirthDate > '0000-00-00';
   SQL
 
