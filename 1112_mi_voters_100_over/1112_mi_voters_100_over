@@ -2,16 +2,16 @@ MI Voters - 100 and over
 https://docs.google.com/document/d/1cbPPa-cpMa6qG6207d0S67_TrOhChg6vVUcApGe_n7M/edit
 
 @john.putz
-First Export. Approved by James and Aby Yusuf
+First Export. Approved by @James and @Aby Yusuf
 Dev Name: Dmitry S.
 Story type Name: #1112 MI Voters - 100 and over
-FCD:
-Sample story:
+FCD: https://docs.google.com/document/d/1Bt9uXd77o9F8hj9VgMkdT8y89UzIMAGuA32ogrUCygg/edit#
+Sample story: https://pipeline-staging.locallabs.com/stories/511748093
 Period: Once
-Total Count:
+Total Count: 1222
 Max Project Count by client:
-MB -
-MM -
+MB - 653
+MM - 88
 _____________________________________________________
 
 STAGE TABLE DEFINITION
@@ -75,8 +75,8 @@ desc: MI Voters - 100 and over
 
 config_id - population_config_id
 
-1112 - 10/20/Oct. 9
-bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=1011 --limit=10 --start_date='2020-10-09' --total_days_till_end_date=20
+1112 -- 50/15/Nov 12
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=1011 --limit=50 --start_date='2020-11-12' --total_days_till_end_date=15
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
@@ -91,9 +91,9 @@ ______________________________________
 --where="client_name like 'MM - %'"
 
 РАЗБИВКА ПО КЛИНЕТАМ!!!
-LGIS + MB
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=892 --population_config_id=1011 --story_section_ids=2 --story_tag_ids=126 --photobuckets='Economy' --job_item_name_description='MI Voters - 100 and over' -t --prod --limit_config=1 --where="client_id = 91"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=892 --population_config_id=1011 --story_section_ids=16 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='MI Voters - 100 and over' -t --prod --limit_config=1 --where="client_id = 120"
+MM + MB
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=892 --population_config_id=1011 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Vote' --job_item_name_description='MI Voters - 100 and over' -t --prod --limit_config=1 --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=892 --population_config_id=1011 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Vote' --job_item_name_description='MI Voters - 100 and over' -t --prod --limit_config=1 --where="stage.client_name like 'MM - %'"
 
 ______________________________________
 
@@ -102,8 +102,8 @@ select * from story_export_configurations_v2 where tbl = 'mi_voters_100_over_sta
 ______________________________________
 если все ок, то выполняем без --limit_config=1
 
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=892 --population_config_id=1011 --story_section_ids=2 --story_tag_ids=126 --photobuckets='Economy' --job_item_name_description='MI Voters - 100 and over' -t --prod --where="client_id = 91"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=892 --population_config_id=1011 --story_section_ids=16 --story_tag_ids=3 --photobuckets='Economy' --job_item_name_description='MI Voters - 100 and over' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=892 --population_config_id=1011 --story_section_ids=2 --story_tag_ids=3 --photobuckets='Vote' --job_item_name_description='MI Voters - 100 and over' -t --prod --where="client_id = 120"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=892 --population_config_id=1011 --story_section_ids=16 --story_tag_ids=126 --photobuckets='Vote' --job_item_name_description='MI Voters - 100 and over' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
 
@@ -121,7 +121,7 @@ __________________________
 PRODUCTION: EXPORT STORIES
 __________________________
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='376309'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='380279'
 
 _____
 IF OK
@@ -129,7 +129,7 @@ _____
 
 --threads_count=7 | 13140961 | 131401011
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='376309,376326,376305,376308,376302,376314,376316,376296,376297,376324,376317,376327,376315,376298,376321,376322,376295,376328,376318,376306,376300,376310,376304,376313,376325,376301,376303,376299,376319,376312,376323,376311,376320,376307' --threads_count=10 --slack_id=UKYAGBYC9
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='380259,380279,380273,380264,380271,380265,380269,380277,380276,380274,380260,380254,380261,380283,380284,380272,380266,380263,380275,380257,380267,380281,380278,380280,380258,380255,380268,380256,380270,380282,380262' --threads_count=10 --slack_id=UKYAGBYC9
 ___________________________
 
 
