@@ -8,10 +8,11 @@ Story type Name: #979 Arizona - Professional License Type Expiring in the Coming
 FCD: https://docs.google.com/document/d/1FdNdcObuBZH_VRRCAzDLYZSBcGun7zAmkEMzi-oG79Y/edit#
 Sample story: https://pipeline-staging.locallabs.com/stories/511744170
 Period: 2020/11/02 - 2020/11/08
-Total Count: 177
+Total Count: 89 + 179
 Max Project Count by client:
-MB - 42
-MM - 32
+MB - 25 + 51
+MM - 19 + 32
+
 _____________________________________________________
 
 STAGE TABLE DEFINITION
@@ -82,6 +83,9 @@ bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=956 --limit=20 --star
 
 979 -- 10/07/Oct. 30
 bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=956 --limit=10 --start_date='2020-10-30' --total_days_till_end_date=7
+
+979 -- 20/4/Nov 20
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=956 --limit=20 --start_date='2020-11-20' --total_days_till_end_date=4
 
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
