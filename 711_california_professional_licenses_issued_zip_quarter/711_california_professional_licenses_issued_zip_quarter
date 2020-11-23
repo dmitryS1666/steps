@@ -1,3 +1,22 @@
+@john.putz
+Follow-up Export
+Dev Name: Dmitry S.
+Story type Name: #711 California - Professional Licenses Issued (Zip - Quarter)
+FCD: https://docs.google.com/document/d/1H2G6Fe-ptDl56gYBJwKyNWwdHXAGnU0nBXykSQ3R4F8/edit#
+Sample story: https://pipeline-staging.locallabs.com/stories/511708452
+Period: Q22020
+Total Count: 761
+Max Project Count by client:
+MB - 226
+MM - 62
+Period: Q32020
+Total Count: 823
+Max Project Count by client:
+MB - 280
+MM - 65
+
+
+
 California - Professional Licenses Issued (Zip - Quarter)
 https://docs.google.com/document/d/1nwQLZJy8N-mX5uHJPzE5g866L2zn-f0Bh3LxtEWLeOE/edit#heading=h.gjdgxs
 
@@ -67,6 +86,9 @@ config_id - population_config_id
 Up to 3 stories per day, per publication, for up to 90 days, starting May 10
 bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=755 --limit=3 --start_date='2020-05-10' --total_days_till_end_date=90
 
+711 - 20/90/Nov 22
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=755 --limit=20 --start_date='2020-11-22' --total_days_till_end_date=90
+
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
@@ -118,7 +140,7 @@ _____
 
 --threads_count=7 | 13140961 | 13140960
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='326284,326300,326290,326288,326287,326293,326297,326286,326285,326295,326292,326296,326294,326291,326299,326289,326301,326298,'
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='326284,326300,326290,326288,326287,326293,326297,326286,326285,326295,326292,326296,326294,326291,326299,326289,326301,326298' --threads_count=7
 ___________________________
 
 

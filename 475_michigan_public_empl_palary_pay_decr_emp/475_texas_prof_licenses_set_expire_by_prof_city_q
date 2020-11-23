@@ -75,6 +75,12 @@ config_id - population_config_id
 
 Up to 9 stories per day, per publication, for up to 72 days, starting January 17.
 bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=582 --limit=9 --start_date='2020-01-18' --total_days_till_end_date=72
+
+Q2 -- 15/30/Nov 11
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=582 --limit=15 --start_date='2020-11-11' --total_days_till_end_date=30 --where="stage.quarter = 'second quarter of 2020'"
+
+Q3 -- 15/90/Dec 7
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=582 --limit=15 --start_date='2020-12-07' --total_days_till_end_date=90 --where="stage.quarter = 'third quarter of 2020'"
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
@@ -98,7 +104,7 @@ ______________________________________
 если все ок, то выполняем без --limit_config=1
 
 bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=462 --population_config_id=582 --story_section_ids=2 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Texas - Professional Licenses Set to Expire by Profession (City - Quarter)' -t --prod --where="client_id = 120"
-bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=462 --population_config_id=582 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Texas - Professional Licenses Set to Expire by Profession (City - Quarter)' -t --prod --where="client_name like 'MM - %'"
+bundle exec ruby Loki.rb :hle@hle_config_export --creation_config_id=462 --population_config_id=582 --story_section_ids=16 --story_tag_ids=9 --photobuckets='General Business - 1000x667' --job_item_name_description='Texas - Professional Licenses Set to Expire by Profession (City - Quarter)' -t --prod --where="stage.client_name like 'MM - %'"
 _________
 повторяем
 
@@ -123,7 +129,7 @@ _____
 
 --threads_count=7
 
-bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='219627,219594,219575,219616,219591,219595,219618,219612,219624,219635,219611,219641,219629,219620,219581,219632,219613,219583,219623,219634,219576,219593,219585,219592,219586,219587,219588,219626,219633,219603,219614,219606,219596,219577,219578,219579,219608,219600,219621,219609,219615,219607,219599,219604,219584,219598,219642,219619,219617,219610,219637,219631,219589,219601,219580,219628,219638,219582,219597,219622,219590,219630,219636,219625,219640,219602,219639,219605' --threads_count=7
+bundle exec ruby Loki.rb :hle@hle_router --switch='story_export' --prod --stage_tbl_org --creator='Dmitry Suschinsky' -t --hunter=0 --publish_on --published=1 --config_ids='219627,219594,219575,219616,219591,219595,219618,219612,219624,219635,219611,219641,219629,219620,219581,219632,219613,219583,219623,219634,219576,219593,219585,219592,219586,219587,219588,219626,219633,219603,219614,219606,219596,219577,219578,219579,219608,219600,219621,219609,219615,219607,219599,219604,219584,219598,219642,219619,219617,219610,219637,219631,219589,219601,219580,219628,219638,219582,219597,219622,219590,219630,219636,219625,219640,219602,219639,219605,380288,380287,380286,380285' --threads_count=7 --slack_id=UKYAGBYC9
 ___________________________
 
 
