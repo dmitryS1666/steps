@@ -87,6 +87,9 @@ bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=956 --limit=10 --star
 979 -- 20/4/Nov 20
 bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=956 --limit=20 --start_date='2020-11-20' --total_days_till_end_date=4
 
+979 -- 30/7/start 7
+bundle exec ruby Loki.rb :hle@hle_scheduler -t --config_id=956 --limit=30 --start_date='2020-11-29' --total_days_till_end_date=7
+
 __________________________________________________
 чтоб проверить шедулер, что он "окейно" отработал:
 
